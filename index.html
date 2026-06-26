@@ -1,37 +1,106 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transformers: Cyber Battle</title>
-
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Transformers: Cyber Battle</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#111;font-family:Arial,sans-serif}
+#ui{position:fixed;left:12px;top:12px;color:#fff;font-size:20px;text-shadow:1px 1px 2px #000}
+#help{position:fixed;right:12px;top:12px;color:#fff;background:#0008;padding:8px;border-radius:8px}
+canvas{display:block}
+</style>
 </head>
 <body>
-
 <div id="ui">
-    <h2>Transformers: Cyber Battle</h2>
-
-    <div>Health</div>
-    <div class="bar">
-        <div id="health"></div>
-    </div>
-
-    <div>Energy</div>
-    <div class="bar">
-        <div id="energy"></div>
-    </div>
-
-    <div id="xp">XP: 0</div>
-
-    <div id="controls">
-        WASD = Move<br>
-        Space = Shoot<br>
-        T = Transform
-    </div>
+<div id="health">Health:100</div>
+<div id="score">Score:0</div>
 </div>
+<div id="help">
+WASD Move<br>
+Mouse Aim<br>
+Click Shoot<br>
+T Transform<br>
+R Respawn
+</div>
+<canvas id="game"></canvas>
+<script>
+const c=document.getElementById("game"),x=c.getContext("2d");
+function resize(){c.width=innerWidth;c.height=innerHeight;}resize();onresize=resize;
 
-<script type="module" src="script.js"></script>
+let player={x:200,y:200,r:18,health:100,score:0,car:false,speed:3};
+let bullets=[],enemies=[];
+const keys={};
 
+for(let i=0;i<8;i++)spawnEnemy();
+
+function spawnEnemy(){
+ enemies.push({x:Math.random()*c.width,y:Math.random()*c.height,r:16,h:100});
+}
+
+addEventListener("keydown",e=>{
+ keys[e.key.toLowerCase()]=true;
+ if(e.key.toLowerCase()=="t")player.car=!player.car;
+ if(e.key.toLowerCase()=="r")respawn();
+});
+addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
+
+let mouse={x:0,y:0};
+addEventListener("mousemove",e=>{mouse.x=e.clientX;mouse.y=e.clientY;});
+addEventListener("mousedown",()=>{
+ let a=Math.atan2(mouse.y-player.y,mouse.x-player.x);
+ bullets.push({x:player.x,y:player.y,vx:Math.cos(a)*8,vy:Math.sin(a)*8});
+});
+
+function respawn(){
+ player.x=200;player.y=200;player.health=100;player.score=0;
+ bullets.length=0;enemies.length=0;
+ for(let i=0;i<8;i++)spawnEnemy();
+}
+
+function update(){
+ let s=player.car?5:3;
+ if(keys.w)player.y-=s;
+ if(keys.s)player.y+=s;
+ if(keys.a)player.x-=s;
+ if(keys.d)player.x+=s;
+
+ bullets.forEach(b=>{b.x+=b.vx;b.y+=b.vy;});
+ bullets=bullets.filter(b=>b.x>-20&&b.x<c.width+20&&b.y>-20&&b.y<c.height+20);
+
+ for(let e of enemies){
+   let dx=player.x-e.x,dy=player.y-e.y,d=Math.hypot(dx,dy)||1;
+   e.x+=dx/d*1.2;e.y+=dy/d*1.2;
+   if(d<25){player.health-=0.15;}
+   for(let b of bullets){
+      let bd=Math.hypot(b.x-e.x,b.y-e.y);
+      if(bd<20){e.h-=25;b.hit=true;}
+   }
+ }
+ bullets=bullets.filter(b=>!b.hit);
+ enemies=enemies.filter(e=>{
+   if(e.h<=0){player.score+=10;spawnEnemy();return false;}
+   return true;
+ });
+ if(player.health<=0)respawn();
+ document.getElementById("health").textContent="Health:"+Math.floor(player.health);
+ document.getElementById("score").textContent="Score:"+player.score;
+}
+function draw(){
+ x.fillStyle="#7ec8ff";x.fillRect(0,0,c.width,c.height);
+ x.fillStyle="#5d8b4f";x.fillRect(0,c.height*0.75,c.width,c.height*0.25);
+ x.fillStyle=player.car?"#c33":"#36f";
+ if(player.car)x.fillRect(player.x-20,player.y-10,40,20);
+ else{x.fillRect(player.x-10,player.y-20,20,40);}
+ x.fillStyle="yellow";
+ bullets.forEach(b=>{x.beginPath();x.arc(b.x,b.y,4,0,7);x.fill();});
+ enemies.forEach(e=>{
+   x.fillStyle="#444";x.fillRect(e.x-10,e.y-20,20,40);
+   x.fillStyle="red";x.fillRect(e.x-15,e.y-28,30,4);
+   x.fillStyle="lime";x.fillRect(e.x-15,e.y-28,30*(e.h/100),4);
+ });
+}
+(function loop(){update();draw();requestAnimationFrame(loop);})();
+</script>
 </body>
 </html>
