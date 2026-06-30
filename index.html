@@ -445,7 +445,7 @@
             megatronDefeated: false,
             gameOver: false,
             timeOfDay: 0.3,
-            cycleSpeed: 0.0006,
+            cycleSpeed: 0.00015, // slower day/night cycle
         };
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -703,12 +703,15 @@
                 this.matrixBoost = false;
                 this.matrixBoostTimer = 0;
                 this.walkTime = 0;
-                this.walkParts = [];
-
-                // Collect walk parts
-                this.robot.children.forEach(c => {
-                    if (c.userData.walkPart) this.walkParts.push(c);
-                });
+                // store limbs for walk animation
+                this.leftArm = null;
+                this.rightArm = null;
+                this.leftForearm = null;
+                this.rightForearm = null;
+                this.leftThigh = null;
+                this.rightThigh = null;
+                this.leftShin = null;
+                this.rightShin = null;
 
                 // Axe reference
                 this.axe = this.robot.getObjectByName('axe');
@@ -740,17 +743,20 @@
             // ─── BUILD ROBOT ──────────────────────────────────────────────
             buildRobot(parent) {
                 const add = (col, sc, pos, rot = null, opts = {}) => {
-                    const m = addPart(parent, box(sc, col, opts), makeMat(col, opts), pos, rot);
+                    const m = addPart(parent, box(sc, col), makeMat(col, opts), pos, rot);
                     if (opts.walk) m.userData.walkPart = true;
                     return m;
                 };
                 // Legs
                 add(COLORS.black, [0.42, 0.14, 0.56], [-0.35, -0.33, 0.08]);
                 add(COLORS.black, [0.42, 0.14, 0.56], [0.35, -0.33, 0.08]);
-                add(COLORS.red, [0.36, 0.52, 0.38], [-0.35, -0.04, 0], null, { walk: true });
-                add(COLORS.red, [0.36, 0.52, 0.38], [0.35, -0.04, 0], null, { walk: true });
-                add(COLORS.blue, [0.40, 0.55, 0.40], [-0.35, 0.48, 0], null, { walk: true });
-                add(COLORS.blue, [0.40, 0.55, 0.40], [0.35, 0.48, 0], null, { walk: true });
+
+                // Store limb references for walk animation
+                this.leftShin = add(COLORS.red, [0.36, 0.52, 0.38], [-0.35, -0.04, 0], null, { walk: true });
+                this.rightShin = add(COLORS.red, [0.36, 0.52, 0.38], [0.35, -0.04, 0], null, { walk: true });
+                this.leftThigh = add(COLORS.blue, [0.40, 0.55, 0.40], [-0.35, 0.48, 0], null, { walk: true });
+                this.rightThigh = add(COLORS.blue, [0.40, 0.55, 0.40], [0.35, 0.48, 0], null, { walk: true });
+
                 add(COLORS.black, [0.92, 0.22, 0.52], [0, 0.84, 0]);
 
                 // Torso
@@ -775,10 +781,12 @@
                 add(COLORS.chrome, [0.13, 0.72, 0.13], [0.84, 2.08, -0.12]);
                 add(COLORS.blue, [0.36, 0.24, 0.62], [-1.02, 2.14, 0]);
                 add(COLORS.blue, [0.36, 0.24, 0.62], [1.02, 2.14, 0]);
-                add(COLORS.blue, [0.32, 0.62, 0.32], [-1.02, 1.68, 0], null, { walk: true });
-                add(COLORS.blue, [0.32, 0.62, 0.32], [1.02, 1.68, 0], null, { walk: true });
-                add(COLORS.red, [0.28, 0.52, 0.28], [-1.02, 1.10, 0], null, { walk: true });
-                add(COLORS.red, [0.28, 0.52, 0.28], [1.02, 1.10, 0], null, { walk: true });
+
+                this.leftArm = add(COLORS.blue, [0.32, 0.62, 0.32], [-1.02, 1.68, 0], null, { walk: true });
+                this.rightArm = add(COLORS.blue, [0.32, 0.62, 0.32], [1.02, 1.68, 0], null, { walk: true });
+                this.leftForearm = add(COLORS.red, [0.28, 0.52, 0.28], [-1.02, 1.10, 0], null, { walk: true });
+                this.rightForearm = add(COLORS.red, [0.28, 0.52, 0.28], [1.02, 1.10, 0], null, { walk: true });
+
                 add(COLORS.silver, [0.26, 0.22, 0.26], [-1.02, 0.76, 0]);
                 add(COLORS.silver, [0.26, 0.22, 0.26], [1.02, 0.76, 0]);
                 add(COLORS.black, [0.16, 0.32, 0.16], [1.02, 0.54, 0]);
@@ -955,8 +963,21 @@
                 }
                 // Reset walk
                 this.walkTime = 0;
-                this.walkParts.forEach(p => p.rotation.x = 0);
+                this.resetWalkPose();
                 document.getElementById('modeVal').textContent = mode.toUpperCase();
+            }
+
+            resetWalkPose() {
+                // Set all limb rotations to 0
+                if (this.leftArm) this.leftArm.rotation.x = 0;
+                if (this.rightArm) this.rightArm.rotation.x = 0;
+                if (this.leftForearm) this.leftForearm.rotation.x = 0;
+                if (this.rightForearm) this.rightForearm.rotation.x = 0;
+                if (this.leftThigh) this.leftThigh.rotation.x = 0;
+                if (this.rightThigh) this.rightThigh.rotation.x = 0;
+                if (this.leftShin) this.leftShin.rotation.x = 0;
+                if (this.rightShin) this.rightShin.rotation.x = 0;
+                this.robot.position.y = 0;
             }
 
             // ─── TRANSFORM ────────────────────────────────────────────────
@@ -1031,8 +1052,8 @@
                         this.flameL.visible = thrust;
                         this.flameR.visible = thrust;
                     }
-                    // No walk animation in plane
-                    this.walkParts.forEach(p => p.rotation.x = 0);
+                    // Reset walk pose
+                    this.resetWalkPose();
                 } else {
                     // Ground movement
                     if (moving) {
@@ -1042,18 +1063,29 @@
                         this.group.rotation.y = angle;
 
                         if (this.mode === 'robot' && !this.dashing) {
-                            this.walkTime += dt * spd * 0.7;
-                            const swing = Math.sin(this.walkTime) * 28;
-                            this.walkParts.forEach((p, i) => {
-                                const sign = (i % 2 === 0) ? 1 : -1;
-                                p.rotation.x = swing * 0.6 * sign;
-                            });
-                            this.group.position.y += Math.abs(Math.sin(this.walkTime)) * 0.025;
+                            // Update walk animation like Python
+                            const speedFactor = spd / 8;
+                            this.walkTime += dt * 8 * speedFactor; // walk_speed = 8
+                            const swing = Math.sin(this.walkTime) * 30; // degrees
+                            // Arms
+                            if (this.leftArm) this.leftArm.rotation.x = swing * Math.PI / 180;
+                            if (this.rightArm) this.rightArm.rotation.x = -swing * Math.PI / 180;
+                            if (this.leftForearm) this.leftForearm.rotation.x = swing * 0.5 * Math.PI / 180;
+                            if (this.rightForearm) this.rightForearm.rotation.x = -swing * 0.5 * Math.PI / 180;
+                            // Legs
+                            if (this.leftThigh) this.leftThigh.rotation.x = -swing * 0.7 * Math.PI / 180;
+                            if (this.rightThigh) this.rightThigh.rotation.x = swing * 0.7 * Math.PI / 180;
+                            if (this.leftShin) this.leftShin.rotation.x = swing * 0.5 * Math.PI / 180;
+                            if (this.rightShin) this.rightShin.rotation.x = -swing * 0.5 * Math.PI / 180;
+                            // Bob the robot group (not the whole player)
+                            this.robot.position.y = Math.abs(Math.sin(this.walkTime)) * 0.06;
+                        } else {
+                            // If not robot or dashing, reset walk pose
+                            this.resetWalkPose();
                         }
                     } else {
-                        if (this.mode === 'robot') {
-                            this.walkParts.forEach(p => p.rotation.x = 0);
-                        }
+                        // Not moving
+                        this.resetWalkPose();
                     }
 
                     // Gravity
