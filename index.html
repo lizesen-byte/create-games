@@ -130,9 +130,15 @@
             opacity: 0;
             transition: opacity 0.6s;
             text-align: center;
+            line-height: 1.4;
         }
         #game-over.show {
             opacity: 1;
+        }
+        #game-over .sub {
+            font-size: 0.3em;
+            color: #ffdd44;
+            text-shadow: 0 0 20px #ffdd44;
         }
         #victory {
             position: absolute;
@@ -147,9 +153,15 @@
             opacity: 0;
             transition: opacity 0.8s;
             text-align: center;
+            line-height: 1.4;
         }
         #victory.show {
             opacity: 1;
+        }
+        #victory .sub {
+            font-size: 0.3em;
+            color: #ffdd44;
+            text-shadow: 0 0 20px #ffdd44;
         }
         #controls-hint {
             position: absolute;
@@ -312,7 +324,7 @@
         <button id="menuQuitBtn" style="border-color:#aa4444; background:linear-gradient(145deg,#441a1a,#2a0d0d);">✕ QUIT</button>
         <div class="keys-hint">
             <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move &nbsp;·&nbsp; <kbd>LMB</kbd> shoot &nbsp;·&nbsp; <kbd>Q</kbd> melee &nbsp;·&nbsp; <kbd>F</kbd> transform<br/>
-            <kbd>Shift</kbd> dash &nbsp;·&nbsp; <kbd>RMB</kbd> shield &nbsp;·&nbsp; <kbd>E</kbd> matrix &nbsp;·&nbsp; <kbd>R</kbd> pick up
+            <kbd>Shift</kbd> dash &nbsp;·&nbsp; <kbd>RMB</kbd> shield &nbsp;·&nbsp; <kbd>E</kbd> matrix &nbsp;·&nbsp; <kbd>R</kbd> pick up / respawn
         </div>
     </div>
 
@@ -335,7 +347,7 @@
         <div id="pickup-prompt">📦 Press <kbd style="background:rgba(255,215,0,0.2);padding:0 8px;border-radius:4px;">R</kbd> to pick up</div>
         <div id="controls-hint">
             <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move &nbsp;·&nbsp; <kbd>LMB</kbd> shoot &nbsp;·&nbsp; <kbd>Q</kbd> melee &nbsp;·&nbsp; <kbd>F</kbd> transform &nbsp;·&nbsp;
-            <kbd>Shift</kbd> dash &nbsp;·&nbsp; <kbd>RMB</kbd> shield &nbsp;·&nbsp; <kbd>E</kbd> matrix &nbsp;·&nbsp; <kbd>R</kbd> pickup
+            <kbd>Shift</kbd> dash &nbsp;·&nbsp; <kbd>RMB</kbd> shield &nbsp;·&nbsp; <kbd>E</kbd> matrix &nbsp;·&nbsp; <kbd>R</kbd> pickup / respawn
         </div>
     </div>
 
@@ -995,6 +1007,14 @@
             update(dt) {
                 if (G.state !== 'playing') return;
 
+                // If game is over, freeze everything except camera update (handled outside)
+                if (G.gameOver) {
+                    // Still allow camera to follow (handled later)
+                    // But we must not process movement, combat, etc.
+                    // We'll just update the camera in the main loop, so we return early.
+                    return;
+                }
+
                 // Cooldowns
                 this.shootCooldown = Math.max(0, this.shootCooldown - dt);
                 this.meleeCooldown = Math.max(0, this.meleeCooldown - dt);
@@ -1097,7 +1117,7 @@
                     }
                 }
 
-                // Collision
+                // Collision (optimized: only check obstacles within range)
                 this.resolveCollisions();
 
                 // ── Combat ──
@@ -1138,22 +1158,20 @@
                 } else {
                     this.pickupPromptEl.classList.remove('show');
                 }
-
-                // ── Camera ──
-                const targetPos = this.group.position.clone().add(this.camOffset);
-                camera.position.lerp(targetPos, 0.08);
-                const lookAt = this.group.position.clone().add(this.camLook);
-                camera.lookAt(lookAt);
             }
 
-            // ─── COLLISION ─────────────────────────────────────────────────
+            // ─── COLLISION (optimized) ────────────────────────────────────
             resolveCollisions() {
                 const pos = this.group.position;
+                const checkRadius = 15; // only check obstacles within this range
+                const radiusSq = checkRadius * checkRadius;
                 for (const obs of G.obstacles) {
                     if (!obs.userData.isObstacle) continue;
                     const dx = pos.x - obs.position.x;
                     const dz = pos.z - obs.position.z;
-                    const dist = Math.sqrt(dx * dx + dz * dz);
+                    const distSq = dx * dx + dz * dz;
+                    if (distSq > radiusSq) continue; // skip far obstacles
+                    const dist = Math.sqrt(distSq);
                     const minDist = this.radius + 0.4;
                     if (dist < minDist && dist > 0.001) {
                         const push = (minDist - dist) * 1.1;
@@ -1315,7 +1333,11 @@
                 if (this.health < 0) this.health = 0;
                 if (this.health <= 0 && !G.gameOver) {
                     G.gameOver = true;
-                    document.getElementById('game-over').classList.add('show');
+                    // Show game over with respawn prompt
+                    const el = document.getElementById('game-over');
+                    el.innerHTML = '💀 GAME OVER<br><span class="sub">Press <kbd style="background:rgba(255,255,255,0.2);padding:0 10px;border-radius:4px;">R</kbd> to Respawn</span>';
+                    el.classList.add('show');
+                    document.getElementById('victory').classList.remove('show');
                 }
             }
 
@@ -1441,7 +1463,7 @@
         }
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        //  ENEMY
+        //  ENEMY (now with transformation for all)
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         class Enemy {
             constructor(isBoss = false) {
@@ -1469,6 +1491,10 @@
                     return m;
                 };
 
+                // Robot group (visible initially)
+                this.robotGroup = new THREE.Group();
+                this.group.add(this.robotGroup);
+
                 if (isBoss) {
                     // Megatron robot
                     add(0x64646e, [2.0, 2.5, 1.2], [0, 1.8, 0]);
@@ -1488,18 +1514,17 @@
                     );
                     cannon.rotation.z = Math.PI / 2;
                     cannon.position.set(-1.8, 1.8, 0.4);
-                    this.group.add(cannon);
+                    this.robotGroup.add(cannon);
 
                     this.maxHealth = 500;
                     this.health = 500;
                     this.speed = 2.5;
                     this.damage = 20;
                     this.boss = true;
-                    this.transformed = false;
 
-                    // Tank mode
+                    // Tank mode (only for boss)
                     this.tankGroup = new THREE.Group();
-                    this.buildTank(this.tankGroup);
+                    this.buildTank(this.tankGroup, 1.0);
                     this.group.add(this.tankGroup);
                     this.tankGroup.visible = false;
 
@@ -1512,7 +1537,7 @@
                     setTimeout(() => ann.remove(), 2200);
 
                 } else {
-                    // Normal enemy
+                    // Normal enemy robot
                     add(0x6e00aa, [1.2, 1.4, 0.7], [0, 1.3, 0]);
                     add(0xd20000, [0.5, 0.3, 0.12], [0, 1.5, 0.37]);
                     add(0x4b4e58, [0.9, 0.22, 0.5], [0, 0.6, 0]);
@@ -1529,7 +1554,12 @@
                     this.speed = 3;
                     this.damage = 10;
                     this.boss = false;
-                    this.transformed = false;
+
+                    // Tank mode for regular enemies (smaller)
+                    this.tankGroup = new THREE.Group();
+                    this.buildTank(this.tankGroup, 0.6);
+                    this.group.add(this.tankGroup);
+                    this.tankGroup.visible = false;
                 }
 
                 // Health bar
@@ -1549,15 +1579,16 @@
                 this.shootTimer = isBoss ? 0.6 : 1.5 + Math.random() * 1.5;
                 this.group.userData.isEnemy = true;
                 this.radius = isBoss ? 1.2 : 0.7;
+                this.transformed = false;
             }
 
-            buildTank(parent) {
+            buildTank(parent, scale) {
                 const add = (col, sc, pos) => {
                     const m = new THREE.Mesh(
-                        new THREE.BoxGeometry(sc[0], sc[1], sc[2]),
+                        new THREE.BoxGeometry(sc[0] * scale, sc[1] * scale, sc[2] * scale),
                         new THREE.MeshStandardMaterial({ color: col, roughness: 0.7, metalness: 0.1 })
                     );
-                    m.position.set(pos[0], pos[1], pos[2]);
+                    m.position.set(pos[0] * scale, pos[1] * scale, pos[2] * scale);
                     m.castShadow = true;
                     parent.add(m);
                 };
@@ -1569,10 +1600,10 @@
                 for (const x of [-1.5, 1.5])
                     for (const z of [-0.8, -0.4, 0, 0.4, 0.8]) {
                         const cyl = new THREE.Mesh(
-                            new THREE.CylinderGeometry(0.2, 0.2, 0.1, 8),
+                            new THREE.CylinderGeometry(0.2 * scale, 0.2 * scale, 0.1 * scale, 8),
                             new THREE.MeshStandardMaterial({ color: 0x64646e })
                         );
-                        cyl.position.set(x, 0.2, z);
+                        cyl.position.set(x * scale, 0.2 * scale, z * scale);
                         cyl.rotation.x = Math.PI / 2;
                         parent.add(cyl);
                     }
@@ -1583,29 +1614,29 @@
             transformToTank() {
                 if (this.transformed) return;
                 this.transformed = true;
-                this.speed = 3.8;
-                this.damage = 30;
-                this.shootTimer = 0.3;
-                for (const child of this.group.children) {
-                    if (child !== this.hpBar && child !== this.hpBar.parent && child !== this.tankGroup) {
-                        child.visible = false;
-                    }
-                }
+                this.speed *= 1.4;
+                this.damage *= 1.5;
+                this.shootTimer = Math.min(this.shootTimer, 0.4);
+                // Hide robot, show tank
+                this.robotGroup.visible = false;
                 this.tankGroup.visible = true;
                 explosion(this.group.position.clone(), 0xff8800);
-                particleBurst(this.group.position.clone(), 30, 0xaa00ff);
-                const ann = document.createElement('div');
-                ann.style.cssText =
-                    'position:fixed;top:28%;left:50%;transform:translate(-50%,-50%);color:#ff8800;font-size:2.2em;font-weight:bold;text-shadow:0 0 30px #ff8800;z-index:50;pointer-events:none;text-align:center;';
-                ann.textContent = '🔱 MEGATRON → TANK MODE';
-                document.body.appendChild(ann);
-                setTimeout(() => ann.remove(), 1800);
+                particleBurst(this.group.position.clone(), 20, 0xaa00ff);
+                if (this.isBoss) {
+                    const ann = document.createElement('div');
+                    ann.style.cssText =
+                        'position:fixed;top:28%;left:50%;transform:translate(-50%,-50%);color:#ff8800;font-size:2.2em;font-weight:bold;text-shadow:0 0 30px #ff8800;z-index:50;pointer-events:none;text-align:center;';
+                    ann.textContent = '🔱 MEGATRON → TANK MODE';
+                    document.body.appendChild(ann);
+                    setTimeout(() => ann.remove(), 1800);
+                }
             }
 
             takeDamage(amount) {
                 this.health -= amount;
                 if (this.health < 0) this.health = 0;
-                if (this.boss && !this.transformed && this.health < this.maxHealth * 0.5) {
+                // Transform at half health for all enemies
+                if (!this.transformed && this.health < this.maxHealth * 0.5) {
                     this.transformToTank();
                 }
                 if (this.health <= 0) this.die();
@@ -1621,11 +1652,14 @@
                     if (G.mission.progress >= G.mission.target) completeMission();
                 }
 
-                if (this.boss) {
+                if (this.isBoss) {
                     G.score += 200;
                     G.megatronDefeated = true;
                     G.gameOver = true;
-                    document.getElementById('victory').classList.add('show');
+                    // Show victory with respawn prompt
+                    const el = document.getElementById('victory');
+                    el.innerHTML = '⚡ VICTORY!<br/><span style="font-size:0.5em;">MEGATRON DEFEATED</span><br/><span class="sub" style="font-size:0.3em;">Press <kbd style="background:rgba(255,255,255,0.2);padding:0 10px;border-radius:4px;">R</kbd> to Respawn</span>';
+                    el.classList.add('show');
                     document.getElementById('game-over').classList.remove('show');
                 }
 
@@ -1672,12 +1706,13 @@
                     const origin = this.group.position.clone().add(new THREE.Vector3(0, 1.8, 0));
                     const b = new EnemyBullet(origin, dir);
                     G.enemyBullets.push(b);
-                    if (this.boss && this.transformed) {
+                    if (this.transformed && this.isBoss) {
                         const d2 = dir.clone().add(new THREE.Vector3(0, 0.1, 0.05));
                         const b2 = new EnemyBullet(origin, d2);
                         G.enemyBullets.push(b2);
                     }
-                    this.shootTimer = this.boss ? (this.transformed ? 0.35 : 0.9) : (1.8 + Math.random() * 1.8);
+                    this.shootTimer = this.isBoss ? (this.transformed ? 0.35 : 0.9) : (this.transformed ? 1.0 : 1.8 + Math
+                        .random() * 1.5);
                     muzzleFlash(origin);
                 }
 
@@ -1918,6 +1953,52 @@
         }
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        //  RESET GAME STATE (for respawn)
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        function resetGameState() {
+            G.score = 0;
+            G.combo = 0;
+            G.megatronDefeated = false;
+            G.gameOver = false;
+            player.health = player.maxHealth;
+            player.group.position.set(0, 1, 0);
+            player.vy = 0;
+            // Remove all enemies
+            for (const e of G.enemies) { if (e.group.parent) scene.remove(e.group); }
+            G.enemies = [];
+            // Remove bullets
+            for (const b of G.bullets) { if (b.mesh.parent) scene.remove(b.mesh); }
+            G.bullets = [];
+            for (const b of G.enemyBullets) { if (b.mesh.parent) scene.remove(b.mesh); }
+            G.enemyBullets = [];
+            // Remove pickups
+            for (const p of G.pickups) { if (p.mesh.parent) scene.remove(p.mesh); }
+            G.pickups = [];
+            for (const hp of G.healthPacks) { if (hp.mesh.parent) scene.remove(hp.mesh); }
+            G.healthPacks = [];
+            // Reset mission
+            G.mission = {
+                type: 'kill',
+                target: 5,
+                progress: 0,
+                completed: false,
+                level: 1,
+                resourceType: null,
+                startTime: 0,
+            };
+            // Spawn initial enemies and health packs
+            for (let i = 0; i < 6; i++) spawnEnemy();
+            for (let i = 0; i < 2; i++) spawnHealthPack();
+            // Hide game over / victory overlays
+            document.getElementById('game-over').classList.remove('show');
+            document.getElementById('victory').classList.remove('show');
+            // Reset game-over text to default
+            document.getElementById('game-over').innerHTML = '💀 GAME OVER';
+            document.getElementById('victory').innerHTML =
+                '⚡ VICTORY!<br/><span style="font-size:0.6em;">MEGATRON DEFEATED</span>';
+        }
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         //  MISSION
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         function completeMission() {
@@ -1965,7 +2046,7 @@
                 }
                 return;
             }
-            if (G.mission.level >= 5 && !G.enemies.some(e => e.boss)) {
+            if (G.mission.level >= 5 && !G.enemies.some(e => e.isBoss)) {
                 const b = new Enemy(true);
                 G.enemies.push(b);
             } else {
@@ -1999,11 +2080,19 @@
         document.addEventListener('keydown', e => {
             const k = e.key.toLowerCase();
             window._keys[k] = true;
-            if (k === 'f' && G.state === 'playing') {
+
+            // Respawn on R when game over
+            if (k === 'r' && G.gameOver && G.state === 'playing') {
+                resetGameState();
+                G.gameOver = false;
+                return;
+            }
+
+            if (k === 'f' && G.state === 'playing' && !G.gameOver) {
                 player.transform();
             }
-            if (k === 'r' && G.state === 'playing') {
-                // handled in player update
+            if (k === 'r' && G.state === 'playing' && !G.gameOver) {
+                // handled in player update for pickup
             }
             if (k === 'escape' && G.state === 'playing') {
                 toggleMenu();
@@ -2045,31 +2134,13 @@
         function startGame() {
             G.state = 'playing';
             menuEl.classList.add('hidden');
-            document.getElementById('game-over').classList.remove('show');
-            document.getElementById('victory').classList.remove('show');
-            // Reset if game over
+            // Reset if game over (clean slate)
             if (G.gameOver) {
-                G.score = 0;
-                G.combo = 0;
-                G.megatronDefeated = false;
-                G.gameOver = false;
-                player.health = player.maxHealth;
-                player.group.position.set(0, 1, 0);
-                player.vy = 0;
-                for (const e of G.enemies) { if (e.group.parent) scene.remove(e.group); }
-                G.enemies = [];
-                for (const b of G.bullets) { if (b.mesh.parent) scene.remove(b.mesh); }
-                G.bullets = [];
-                for (const b of G.enemyBullets) { if (b.mesh.parent) scene.remove(b.mesh); }
-                G.enemyBullets = [];
-                for (const p of G.pickups) { if (p.mesh.parent) scene.remove(p.mesh); }
-                G.pickups = [];
-                for (const hp of G.healthPacks) { if (hp.mesh.parent) scene.remove(hp.mesh); }
-                G.healthPacks = [];
-                G.mission = { type: 'kill', target: 5, progress: 0, completed: false, level: 1, resourceType: null,
-                    startTime: 0 };
-                for (let i = 0; i < 6; i++) spawnEnemy();
-                for (let i = 0; i < 2; i++) spawnHealthPack();
+                resetGameState();
+            }
+            // Also reset if first start
+            if (!G.enemies.length) {
+                resetGameState();
             }
             renderer.domElement.requestPointerLock();
         }
@@ -2131,49 +2202,50 @@
 
                 player.update(dt);
 
-                for (const e of G.enemies) e.update(dt);
+                if (!G.gameOver) {
+                    for (const e of G.enemies) e.update(dt);
 
-                for (let i = G.bullets.length - 1; i >= 0; i--) {
-                    const b = G.bullets[i];
-                    b.update(dt);
-                    if (!b.alive) {
-                        G.bullets.splice(i, 1);
+                    for (let i = G.bullets.length - 1; i >= 0; i--) {
+                        const b = G.bullets[i];
+                        b.update(dt);
+                        if (!b.alive) {
+                            G.bullets.splice(i, 1);
+                        }
+                    }
+                    for (let i = G.enemyBullets.length - 1; i >= 0; i--) {
+                        const b = G.enemyBullets[i];
+                        b.update(dt);
+                        if (!b.alive) {
+                            G.enemyBullets.splice(i, 1);
+                        }
+                    }
+
+                    for (const p of G.pickups) p.update(dt);
+                    for (const hp of G.healthPacks) hp.update(dt);
+
+                    G.spawnTimer += dt;
+                    if (G.spawnTimer > 6) {
+                        spawnEnemy();
+                        G.spawnTimer = 0;
+                    }
+                    G.healthTimer += dt;
+                    if (G.healthTimer > 13) {
+                        spawnHealthPack();
+                        G.healthTimer = 0;
+                    }
+
+                    // Survive mission
+                    if (G.mission.type === 'survive' && !G.mission.completed) {
+                        G.mission.progress = Math.floor((performance.now() - G.mission.startTime) / 1000);
+                        if (G.mission.progress >= G.mission.target) completeMission();
                     }
                 }
-                for (let i = G.enemyBullets.length - 1; i >= 0; i--) {
-                    const b = G.enemyBullets[i];
-                    b.update(dt);
-                    if (!b.alive) {
-                        G.enemyBullets.splice(i, 1);
-                    }
-                }
 
-                for (const p of G.pickups) p.update(dt);
-                for (const hp of G.healthPacks) hp.update(dt);
-
-                G.spawnTimer += dt;
-                if (G.spawnTimer > 6) {
-                    spawnEnemy();
-                    G.spawnTimer = 0;
-                }
-                G.healthTimer += dt;
-                if (G.healthTimer > 13) {
-                    spawnHealthPack();
-                    G.healthTimer = 0;
-                }
-
-                // Survive mission
-                if (G.mission.type === 'survive' && !G.mission.completed) {
-                    G.mission.progress = Math.floor((performance.now() - G.mission.startTime) / 1000);
-                    if (G.mission.progress >= G.mission.target) completeMission();
-                }
-
-                // Game over check
-                if (player.health <= 0 && !G.gameOver) {
-                    G.gameOver = true;
-                    document.getElementById('game-over').classList.add('show');
-                    document.getElementById('victory').classList.remove('show');
-                }
+                // Camera always follows
+                const targetPos = player.group.position.clone().add(player.camOffset);
+                camera.position.lerp(targetPos, 0.08);
+                const lookAt = player.group.position.clone().add(player.camLook);
+                camera.lookAt(lookAt);
 
                 updateHUD();
             }
