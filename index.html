@@ -3,314 +3,128 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Transformers: Cyber Battle</title>
+    <title>Transformers: Cyber Battle — Realistic Edition</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            overflow: hidden;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background: #0a0a19;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { overflow: hidden; font-family: 'Segoe UI', Arial, sans-serif; background: #0a0a19; }
         #blocker {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 100;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            font-size: 2em;
-            user-select: none;
-            pointer-events: auto;
-            backdrop-filter: blur(4px);
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.55); z-index: 100; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-size: 2em; user-select: none; pointer-events: auto;
+            backdrop-filter: blur(6px);
         }
         #blocker span {
-            background: rgba(0, 0, 0, 0.7);
-            padding: 20px 40px;
-            border-radius: 12px;
-            border: 2px solid #ffd700;
-            box-shadow: 0 0 40px rgba(255, 215, 0, 0.3);
+            background: rgba(0, 0, 0, 0.75); padding: 24px 48px; border-radius: 14px;
+            border: 2px solid #ffd700; box-shadow: 0 0 50px rgba(255, 215, 0, 0.35);
+            letter-spacing: 1px;
         }
         #ui {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 10;
-            font-family: 'Segoe UI', Arial, sans-serif;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 10; font-family: 'Segoe UI', Arial, sans-serif;
         }
         #hud {
-            position: absolute;
-            top: 18px;
-            left: 18px;
-            color: #fff;
-            text-shadow: 0 0 8px rgba(0, 0, 0, 0.9), 0 0 2px #000;
-            font-size: 15px;
-            line-height: 1.7;
-            background: rgba(0, 0, 0, 0.55);
-            padding: 12px 18px;
-            border-radius: 10px;
-            min-width: 210px;
-            backdrop-filter: blur(4px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            position: absolute; top: 18px; left: 18px; color: #fff;
+            text-shadow: 0 0 10px rgba(0,0,0,0.95), 0 0 3px #000;
+            font-size: 15px; line-height: 1.8;
+            background: rgba(0, 0, 0, 0.6); padding: 14px 20px;
+            border-radius: 12px; min-width: 230px;
+            backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,0.1);
             pointer-events: none;
         }
-        #hud span {
-            display: block;
-        }
-        #hud .label {
-            color: #aac;
-        }
-        #hud .value {
-            color: #fff;
-            font-weight: 600;
-        }
-        #hud .gold {
-            color: #ffd700;
-        }
-        #hud .red {
-            color: #ff4444;
-        }
-        #hud .cyan {
-            color: #64d2ff;
-        }
-        #hud .green {
-            color: #44ff88;
-        }
+        #hud span { display: block; }
+        #hud .label { color: #aac; }
+        #hud .value { color: #fff; font-weight: 600; }
+        #hud .gold { color: #ffd700; }
+        #hud .red { color: #ff4444; }
+        #hud .cyan { color: #64d2ff; }
+        #hud .green { color: #44ff88; }
         #crosshair {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 32px;
-            pointer-events: none;
-            text-shadow: 0 0 6px #000;
-            font-family: monospace;
-            opacity: 0.8;
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); color: rgba(255,255,255,0.75);
+            font-size: 36px; pointer-events: none; text-shadow: 0 0 8px #000;
+            font-family: monospace; opacity: 0.85;
         }
-        #mission-complete {
-            position: absolute;
-            top: 30%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: #ffd700;
-            font-size: 2.8em;
-            font-weight: bold;
-            text-shadow: 0 0 30px #ffd700, 0 0 60px #ff8800;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.4s;
-            text-align: center;
+        #mission-complete, #game-over, #victory {
+            position: absolute; left: 50%; transform: translate(-50%, -50%);
+            font-weight: bold; text-align: center; pointer-events: none;
+            opacity: 0; transition: opacity 0.5s ease;
         }
-        #mission-complete.show {
-            opacity: 1;
-        }
-        #game-over {
-            position: absolute;
-            top: 35%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: #ff2222;
-            font-size: 4em;
-            font-weight: bold;
-            text-shadow: 0 0 40px #ff0000, 0 0 80px #ff000088;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.6s;
-            text-align: center;
-            line-height: 1.4;
-        }
-        #game-over.show {
-            opacity: 1;
-        }
-        #game-over .sub {
-            font-size: 0.3em;
-            color: #ffdd44;
-            text-shadow: 0 0 20px #ffdd44;
-        }
-        #victory {
-            position: absolute;
-            top: 30%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: #ffd700;
-            font-size: 3.5em;
-            font-weight: bold;
-            text-shadow: 0 0 40px #ffd700, 0 0 80px #ff880088;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.8s;
-            text-align: center;
-            line-height: 1.4;
-        }
-        #victory.show {
-            opacity: 1;
-        }
-        #victory .sub {
-            font-size: 0.3em;
-            color: #ffdd44;
-            text-shadow: 0 0 20px #ffdd44;
-        }
+        #mission-complete { top: 30%; color: #ffd700; font-size: 3em; text-shadow: 0 0 30px #ffd700, 0 0 60px #ff880066; }
+        #mission-complete.show { opacity: 1; }
+        #game-over { top: 35%; color: #ff2222; font-size: 4.2em; text-shadow: 0 0 40px #ff0000, 0 0 80px #ff000066; line-height: 1.5; }
+        #game-over.show { opacity: 1; }
+        #game-over .sub { font-size: 0.32em; color: #ffdd44; text-shadow: 0 0 20px #ffdd44; }
+        #victory { top: 30%; color: #ffd700; font-size: 3.6em; text-shadow: 0 0 40px #ffd700, 0 0 80px #ff880044; line-height: 1.5; }
+        #victory.show { opacity: 1; }
+        #victory .sub { font-size: 0.3em; color: #ffdd44; text-shadow: 0 0 20px #ffdd44; }
         #controls-hint {
-            position: absolute;
-            bottom: 24px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: rgba(255, 255, 255, 0.6);
-            font-size: 13px;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 6px 18px;
-            border-radius: 20px;
-            pointer-events: none;
-            text-align: center;
-            user-select: none;
-            backdrop-filter: blur(4px);
-            white-space: nowrap;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            letter-spacing: 0.3px;
+            position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
+            color: rgba(255,255,255,0.65); font-size: 13px;
+            background: rgba(0,0,0,0.55); padding: 8px 22px; border-radius: 24px;
+            pointer-events: none; text-align: center; user-select: none;
+            backdrop-filter: blur(6px); white-space: nowrap;
+            border: 1px solid rgba(255,255,255,0.08); letter-spacing: 0.3px;
         }
         #controls-hint kbd {
-            background: rgba(255, 255, 255, 0.12);
-            padding: 0 6px;
-            border-radius: 4px;
-            font-family: inherit;
-            color: #fff;
+            background: rgba(255,255,255,0.15); padding: 2px 8px; border-radius: 6px;
+            font-family: inherit; color: #fff; box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
         }
         #pickup-prompt {
-            position: absolute;
-            bottom: 80px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: #ffd700;
-            font-size: 1.3em;
-            font-weight: bold;
-            text-shadow: 0 0 20px #ffd70088;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.3s;
-            background: rgba(0, 0, 0, 0.4);
-            padding: 6px 24px;
-            border-radius: 30px;
-            backdrop-filter: blur(2px);
+            position: absolute; bottom: 90px; left: 50%; transform: translateX(-50%);
+            color: #ffd700; font-size: 1.4em; font-weight: bold;
+            text-shadow: 0 0 20px rgba(255,215,0,0.5); pointer-events: none;
+            opacity: 0; transition: opacity 0.3s;
+            background: rgba(0,0,0,0.45); padding: 8px 28px; border-radius: 40px;
+            backdrop-filter: blur(4px); border: 1px solid rgba(255,215,0,0.2);
         }
-        #pickup-prompt.show {
-            opacity: 1;
-        }
+        #pickup-prompt.show { opacity: 1; }
         #menu {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(8, 8, 24, 0.92);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 200;
-            pointer-events: auto;
-            transition: opacity 0.6s;
-            backdrop-filter: blur(8px);
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(8,8,24,0.94); display: flex;
+            flex-direction: column; align-items: center; justify-content: center;
+            z-index: 200; pointer-events: auto; transition: opacity 0.7s ease;
+            backdrop-filter: blur(10px);
         }
-        #menu.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
+        #menu.hidden { opacity: 0; pointer-events: none; }
         #menu h1 {
-            font-size: 4.2em;
-            color: #ffd700;
-            text-shadow: 0 0 40px #ffd70044, 0 0 80px #ff880022;
-            margin-bottom: 6px;
-            letter-spacing: 2px;
-            text-align: center;
-            font-weight: 900;
+            font-size: 4.4em; color: #ffd700;
+            text-shadow: 0 0 40px rgba(255,215,0,0.4), 0 0 80px rgba(255,136,0,0.2);
+            margin-bottom: 8px; letter-spacing: 3px; text-align: center; font-weight: 900;
         }
         #menu .subtitle {
-            color: #aac;
-            font-size: 1.1em;
-            margin-bottom: 30px;
-            letter-spacing: 4px;
-            text-transform: uppercase;
-            opacity: 0.7;
+            color: #aac; font-size: 1.15em; margin-bottom: 36px;
+            letter-spacing: 5px; text-transform: uppercase; opacity: 0.75;
         }
         #menu button {
             background: linear-gradient(145deg, #1a2a6a, #0d1b4a);
-            border: 2px solid #ffd700;
-            color: #fff;
-            font-size: 1.5em;
-            padding: 14px 50px;
-            margin: 8px;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.25s;
-            width: 220px;
-            font-weight: 600;
-            letter-spacing: 1px;
-            text-shadow: 0 0 10px #ffd70033;
-            pointer-events: auto;
+            border: 2px solid #ffd700; color: #fff; font-size: 1.5em;
+            padding: 15px 52px; margin: 10px; border-radius: 14px;
+            cursor: pointer; transition: all 0.25s ease; width: 230px;
+            font-weight: 600; letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1);
         }
         #menu button:hover {
-            background: #ffd700;
-            color: #0a0a19;
-            transform: scale(1.05);
-            box-shadow: 0 0 40px #ffd70055;
+            background: #ffd700; color: #0a0a19; transform: scale(1.06);
+            box-shadow: 0 0 50px rgba(255,215,0,0.45), inset 0 1px 0 rgba(255,255,255,0.3);
             border-color: #fff;
         }
         #menu .keys-hint {
-            color: #667;
-            font-size: 0.85em;
-            margin-top: 30px;
-            text-align: center;
-            max-width: 500px;
-            line-height: 1.8;
-            background: rgba(255, 255, 255, 0.04);
-            padding: 12px 24px;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.06);
+            color: #778; font-size: 0.88em; margin-top: 36px; text-align: center;
+            max-width: 520px; line-height: 1.9;
+            background: rgba(255,255,255,0.04); padding: 16px 28px;
+            border-radius: 14px; border: 1px solid rgba(255,255,255,0.07);
         }
         #menu .keys-hint kbd {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 0 8px;
-            border-radius: 4px;
-            color: #ccd;
-            font-family: inherit;
+            background: rgba(255,255,255,0.12); padding: 2px 10px; border-radius: 6px;
+            color: #ccd; font-family: inherit; box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
         }
-        @media (max-width: 700px) {
-            #menu h1 {
-                font-size: 2.4em;
-            }
-            #hud {
-                font-size: 12px;
-                padding: 8px 12px;
-                min-width: 150px;
-            }
-            #controls-hint {
-                font-size: 10px;
-                white-space: normal;
-                width: 92%;
-                bottom: 12px;
-                padding: 4px 12px;
-            }
-            #menu button {
-                font-size: 1.1em;
-                padding: 12px 30px;
-                width: 170px;
-            }
-            #crosshair {
-                font-size: 24px;
-            }
+        @media (max-width:700px) {
+            #menu h1 { font-size: 2.5em; }
+            #hud { font-size: 12px; padding: 10px 14px; min-width: 160px; }
+            #controls-hint { font-size: 11px; white-space:normal; width:94%; bottom:14px; padding:6px 14px; }
+            #menu button { font-size:1.15em; padding:13px 32px; width:180px; }
+            #crosshair { font-size:28px; }
         }
     </style>
 </head>
@@ -323,8 +137,8 @@
         <button id="startBtn">▶ START GAME</button>
         <button id="menuQuitBtn" style="border-color:#aa4444; background:linear-gradient(145deg,#441a1a,#2a0d0d);">✕ QUIT</button>
         <div class="keys-hint">
-            <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move &nbsp;·&nbsp; <kbd>LMB</kbd> shoot &nbsp;·&nbsp; <kbd>Q</kbd> melee &nbsp;·&nbsp; <kbd>F</kbd> transform<br/>
-            <kbd>Shift</kbd> dash &nbsp;·&nbsp; <kbd>RMB</kbd> shield &nbsp;·&nbsp; <kbd>E</kbd> matrix &nbsp;·&nbsp; <kbd>R</kbd> pick up / respawn
+            <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Move &nbsp;·&nbsp; <kbd>LMB</kbd> Shoot &nbsp;·&nbsp; <kbd>Q</kbd> Melee &nbsp;·&nbsp; <kbd>F</kbd> Transform<br/>
+            <kbd>Shift</kbd> Dash/Fly Up &nbsp;·&nbsp; <kbd>RMB</kbd> Shield &nbsp;·&nbsp; <kbd>E</kbd> Matrix Power &nbsp;·&nbsp; <kbd>R</kbd> Pick Up/Respawn
         </div>
     </div>
 
@@ -342,24 +156,24 @@
         </div>
         <div id="crosshair">✚</div>
         <div id="mission-complete">🏆 MISSION COMPLETE!</div>
-        <div id="game-over">💀 GAME OVER</div>
-        <div id="victory">⚡ VICTORY!<br/><span style="font-size:0.6em;">MEGATRON DEFEATED</span></div>
-        <div id="pickup-prompt">📦 Press <kbd style="background:rgba(255,215,0,0.2);padding:0 8px;border-radius:4px;">R</kbd> to pick up</div>
+        <div id="game-over">💀 GAME OVER<br/><span class="sub">Press R to Respawn</span></div>
+        <div id="victory">⚡ VICTORY!<br/><span class="sub">MEGATRON DEFEATED</span></div>
+        <div id="pickup-prompt">📦 Press <kbd style="background:rgba(255,215,0,0.2);padding:3px 10px;border-radius:6px;">R</kbd> to pick up</div>
         <div id="controls-hint">
-            <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move &nbsp;·&nbsp; <kbd>LMB</kbd> shoot &nbsp;·&nbsp; <kbd>Q</kbd> melee &nbsp;·&nbsp; <kbd>F</kbd> transform &nbsp;·&nbsp;
-            <kbd>Shift</kbd> dash &nbsp;·&nbsp; <kbd>RMB</kbd> shield &nbsp;·&nbsp; <kbd>E</kbd> matrix &nbsp;·&nbsp; <kbd>R</kbd> pickup / respawn
+            <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Move &nbsp;·&nbsp; <kbd>LMB</kbd> Shoot &nbsp;·&nbsp; <kbd>Q</kbd> Melee &nbsp;·&nbsp; <kbd>F</kbd> Transform &nbsp;·&nbsp;
+            <kbd>Shift</kbd> Dash/Fly Up &nbsp;·&nbsp; <kbd>RMB</kbd> Shield &nbsp;·&nbsp; <kbd>E</kbd> Matrix &nbsp;·&nbsp; <kbd>R</kbd> Pickup/Respawn
         </div>
     </div>
 
     <!-- POINTER LOCK BLOCKER -->
-    <div id="blocker"><span>🔒 Click to lock mouse</span></div>
+    <div id="blocker"><span>🔒 Click to lock mouse & play</span></div>
 
     <script type="importmap">
-        {
-            "imports": {
-                "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
-            }
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
         }
+    }
     </script>
 
     <script type="module">
@@ -379,16 +193,17 @@
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.2;
+        renderer.toneMappingExposure = 1.3;
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
         document.body.prepend(renderer.domElement);
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        //  LIGHTS
+        //  LIGHTS — Premium lighting for metallic surfaces
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        const ambientLight = new THREE.AmbientLight(0x404070, 0.4);
+        const ambientLight = new THREE.AmbientLight(0x404070, 0.5);
         scene.add(ambientLight);
 
-        const sunLight = new THREE.DirectionalLight(0xffeedd, 1.6);
+        const sunLight = new THREE.DirectionalLight(0xfff4e0, 1.8);
         sunLight.position.set(60, 80, 40);
         sunLight.castShadow = true;
         sunLight.shadow.mapSize.width = 2048;
@@ -403,7 +218,7 @@
         sunLight.shadow.bias = -0.001;
         scene.add(sunLight);
 
-        const hemiLight = new THREE.HemisphereLight(0x87CEEB, 0x2a2a4a, 0.5);
+        const hemiLight = new THREE.HemisphereLight(0x87CEEB, 0x2a2a4a, 0.6);
         scene.add(hemiLight);
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -411,9 +226,7 @@
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         const groundGeo = new THREE.PlaneGeometry(500, 500);
         const groundMat = new THREE.MeshStandardMaterial({
-            color: 0x4a8c3f,
-            roughness: 0.95,
-            metalness: 0.0,
+            color: 0x4a8c3f, roughness: 0.95, metalness: 0.0
         });
         const ground = new THREE.Mesh(groundGeo, groundMat);
         ground.rotation.x = -Math.PI / 2;
@@ -421,7 +234,6 @@
         ground.receiveShadow = true;
         scene.add(ground);
 
-        // subtle grid helper for depth
         const gridHelper = new THREE.GridHelper(500, 50, 0x88bb88, 0x337733);
         gridHelper.position.y = 0.01;
         gridHelper.material.transparent = true;
@@ -432,336 +244,350 @@
         //  GAME STATE
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         const G = {
-            state: 'menu',
-            score: 0,
-            combo: 0,
-            maxCombo: 0,
+            state: 'menu', score: 0, combo: 0, maxCombo: 0,
             inventory: { wood: 0, stone: 0 },
-            mission: {
-                type: 'kill',
-                target: 5,
-                progress: 0,
-                completed: false,
-                level: 1,
-                resourceType: null,
-                startTime: 0,
-            },
-            enemies: [],
-            pickups: [],
-            healthPacks: [],
-            obstacles: [],
-            bullets: [],
-            enemyBullets: [],
-            spawnTimer: 0,
-            healthTimer: 0,
-            megatronDefeated: false,
-            gameOver: false,
-            timeOfDay: 0.3,
-            cycleSpeed: 0.00015,
+            mission: { type: 'kill', target: 5, progress: 0, completed: false, level: 1, resourceType: null, startTime: 0 },
+            enemies: [], pickups: [], healthPacks: [], obstacles: [],
+            bullets: [], enemyBullets: [],
+            spawnTimer: 0, healthTimer: 0,
+            megatronDefeated: false, gameOver: false,
+            timeOfDay: 0.3, cycleSpeed: 0.00015,
+            keys: {}, mouseX: 0, mouseY: 0, pitch: 0, yaw: 0,
+            pointerLocked: false, shootHeld: false
         };
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        //  DAY / NIGHT CYCLE
+        //  DAY/NIGHT CYCLE
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         function updateDayNight(dt) {
             G.timeOfDay += G.cycleSpeed * dt * 60;
             if (G.timeOfDay > 1) G.timeOfDay -= 1;
-
             const angle = G.timeOfDay * 2 * Math.PI;
             const sunY = Math.sin(angle);
             const clamped = Math.max(-0.2, Math.min(1.0, sunY));
-            const rad = 70;
-            const sx = rad * Math.cos(angle);
-            const sy = rad * clamped;
-            const sz = rad * Math.sin(angle) * 0.6;
-            sunLight.position.set(sx, sy + 20, sz);
+            const rad = 70, sx = rad * Math.cos(angle), sy = Math.max(5, 20 + 50 * clamped), sz = rad * Math.sin(angle) * 0.6;
+            sunLight.position.set(sx, sy, sz);
             sunLight.target.position.set(0, 0, 0);
             sunLight.target.updateMatrixWorld();
 
             const brightness = Math.max(0.0, Math.min(1.0, (clamped + 0.2) / 1.2));
-            const day = new THREE.Color(0x87CEEB);
-            const night = new THREE.Color(0x141e3a);
-            const dusk = new THREE.Color(0xc86a32);
+            const day = new THREE.Color(0x87CEEB), night = new THREE.Color(0x141e3a), dusk = new THREE.Color(0xc86a32);
             let sky = day.clone().lerp(night, 1 - brightness);
-            if (Math.abs(clamped) < 0.15) {
-                sky.lerp(dusk, 0.5);
-            }
+            if (Math.abs(clamped) < 0.15) sky.lerp(dusk, 0.5);
             scene.background = sky;
             scene.fog.color = sky;
-            scene.fog.density = 0.018 - 0.008 * brightness;
 
-            const amb = 0.2 + brightness * 0.5;
-            ambientLight.intensity = amb;
-            ambientLight.color.setHSL(0.66, 0.4, 0.3 + brightness * 0.3);
-
-            sunLight.intensity = 0.6 + brightness * 1.0;
-            const warm = new THREE.Color(0xffeedd).lerp(new THREE.Color(0x88aaff), 1 - brightness);
+            ambientLight.intensity = 0.2 + brightness * 0.5;
+            sunLight.intensity = 0.7 + brightness * 1.1;
+            const warm = new THREE.Color(0xfff4e0).lerp(new THREE.Color(0x99bbff), 1 - brightness);
             sunLight.color.copy(warm);
-
-            hemiLight.intensity = 0.3 + brightness * 0.4;
         }
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        //  BUILD WORLD (trees, rocks, buildings)
+        //  BUILD WORLD
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         function buildWorld() {
             const bColors = [0xc8c8d2, 0xa0a0aa, 0x787882, 0xb48c64, 0xd2b48c, 0x6496c8];
             for (let i = 0; i < 35; i++) {
-                const w = 2 + Math.random() * 4;
-                const h = 4 + Math.random() * 12;
-                const d = 2 + Math.random() * 4;
-                const mesh = new THREE.Mesh(
-                    new THREE.BoxGeometry(w, h, d),
+                const w = 2 + Math.random() * 4, h = 4 + Math.random() * 12, d = 2 + Math.random() * 4;
+                const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d),
                     new THREE.MeshStandardMaterial({
                         color: bColors[Math.floor(Math.random() * bColors.length)],
-                        roughness: 0.85,
-                        metalness: 0.05,
-                    })
-                );
-                const x = (Math.random() - 0.5) * 150;
-                const z = (Math.random() - 0.5) * 150;
+                        roughness: 0.85, metalness: 0.08
+                    }));
+                const x = (Math.random() - 0.5) * 150, z = (Math.random() - 0.5) * 150;
                 if (Math.abs(x) < 12 && Math.abs(z) < 12) continue;
                 mesh.position.set(x, h / 2, z);
-                mesh.castShadow = true;
-                mesh.receiveShadow = true;
-                mesh.userData.isObstacle = true;
-                mesh.userData.hp = 999;
-                scene.add(mesh);
-                G.obstacles.push(mesh);
+                mesh.castShadow = mesh.receiveShadow = true;
+                mesh.userData.isObstacle = true; mesh.userData.hp = 999;
+                scene.add(mesh); G.obstacles.push(mesh);
             }
 
             for (let i = 0; i < 55; i++) {
-                const x = (Math.random() - 0.5) * 160;
-                const z = (Math.random() - 0.5) * 160;
+                const x = (Math.random() - 0.5) * 160, z = (Math.random() - 0.5) * 160;
                 if (Math.abs(x) < 10 && Math.abs(z) < 10) continue;
                 const trunkH = 1.8 + Math.random() * 1.8;
-                const trunk = new THREE.Mesh(
-                    new THREE.CylinderGeometry(0.15, 0.22, trunkH, 6),
-                    new THREE.MeshStandardMaterial({ color: 0x654321, roughness: 0.9 })
-                );
+                const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.25, trunkH, 8),
+                    new THREE.MeshStandardMaterial({ color: 0x5c3c20, roughness: 0.9, metalness: 0.02 }));
                 trunk.position.set(x, trunkH / 2, z);
-                trunk.castShadow = true;
-                trunk.receiveShadow = true;
-                trunk.userData.isObstacle = true;
-                trunk.userData.isTree = true;
-                trunk.userData.hp = 3;
-                trunk.userData.originalPos = new THREE.Vector3(x, trunkH / 2, z);
-                scene.add(trunk);
-                G.obstacles.push(trunk);
+                trunk.castShadow = trunk.receiveShadow = true;
+                trunk.userData = { isObstacle: true, isTree: true, hp: 3 };
+                scene.add(trunk); G.obstacles.push(trunk);
 
                 const crownS = 1.6 + Math.random() * 1.8;
-                const crown = new THREE.Mesh(
-                    new THREE.SphereGeometry(crownS, 6, 6),
+                const crown = new THREE.Mesh(new THREE.SphereGeometry(crownS, 7, 6),
                     new THREE.MeshStandardMaterial({
-                        color: new THREE.Color().setHSL(0.28 + Math.random() * 0.06, 0.6, 0.25 + Math.random() * 0.15),
-                        roughness: 0.9,
-                    })
-                );
-                crown.position.set(x, trunkH + crownS * 0.6, z);
-                crown.castShadow = true;
-                crown.receiveShadow = true;
-                crown.userData.isObstacle = true;
-                crown.userData.isTree = true;
-                crown.userData.hp = 3;
-                scene.add(crown);
-                G.obstacles.push(crown);
+                        color: new THREE.Color().setHSL(0.27 + Math.random() * 0.06, 0.65, 0.22 + Math.random() * 0.12),
+                        roughness: 0.92, metalness: 0.01
+                    }));
+                crown.position.set(x, trunkH + crownS * 0.55, z);
+                crown.castShadow = crown.receiveShadow = true;
+                crown.userData = { isObstacle: true, isTree: true, hp: 3 };
+                scene.add(crown); G.obstacles.push(crown);
             }
 
             for (let i = 0; i < 18; i++) {
                 const s = 0.4 + Math.random() * 0.7;
-                const mesh = new THREE.Mesh(
-                    new THREE.DodecahedronGeometry(s, 1),
-                    new THREE.MeshStandardMaterial({
-                        color: 0x888899,
-                        roughness: 0.95,
-                        metalness: 0.05,
-                    })
-                );
-                const x = (Math.random() - 0.5) * 150;
-                const z = (Math.random() - 0.5) * 150;
+                const mesh = new THREE.Mesh(new THREE.DodecahedronGeometry(s, 0),
+                    new THREE.MeshStandardMaterial({ color: 0x7a7a8a, roughness: 0.88, metalness: 0.15 }));
+                const x = (Math.random() - 0.5) * 150, z = (Math.random() - 0.5) * 150;
                 if (Math.abs(x) < 10 && Math.abs(z) < 10) continue;
-                mesh.position.set(x, s * 0.4, z);
-                mesh.scale.y = 0.5 + Math.random() * 0.4;
+                mesh.position.set(x, s * 0.35, z);
+                mesh.scale.y = 0.45 + Math.random() * 0.4;
                 mesh.rotation.set(Math.random() * 6, Math.random() * 6, Math.random() * 6);
-                mesh.castShadow = true;
-                mesh.receiveShadow = true;
-                mesh.userData.isObstacle = true;
-                mesh.userData.isRock = true;
-                mesh.userData.hp = 5;
-                scene.add(mesh);
-                G.obstacles.push(mesh);
+                mesh.castShadow = mesh.receiveShadow = true;
+                mesh.userData = { isObstacle: true, isRock: true, hp: 5 };
+                scene.add(mesh); G.obstacles.push(mesh);
             }
         }
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        //  PLAYER
+        //  PREMIUM COLOR PALETTE — Realistic Autobot Colors
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         const COLORS = {
-            red: 0xbe1212,
-            blue: 0x0a1978,
-            silver: 0xc0c0c0,
-            black: 0x0f0f14,
-            cyan: 0x64d2ff,
-            chrome: 0x8c949e,
-            gold: 0xffd700,
-            dark: 0x1a1a2e,
+            autobotRed:     0xc41e3a,
+            autobotBlue:    0x0a3d7c,
+            silver:         0xd0d5dc,
+            steel:          0xa8b0bc,
+            darkSteel:      0x4a5060,
+            blackArmor:     0x12141f,
+            opticCyan:      0x00eeff,
+            goldTrim:       0xffc800,
+            chestCore:      0x00ddff,
+            exhaustGray:    0x303040,
+            tireBlack:     0x0a0a12
         };
 
-        function makeMat(color, opts = {}) {
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        //  REALISTIC PBR MATERIALS — Proper Metalness & Roughness
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        function makeMetallic(color, roughness=0.35, metalness=0.75, emissive=0x000000, emissiveIntensity=0) {
             return new THREE.MeshStandardMaterial({
-                color,
-                roughness: opts.roughness ?? 0.5,
-                metalness: opts.metalness ?? 0.2,
-                emissive: opts.emissive ?? 0x000000,
-                emissiveIntensity: opts.emissiveIntensity ?? 0,
-                transparent: opts.transparent ?? false,
-                opacity: opts.opacity ?? 1,
+                color, roughness, metalness,
+                emissive, emissiveIntensity,
+                envMapIntensity: 1.2
             });
         }
-
-        function addPart(parent, geo, mat, pos, rot = null) {
+        function makeMatte(color, roughness=0.85, metalness=0.05) {
+            return new THREE.MeshStandardMaterial({ color, roughness, metalness });
+        }
+        function makeGlow(color, intensity=1.2) {
+            return new THREE.MeshStandardMaterial({
+                color, roughness: 0.2, metalness: 0.1,
+                emissive: color, emissiveIntensity: intensity,
+                transparent: true, opacity: 0.9
+            });
+        }
+        function box(sc) { return new THREE.BoxGeometry(sc[0], sc[1], sc[2]); }
+        function sphere(r, seg=10) { return new THREE.SphereGeometry(r, seg, seg); }
+        function cyl(rTop, rBot, h, seg=10) { return new THREE.CylinderGeometry(rTop, rBot, h, seg); }
+        function addPart(parent, geo, mat, pos, rot=null) {
             const mesh = new THREE.Mesh(geo, mat);
             mesh.position.set(pos[0], pos[1], pos[2]);
             if (rot) mesh.rotation.set(rot[0], rot[1], rot[2]);
-            mesh.castShadow = true;
-            mesh.receiveShadow = true;
+            mesh.castShadow = mesh.receiveShadow = true;
             parent.add(mesh);
             return mesh;
         }
 
-        function box(sc) {
-            return new THREE.BoxGeometry(sc[0], sc[1], sc[2]);
-        }
-
-        function sphere(r, seg = 8) {
-            return new THREE.SphereGeometry(r, seg, seg);
-        }
-
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        //  PLAYER CLASS — HIGH-DETAIL REALISTIC TRANSFORMER
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         class Player {
             constructor() {
                 this.group = new THREE.Group();
                 this.group.position.set(0, 1, 0);
                 scene.add(this.group);
 
-                // ── Robot ──
-                this.robot = new THREE.Group();
-                this.buildRobot(this.robot);
+                this.robot = new THREE.Group(); this.buildRobot(this.robot);
                 this.group.add(this.robot);
 
-                // ── Truck ──
-                this.truck = new THREE.Group();
-                this.buildTruck(this.truck);
-                this.group.add(this.truck);
-                this.truck.visible = false;
+                this.truck = new THREE.Group(); this.buildTruck(this.truck);
+                this.group.add(this.truck); this.truck.visible = false;
 
-                // ── Plane ──
-                this.plane = new THREE.Group();
-                this.buildPlane(this.plane);
-                this.group.add(this.plane);
-                this.plane.visible = false;
+                this.plane = new THREE.Group(); this.buildPlane(this.plane);
+                this.group.add(this.plane); this.plane.visible = false;
 
-                // ── Shield ──
-                this.shieldMesh = new THREE.Mesh(
-                    new THREE.SphereGeometry(1.3, 20, 20),
+                // Energy Shield
+                this.shieldMesh = new THREE.Mesh(sphere(1.4, 24, 24),
                     new THREE.MeshPhongMaterial({
-                        color: 0x00ddff,
-                        transparent: true,
-                        opacity: 0.2,
-                        wireframe: false,
-                        side: THREE.DoubleSide,
-                        emissive: 0x00ddff,
-                        emissiveIntensity: 0.1,
-                    })
-                );
-                this.shieldMesh.position.y = 0.8;
+                        color: 0x00eeff, transparent: true, opacity: 0.18,
+                        emissive: 0x00eeff, emissiveIntensity: 0.15, side: THREE.DoubleSide
+                    }));
+                this.shieldMesh.position.y = 1.0;
                 this.shieldMesh.visible = false;
                 this.group.add(this.shieldMesh);
-                const ring = new THREE.Mesh(
-                    new THREE.RingGeometry(1.2, 1.4, 32),
-                    new THREE.MeshBasicMaterial({
-                        color: 0x00ddff,
-                        transparent: true,
-                        opacity: 0.15,
-                        side: THREE.DoubleSide,
-                    })
-                );
-                ring.rotation.x = -Math.PI / 2;
-                ring.position.y = 0.1;
-                this.shieldMesh.add(ring);
 
-                // ── Stats ──
                 this.mode = 'robot';
-                this.health = 100;
-                this.maxHealth = 100;
-                this.speed = 8;
-                this.truckSpeed = 15;
-                this.vy = 0;
-                this.gravity = 22;
-                this.jumpSpeed = 9;
-                this.shootCooldown = 0;
-                this.meleeCooldown = 0;
-                this.dashCooldown = 0;
-                this.matrixCooldown = 0;
-                this.shieldActive = false;
-                this.dashing = false;
-                this.dashTimer = 0;
-                this.invincible = false;
-                this.invincibleTimer = 0;
-                this.matrixBoost = false;
-                this.matrixBoostTimer = 0;
-                this.walkTime = 0;
-                this.leftArm = null;
-                this.rightArm = null;
-                this.leftForearm = null;
-                this.rightForearm = null;
-                this.leftThigh = null;
-                this.rightThigh = null;
-                this.leftShin = null;
-                this.rightShin = null;
-
-                this.axe = this.robot.getObjectByName('axe');
-                if (this.axe) this.axe.visible = false;
-                this.matrixGlow = this.robot.getObjectByName('matrixGlow');
-
-                this.camOffset = new THREE.Vector3(0, 8, -18);
-                this.camLook = new THREE.Vector3(0, 1.5, 0);
-                this.radius = 0.6;
+                this.health = 100; this.maxHealth = 100;
+                this.speed = 8; this.truckSpeed = 16;
+                this.vy = 0; this.gravity = 22; this.jumpSpeed = 9;
+                this.shootCooldown = 0; this.meleeCooldown = 0;
+                this.dashCooldown = 0; this.matrixCooldown = 0;
+                this.shieldActive = false; this.dashing = false;
+                this.dashTimer = 0; this.invincible = false;
+                this.invincibleTimer = 0; this.matrixBoost = false;
+                this.matrixBoostTimer = 0; this.walkTime = 0;
+                this.camOffset = new THREE.Vector3(0, 8.5, -20);
+                this.camLook = new THREE.Vector3(0, 1.8, 0);
+                this.radius = 0.7;
+                this.velocity = new THREE.Vector3();
+                this.onGround = true;
 
                 this.setMode('robot');
-                this.pickupPromptEl = document.getElementById('pickup-prompt');
-                this.flameL = this.plane.getObjectByName('flameL');
-                this.flameR = this.plane.getObjectByName('flameR');
+                this.hpEl = document.getElementById('hpVal');
+                this.modeEl = document.getElementById('modeVal');
             }
 
+            // ───────────────────────────────────
+            //  🤖 HIGH-DETAIL ROBOT MODE
+            // ───────────────────────────────────
             buildRobot(parent) {
-                const add = (col, sc, pos, rot = null, opts = {}) => {
-                    const m = addPart(parent, box(sc), makeMat(col, opts), pos, rot);
-                    if (opts.walk) m.userData.walkPart = true;
-                    return m;
-                };
-                add(COLORS.black, [0.42, 0.14, 0.56], [-0.35, -0.33, 0.08]);
-                add(COLORS.black, [0.42, 0.14, 0.56], [0.35, -0.33, 0.08]);
+                const add = (col, sc, pos, rot=null, r=0.35, m=0.75) =>
+                    addPart(parent, box(sc), makeMetallic(col, r, m), pos, rot);
+                const addGlow = (col, sc, pos, inten=1.2) =>
+                    addPart(parent, box(sc), makeGlow(col, inten), pos);
 
-                this.leftShin = add(COLORS.red, [0.36, 0.52, 0.38], [-0.35, -0.04, 0], null, { walk: true });
-                this.rightShin = add(COLORS.red, [0.36, 0.52, 0.38], [0.35, -0.04, 0], null, { walk: true });
-                this.leftThigh = add(COLORS.blue, [0.40, 0.55, 0.40], [-0.35, 0.48, 0], null, { walk: true });
-                this.rightThigh = add(COLORS.blue, [0.40, 0.55, 0.40], [0.35, 0.48, 0], null, { walk: true });
+                // ── FEET ──
+                add(COLORS.darkSteel, [0.44, 0.20, 0.50], [-0.38, -0.38, 0.06]);
+                add(COLORS.darkSteel, [0.44, 0.20, 0.50], [0.38, -0.38, 0.06]);
 
-                add(COLORS.black, [0.92, 0.22, 0.52], [0, 0.84, 0]);
+                // ── SHINS ──
+                this.leftShin = add(COLORS.autobotRed, [0.38, 0.55, 0.40], [-0.38, -0.06, 0]);
+                this.rightShin = add(COLORS.autobotRed, [0.38, 0.55, 0.40], [0.38, -0.06, 0]);
+                add(COLORS.silver, [0.40, 0.08, 0.42], [-0.38, 0.22, 0.01]);
+                add(COLORS.silver, [0.40, 0.08, 0.42], [0.38, 0.22, 0.01]);
 
-                const torso = new THREE.Mesh(
-                    new THREE.BoxGeometry(1.42, 1.18, 0.76),
-                    makeMat(COLORS.red, { roughness: 0.4, metalness: 0.3 })
-                );
-                torso.position.set(0, 1.68, 0);
-                torso.castShadow = true;
-                torso.receiveShadow = true;
+                // ── THIGHS ──
+                this.leftThigh = add(COLORS.autobotBlue, [0.42, 0.58, 0.44], [-0.38, 0.50, 0]);
+                this.rightThigh = add(COLORS.autobotBlue, [0.42, 0.58, 0.44], [0.38, 0.50, 0]);
+                add(COLORS.silver, [0.44, 0.10, 0.46], [-0.38, 0.78, 0.02]);
+                add(COLORS.silver, [0.44, 0.10, 0.46], [0.38, 0.78, 0.02]);
+
+                // ── HIP ──
+                add(COLORS.blackArmor, [0.96, 0.24, 0.56], [0, 0.90, 0], null, 0.4, 0.8);
+
+                // ── TORSO / CHEST ──
+                const torso = new THREE.Mesh(box([1.48, 1.24, 0.82]), makeMetallic(COLORS.autobotRed, 0.30, 0.80));
+                torso.position.set(0, 1.72, 0); torso.castShadow = torso.receiveShadow = true;
                 parent.add(torso);
 
-                add(COLORS.blue, [0.36, 0.62, 0.13], [-0.3, 0.04, 0.45]);
-                add(COLORS.blue, [0.36, 0.62, 0.13], [0.3, 0.04, 0.45]);
-                const glow = add(COLORS.cyan, [0.20, 0.20, 0.09], [0, 0.13, 0.48]);
-                glow.name = 'matrixGlow';
-                this.matrixGlow = glow;
-                add(COLORS.silver, [0.30, 0.30, 0.07], [0, 0.13, 0.46]);
-                add(COLORS.black, [0.80, 0.10, 0.08],
+                // Chest Armor Plates
+                add(COLORS.autobotBlue, [0.32, 0.70, 0.12], [-0.58, 1.74, 0.42]);
+                add(COLORS.autobotBlue, [0.32, 0.70, 0.12], [0.58, 1.74, 0.42]);
+                add(COLORS.silver, [0.36, 0.10, 0.84], [0, 1.30, 0.44]);
+
+                // 🌟 ENERGY MATRIX CORE — Glowing Chest
+                this.matrixGlow = addGlow(COLORS.chestCore, [0.26, 0.26, 0.12], [0, 1.60, 0.48], 0);
+                this.matrixGlow.name = 'matrixGlow';
+                add(COLORS.goldTrim, [0.34, 0.34, 0.08], [0, 1.60, 0.46], null, 0.25, 0.9);
+
+                // ── HEAD / HELMET ──
+                const headBase = new THREE.Mesh(box([0.60, 0.48, 0.48]), makeMetallic(COLORS.autobotBlue, 0.28, 0.78));
+                headBase.position.set(0, 2.62, 0.12); headBase.castShadow = true;
+                parent.add(headBase);
+
+                // Face Plate
+                add(COLORS.silver, [0.56, 0.24, 0.06], [0, 2.54, 0.38]);
+
+                // 👁️ GLOWING OPTICS
+                addGlow(COLORS.opticCyan, [0.18, 0.14, 0.08], [-0.16, 2.60, 0.40], 1.8);
+                addGlow(COLORS.opticCyan, [0.18, 0.14, 0.08], [0.16, 2.60, 0.40], 1.8);
+
+                // Antenna / Crest
+                add(COLORS.silver, [0.06, 0.28, 0.06], [0, 2.78, -0.08]);
+
+                // ── SHOULDERS ──
+                add(COLORS.goldTrim, [0.44, 0.24, 0.36], [-0.86, 2.10, 0.08], null, 0.28, 0.85);
+                add(COLORS.goldTrim, [0.44, 0.24, 0.36], [0.86, 2.10, 0.08], null, 0.28, 0.85);
+
+                // ── ARMS ──
+                this.leftArm = add(COLORS.autobotRed, [0.34, 0.78, 0.34], [-1.00, 1.60, 0.10]);
+                this.rightArm = add(COLORS.autobotRed, [0.34, 0.78, 0.34], [1.00, 1.60, 0.10]);
+                add(COLORS.silver, [0.36, 0.08, 0.36], [-1.00, 1.22, 0.12]);
+                add(COLORS.silver, [0.36, 0.08, 0.36], [1.00, 1.22, 0.12]);
+                this.leftForearm = add(COLORS.autobotBlue, [0.30, 0.68, 0.30], [-1.00, 1.06, 0.10]);
+                this.rightForearm = add(COLORS.autobotBlue, [0.30, 0.68, 0.30], [1.00, 1.06, 0.10]);
+                add(COLORS.silver, [0.32, 0.08, 0.32], [-1.00, 0.72, 0.12]);
+                add(COLORS.silver, [0.32, 0.08, 0.32], [1.00, 0.72, 0.12]);
+
+                // ✋ Hands
+                add(COLORS.silver, [0.26, 0.22, 0.26], [-1.00, 0.52, 0.10]);
+                add(COLORS.silver, [0.26, 0.22, 0.26], [1.00, 0.52, 0.10]);
+
+                // ⚔️ Energon Axe
+                const axeG = new THREE.Group();
+                axeG.position.set(1.22, 0.50, 0.35);
+                addPart(axeG, cyl(0.06, 0.06, 1.1), makeMetallic(COLORS.silver, 0.25, 0.85), [0, 0, 0]);
+                addPart(axeG, box([0.50, 0.30, 0.14]), makeMetallic(COLORS.goldTrim, 0.22, 0.88), [0, 0.40, 0]);
+                addPart(axeG, box([0.50, 0.30, 0.14]), makeMetallic(COLORS.goldTrim, 0.22, 0.88), [0, -0.40, 0]);
+                addGlow(COLORS.opticCyan, [0.42, 0.22, 0.06], [0, 0.40, 0.04], 1.0);
+                addGlow(COLORS.opticCyan, [0.42, 0.22, 0.06], [0, -0.40, 0.04], 1.0);
+                axeG.name = 'axe';
+                parent.add(axeG);
+            }
+
+            // ───────────────────────────────────
+            //  🚚 TRUCK MODE — Detailed Semi
+            // ───────────────────────────────────
+            buildTruck(parent) {
+                const add = (col, sc, pos, rot=null, r=0.35, m=0.75) =>
+                    addPart(parent, box(sc), makeMetallic(col, r, m), pos, rot);
+                const addGlow = (col, sc, pos, inten=1.2) =>
+                    addPart(parent, box(sc), makeGlow(col, inten), pos);
+
+                // Chassis
+                add(COLORS.autobotRed, [2.40, 1.20, 4.40], [0, 0.60, 0], null, 0.32, 0.80);
+                // Cabin
+                add(COLORS.autobotBlue, [1.90, 1.00, 2.00], [0, 1.70, 0.70], null, 0.30, 0.78);
+                // Windshield
+                addGlow(COLORS.opticCyan, [1.70, 0.70, 0.12], [0, 1.80, 1.60], 0.6);
+                // Grille
+                add(COLORS.silver, [1.80, 0.40, 0.16], [0, 1.10, 2.20], null, 0.25, 0.85);
+                // Headlights
+                addGlow(COLORS.opticCyan, [0.24, 0.32, 0.14], [-0.80, 0.90, 2.22], 1.5);
+                addGlow(COLORS.opticCyan, [0.24, 0.32, 0.14], [0.80, 0.90, 2.22], 1.5);
+                // Exhaust stacks
+                add(COLORS.exhaustGray, [0.18, 1.40, 0.18], [-0.90, 1.30, -1.40], null, 0.6, 0.5);
+                add(COLORS.exhaustGray, [0.18, 1.40, 0.18], [0.90, 1.30, -1.40], null, 0.6, 0.5);
+                // Wheels
+                const whMat = makeMetallic(COLORS.tireBlack, 0.92, 0.05);
+                const whHub = makeMetallic(COLORS.silver, 0.30, 0.85);
+                [[-1.25, 0.55, -1.60], [1.25, 0.55, -1.60],
+                 [-1.25, 0.55, 1.60], [1.25, 0.55, 1.60]].forEach(p => {
+                    const wh = new THREE.Mesh(cyl(0.60, 0.60, 0.45, 14), whMat);
+                    wh.rotation.z = Math.PI / 2;
+                    wh.position.set(p[0], p[1], p[2]);
+                    wh.castShadow = true; parent.add(wh);
+                    const hub = new THREE.Mesh(cyl(0.20, 0.20, 0.50, 12), whHub);
+                    hub.rotation.z = Math.PI / 2;
+                    hub.position.copy(wh.position);
+                    parent.add(hub);
+                });
+            }
+
+            // ───────────────────────────────────
+            // ✈️ JET PLANE MODE
+            // ───────────────────────────────────
+            buildPlane(parent) {
+                const add = (col, sc, pos, rot=null, r=0.35, m=0.75) =>
+                    addPart(parent, box(sc), makeMetallic(col, r, m), pos, rot);
+                const addGlow = (col, sc, pos, inten=1.2) =>
+                    addPart(parent, box(sc), makeGlow(col, inten), pos);
+
+                // Fuselage
+                add(COLORS.autobotRed, [1.80, 0.35, 5.40], [0, 0, 0], null, 0.30, 0.80);
+                // Wings
+                add(COLORS.autobotBlue, [5.00, 0.18, 1.40], [0, 0.08, 0.60], null, 0.28, 0.78);
+                // Cockpit
+                addGlow(COLORS.opticCyan, [0.70, 0.50, 1.00], [0, 0.35, 1.60], 0.7);
+                // Tail fins
+                add(COLORS.silver, [0.18, 0.90, 1.40], [-0.70, 0.45, -2.00], null, 0.32, 0.80);
+                add(COLORS.silver, [0.18, 0.90, 1.40], [0.70, 0.45, -2.00], null, 0.32, 0.80);
+                // Engine Nacelles
+                add(COLORS.darkSteel, [0.45, 0.45, 1.20], [-0.55, 0.10, -2.20], null, 0.40, 0.70);
+                add(COLORS.darkSteel, [0.45, 0.45, 1.20], [0.55, 0.10, -2.20], null, 0.40, 0.70);
+                // 🔥 Thruster Flames
+                this.flameL = addGlow(COLORS.goldTrim, [0.32, 0.32, 1.00], [-0.55, 0.10, -2.80], 1.6);
+                this.flameR = addGlow(COLORS.goldTrim, [0.32, 0.32, 1.00], [0.55, 0.10, -2.80], 1.6);
+                this.flameL.visible = this.flameR.visible =
