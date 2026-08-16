@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-    <title>Transformers – Movie Style</title>
+    <title>Transformers – Grimlock & Boss Battles</title>
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
         body { background:#0a0a12; overflow:hidden; font-family:'Segoe UI',Arial,sans-serif; touch-action:none; user-select:none; }
@@ -30,9 +30,12 @@
         #startBtn:hover { transform:scale(1.05); box-shadow:0 0 60px rgba(0,229,255,0.4); }
         #teammateStatus { position:absolute; bottom:70px; left:50%; transform:translateX(-50%); color:rgba(255,255,255,0.5); font-size:12px; letter-spacing:1px; background:rgba(0,0,0,0.4); padding:4px 16px; border-radius:20px; backdrop-filter:blur(4px); border:1px solid rgba(255,255,255,0.05); pointer-events:none; white-space:nowrap; }
         #teammateStatus .count { color:#88ddff; font-weight:700; }
+        #bossHealthBar { position:absolute; top:70px; left:50%; transform:translateX(-50%); width:400px; height:16px; background:rgba(0,0,0,0.8); border-radius:12px; border:2px solid rgba(255,50,50,0.5); overflow:hidden; display:none; pointer-events:none; z-index:15; box-shadow:0 0 30px rgba(255,0,0,0.2); }
+        #bossHealthFill { width:100%; height:100%; background:linear-gradient(90deg,#ff2244,#ff6644); border-radius:10px; transition:width 0.2s ease; box-shadow:0 0 30px rgba(255,50,50,0.3); }
+        #bossName { position:absolute; top:52px; left:50%; transform:translateX(-50%); color:#ff4444; font-size:18px; font-weight:900; letter-spacing:3px; text-transform:uppercase; text-shadow:0 0 30px rgba(255,0,0,0.5); pointer-events:none; z-index:15; display:none; }
         #loading { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:#88ddff; font-size:20px; z-index:30; background:rgba(0,0,0,0.6); padding:12px 24px; border-radius:8px; display:flex; align-items:center; gap:12px; }
         #loading.hidden { display:none; }
-        @media (max-width:700px) { #controls { font-size:7px; gap:6px; padding:4px 10px; bottom:8px; } #controls kbd { font-size:6px; padding:0 4px; } #healthBar { width:100px; height:8px; } .hudValue { font-size:16px; } #modeBadge { font-size:9px; padding:2px 8px; } #overlay h1 { font-size:28px; } #startBtn { padding:10px 24px; font-size:14px; } #teammateStatus { font-size:9px; bottom:50px; padding:2px 12px; } }
+        @media (max-width:700px) { #controls { font-size:7px; gap:6px; padding:4px 10px; bottom:8px; } #controls kbd { font-size:6px; padding:0 4px; } #healthBar { width:100px; height:8px; } .hudValue { font-size:16px; } #modeBadge { font-size:9px; padding:2px 8px; } #overlay h1 { font-size:28px; } #startBtn { padding:10px 24px; font-size:14px; } #teammateStatus { font-size:9px; bottom:50px; padding:2px 12px; } #bossHealthBar { width:80%; height:12px; top:60px; } #bossName { font-size:14px; top:44px; } }
         @media (max-width:450px) { #controls { display:none; } #healthBar { width:60px; } .hudValue { font-size:12px; } #modeBadge { font-size:7px; padding:1px 6px; } .hudLabel { font-size:7px; } }
         .spinner { display:inline-block; width:20px; height:20px; border:3px solid rgba(255,255,255,0.1); border-radius:50%; border-top-color:#88ddff; animation:spin 0.8s linear infinite; }
         @keyframes spin { to { transform:rotate(360deg); } }
@@ -56,33 +59,34 @@
                 <div id="modeBadge">⚡ BUMBLEBEE</div>
             </div>
         </div>
+        <div id="bossName">⚡ BOSS ⚡</div>
+        <div id="bossHealthBar"><div id="bossHealthFill"></div></div>
         <div id="controls">
             <span><kbd>W A S D</kbd> Move</span>
             <span><kbd>Space</kbd> Shoot</span>
-            <span><kbd>1-8</kbd> Transform</span>
+            <span><kbd>1-8</kbd> Change Character</span>
+            <span><kbd>T</kbd> Transform</span>
             <span><kbd>E</kbd> Call Teammate</span>
             <span><kbd>R</kbd> Restart</span>
         </div>
         <div id="teammateStatus">🤖 Teammates: <span class="count" id="teamCount">0</span></div>
         <div id="overlay">
             <h1>⚡ EARTHSPARK 3D</h1>
-            <div class="sub">▼ MOVIE EDITION ▼</div>
+            <div class="sub">▼ GRIMLOCK · BOSS BATTLES ▼</div>
             <div class="heroes">
                 🟡 Bumblebee &nbsp;•&nbsp; 🔵 Soundwave &nbsp;•&nbsp; 🟣 Shockwave<br>
-                🔴 Starscream &nbsp;•&nbsp; ⚫ Megatron &nbsp;•&nbsp; 🟠 Grimlock<br>
+                🔴 Starscream &nbsp;•&nbsp; ⚫ Megatron &nbsp;•&nbsp; 🦖 Grimlock<br>
                 🔥 Optimus Prime &nbsp;•&nbsp; 🌀 Mirage
             </div>
             <button id="startBtn">▶ DEPLOY</button>
-            <div style="margin-top:12px;color:#6a8bb0;font-size:12px;letter-spacing:1px;">1-8 Transform · E Call · Space Shoot</div>
+            <div style="margin-top:12px;color:#6a8bb0;font-size:12px;letter-spacing:1px;">1-8 Switch · T Transform · Space Shoot · Boss every 5 waves!</div>
         </div>
     </div>
 
-    <!-- Three.js from CDN (classic script, no import map) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js">
     </script>
 
     <script>
-        // ━━━ Check THREE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         if (typeof THREE === 'undefined') {
             document.getElementById('loading').textContent = '❌ Failed to load Three.js';
             throw new Error('THREE not loaded');
@@ -99,6 +103,9 @@
         const modeBadge = document.getElementById('modeBadge');
         const overlay = document.getElementById('overlay');
         const startBtn = document.getElementById('startBtn');
+        const bossHealthBar = document.getElementById('bossHealthBar');
+        const bossHealthFill = document.getElementById('bossHealthFill');
+        const bossNameEl = document.getElementById('bossName');
 
         // ━━━ Scene ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         const scene = new THREE.Scene();
@@ -117,10 +124,9 @@
         renderer.toneMappingExposure = 1.2;
         document.body.prepend(renderer.domElement);
 
-        // ━━━ Lights (cinematic) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // ━━━ Lights ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         const ambient = new THREE.AmbientLight(0x223366, 0.5);
         scene.add(ambient);
-
         const keyLight = new THREE.DirectionalLight(0xffeedd, 2.0);
         keyLight.position.set(10, 20, 15);
         keyLight.castShadow = true;
@@ -133,30 +139,26 @@
         keyLight.shadow.camera.top = 15;
         keyLight.shadow.camera.bottom = -15;
         scene.add(keyLight);
-
         const fillLight = new THREE.DirectionalLight(0x4488ff, 0.6);
         fillLight.position.set(-10, 5, -10);
         scene.add(fillLight);
-
         const rimLight = new THREE.DirectionalLight(0x88aaff, 0.4);
         rimLight.position.set(-5, 2, -20);
         scene.add(rimLight);
 
         // ━━━ Environment ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        // Ground
-        const groundGeo = new THREE.PlaneGeometry(60, 60);
+        const groundGeo = new THREE.PlaneGeometry(80, 80);
         const groundMat = new THREE.MeshStandardMaterial({ color: 0x0d0d1a, roughness: 0.6, metalness: 0.3 });
         const ground = new THREE.Mesh(groundGeo, groundMat);
         ground.rotation.x = -Math.PI / 2;
         ground.position.y = -0.5;
         ground.receiveShadow = true;
         scene.add(ground);
-
-        const grid = new THREE.GridHelper(50, 20, 0x1a3a7a, 0x0a1a3a);
+        const grid = new THREE.GridHelper(70, 25, 0x1a3a7a, 0x0a1a3a);
         grid.position.y = -0.4;
         scene.add(grid);
 
-        // Simple buildings
+        // Buildings
         function addBuilding(x, z, w, h, d, color) {
             const mat = new THREE.MeshStandardMaterial({ color: color || 0x1a1a30, roughness: 0.7, metalness: 0.2 });
             const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
@@ -164,7 +166,6 @@
             mesh.castShadow = true;
             mesh.receiveShadow = true;
             scene.add(mesh);
-            // windows
             const winMat = new THREE.MeshStandardMaterial({ color: 0x223366, emissive: 0x112244, emissiveIntensity: 0.3 });
             for (let wy = 1; wy < h - 2; wy += 2.5) {
                 for (let wx = -w / 2 + 0.6; wx < w / 2 - 0.6; wx += 1.5) {
@@ -177,68 +178,150 @@
                 }
             }
         }
-        for (let i = 0; i < 30; i++) {
+        for (let i = 0; i < 40; i++) {
             const a = Math.random() * Math.PI * 2;
-            const d = 12 + Math.random() * 20;
+            const d = 12 + Math.random() * 25;
             const x = Math.cos(a) * d,
                 z = Math.sin(a) * d;
             const w = 1.2 + Math.random() * 3,
-                h = 2 + Math.random() * 8,
+                h = 2 + Math.random() * 10,
                 dep = 1.2 + Math.random() * 3;
             addBuilding(x, z, w, h, dep, 0x1a1a30 + Math.floor(Math.random() * 0x111111));
         }
 
-        // ━━━ Movie‑style Transformer Builder ━━━━━━━━━━━━━━━━━━
-        function buildMovieTransformer(config) {
+        // ━━━ T-Rex Builder (Grimlock Dinosaur) ━━━━━━━━━━━━━━━
+        function buildTRex(config) {
             const group = new THREE.Group();
             const { primary, secondary, accent, scale = 1 } = config;
 
-            // High‑quality metallic materials
-            const pMat = new THREE.MeshStandardMaterial({
-                color: primary,
-                roughness: 0.3,
-                metalness: 0.9,
-                emissive: new THREE.Color(primary).multiplyScalar(0.05),
-            });
-            const sMat = new THREE.MeshStandardMaterial({
-                color: secondary,
-                roughness: 0.4,
-                metalness: 0.8,
-            });
-            const aMat = new THREE.MeshStandardMaterial({
-                color: accent,
-                roughness: 0.2,
-                metalness: 0.9,
-                emissive: new THREE.Color(accent),
-                emissiveIntensity: 0.15,
-            });
-            const glowMat = new THREE.MeshStandardMaterial({
-                color: 0x00e5ff,
-                emissive: 0x00e5ff,
-                emissiveIntensity: 0.6,
-                transparent: true,
-                opacity: 0.7,
-            });
+            const bodyMat = new THREE.MeshStandardMaterial({ color: primary, roughness: 0.4, metalness: 0.7 });
+            const darkMat = new THREE.MeshStandardMaterial({ color: secondary, roughness: 0.5, metalness: 0.6 });
+            const accentMat = new THREE.MeshStandardMaterial({ color: accent, roughness: 0.3, metalness: 0.8, emissive: accent,
+                emissiveIntensity: 0.15 });
 
-            // ── Torso ──
+            // Body (torso)
+            const body = new THREE.Mesh(new THREE.BoxGeometry(1.2 * scale, 0.8 * scale, 1.8 * scale), bodyMat);
+            body.position.set(0, 0.6 * scale, 0);
+            body.castShadow = true;
+            group.add(body);
+
+            // Tail
+            const tail = new THREE.Mesh(new THREE.ConeGeometry(0.4 * scale, 1.2 * scale, 6), darkMat);
+            tail.position.set(0, 0.4 * scale, -1.4 * scale);
+            tail.rotation.x = 0.3;
+            tail.castShadow = true;
+            group.add(tail);
+            const tailTip = new THREE.Mesh(new THREE.ConeGeometry(0.2 * scale, 0.8 * scale, 6), darkMat);
+            tailTip.position.set(0, 0.3 * scale, -2.1 * scale);
+            tailTip.rotation.x = 0.5;
+            group.add(tailTip);
+
+            // Neck
+            const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.4 * scale, 0.6 * scale, 0.6 * scale, 8), darkMat);
+            neck.position.set(0, 1.0 * scale, 0.8 * scale);
+            neck.rotation.x = -0.3;
+            neck.castShadow = true;
+            group.add(neck);
+
+            // Head
+            const head = new THREE.Mesh(new THREE.BoxGeometry(0.7 * scale, 0.5 * scale, 0.6 * scale), bodyMat);
+            head.position.set(0, 1.3 * scale, 1.2 * scale);
+            head.castShadow = true;
+            group.add(head);
+            // Jaw
+            const jaw = new THREE.Mesh(new THREE.BoxGeometry(0.5 * scale, 0.2 * scale, 0.4 * scale), darkMat);
+            jaw.position.set(0, 1.05 * scale, 1.4 * scale);
+            group.add(jaw);
+            // Teeth
+            const toothMat = new THREE.MeshStandardMaterial({ color: 0xeeeeee, roughness: 0.3 });
+            for (let i = -0.2; i <= 0.2; i += 0.2) {
+                const tooth = new THREE.Mesh(new THREE.ConeGeometry(0.04 * scale, 0.1 * scale, 4), toothMat);
+                tooth.position.set(i * scale, 0.95 * scale, 1.5 * scale);
+                group.add(tooth);
+                const tooth2 = new THREE.Mesh(new THREE.ConeGeometry(0.04 * scale, 0.1 * scale, 4), toothMat);
+                tooth2.position.set(i * scale, 1.15 * scale, 1.5 * scale);
+                tooth2.rotation.x = Math.PI;
+                group.add(tooth2);
+            }
+            // Eye (glowing)
+            const eyeMat = new THREE.MeshStandardMaterial({ color: 0xff4400, emissive: 0xff4400, emissiveIntensity: 0.5 });
+            const eye = new THREE.Mesh(new THREE.SphereGeometry(0.08 * scale, 8, 8), eyeMat);
+            eye.position.set(0.2 * scale, 1.4 * scale, 1.4 * scale);
+            group.add(eye);
+            const eye2 = new THREE.Mesh(new THREE.SphereGeometry(0.08 * scale, 8, 8), eyeMat);
+            eye2.position.set(-0.2 * scale, 1.4 * scale, 1.4 * scale);
+            group.add(eye2);
+
+            // Arms (tiny T-Rex arms)
+            const armMat = darkMat;
+            for (let side = -1; side <= 1; side += 2) {
+                const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.08 * scale, 0.12 * scale, 0.4 * scale, 6), armMat);
+                arm.position.set(side * 0.6 * scale, 0.8 * scale, 0.9 * scale);
+                arm.rotation.z = side * 0.3;
+                arm.rotation.x = -0.5;
+                group.add(arm);
+                const claw = new THREE.Mesh(new THREE.ConeGeometry(0.05 * scale, 0.1 * scale, 4), toothMat);
+                claw.position.set(side * 0.6 * scale, 0.7 * scale, 1.1 * scale);
+                group.add(claw);
+            }
+
+            // Legs (strong)
+            for (let side = -1; side <= 1; side += 2) {
+                const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.2 * scale, 0.3 * scale, 0.5 * scale, 8), darkMat);
+                leg.position.set(side * 0.4 * scale, 0.2 * scale, 0.2 * scale);
+                leg.castShadow = true;
+                group.add(leg);
+                const foot = new THREE.Mesh(new THREE.BoxGeometry(0.3 * scale, 0.1 * scale, 0.4 * scale), darkMat);
+                foot.position.set(side * 0.4 * scale, -0.05 * scale, 0.3 * scale);
+                group.add(foot);
+                // Claws on feet
+                for (let c = -0.1; c <= 0.1; c += 0.1) {
+                    const claw = new THREE.Mesh(new THREE.ConeGeometry(0.03 * scale, 0.08 * scale, 4), toothMat);
+                    claw.position.set(side * 0.4 * scale + c * scale, -0.1 * scale, 0.5 * scale);
+                    group.add(claw);
+                }
+            }
+
+            // Spikes on back (Grimlock signature)
+            const spikeMat = new THREE.MeshStandardMaterial({ color: 0xccaa44, metalness: 0.8, roughness: 0.3 });
+            for (let i = -0.6; i <= 0.6; i += 0.3) {
+                const spike = new THREE.Mesh(new THREE.ConeGeometry(0.08 * scale, 0.3 * scale, 6), spikeMat);
+                spike.position.set(0, 1.0 * scale + Math.abs(i) * 0.1 * scale, i * scale);
+                group.add(spike);
+            }
+
+            // Chest glow
+            const glow = new THREE.Mesh(new THREE.SphereGeometry(0.15 * scale, 8, 8), accentMat);
+            glow.position.set(0, 0.7 * scale, 0.9 * scale);
+            group.add(glow);
+
+            group.scale.set(1, 1, 1);
+            return group;
+        }
+
+        // ━━━ Robot Builder ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        function buildMovieRobot(config) {
+            const group = new THREE.Group();
+            const { primary, secondary, accent, scale = 1 } = config;
+
+            const pMat = new THREE.MeshStandardMaterial({ color: primary, roughness: 0.3, metalness: 0.9 });
+            const sMat = new THREE.MeshStandardMaterial({ color: secondary, roughness: 0.4, metalness: 0.8 });
+            const aMat = new THREE.MeshStandardMaterial({ color: accent, roughness: 0.2, metalness: 0.9, emissive: accent,
+                emissiveIntensity: 0.15 });
+            const glowMat = new THREE.MeshStandardMaterial({ color: 0x00e5ff, emissive: 0x00e5ff, emissiveIntensity: 0.6,
+                transparent: true, opacity: 0.7 });
+
             const torso = new THREE.Mesh(new THREE.BoxGeometry(1.6 * scale, 1.8 * scale, 0.9 * scale), pMat);
             torso.position.y = 0.6 * scale;
             torso.castShadow = true;
             group.add(torso);
-
-            // Chest plate (glowing core)
             const core = new THREE.Mesh(new THREE.BoxGeometry(0.7 * scale, 0.6 * scale, 0.15 * scale), aMat);
             core.position.set(0, 0.8 * scale, 0.55 * scale);
             group.add(core);
-            // Inner glow
-            const glowSphere = new THREE.Mesh(
-                new THREE.SphereGeometry(0.25 * scale, 12, 12),
-                glowMat
-            );
+            const glowSphere = new THREE.Mesh(new THREE.SphereGeometry(0.25 * scale, 12, 12), glowMat);
             glowSphere.position.set(0, 0.8 * scale, 0.7 * scale);
             group.add(glowSphere);
 
-            // Shoulder pads
             const shoulderMat = new THREE.MeshStandardMaterial({ color: secondary, roughness: 0.5, metalness: 0.7 });
             const lShoulder = new THREE.Mesh(new THREE.BoxGeometry(0.8 * scale, 0.25 * scale, 0.6 * scale), shoulderMat);
             lShoulder.position.set(-1.2 * scale, 1.2 * scale, 0);
@@ -247,22 +330,18 @@
             rShoulder.position.set(1.2 * scale, 1.2 * scale, 0);
             group.add(rShoulder);
 
-            // ── Head ──
             const head = new THREE.Mesh(new THREE.BoxGeometry(0.9 * scale, 0.8 * scale, 0.8 * scale), pMat);
             head.position.set(0, 1.8 * scale, 0);
             head.castShadow = true;
             group.add(head);
-            // Visor
             const visor = new THREE.Mesh(new THREE.BoxGeometry(0.7 * scale, 0.2 * scale, 0.08 * scale), aMat);
             visor.position.set(0, 1.85 * scale, 0.45 * scale);
             group.add(visor);
-            // Crest
             if (config.crest) {
                 const crest = new THREE.Mesh(new THREE.BoxGeometry(0.5 * scale, 0.1 * scale, 0.2 * scale), aMat);
                 crest.position.set(0, 2.2 * scale, 0.15 * scale);
                 group.add(crest);
             }
-            // Horns
             if (config.horn) {
                 const hMat = new THREE.MeshStandardMaterial({ color: 0xccaa44, metalness: 0.9, roughness: 0.2 });
                 const h1 = new THREE.Mesh(new THREE.ConeGeometry(0.2 * scale, 0.6 * scale, 8), hMat);
@@ -275,7 +354,6 @@
                 group.add(h2);
             }
 
-            // ── Arms ──
             function makeArm(side) {
                 const armGroup = new THREE.Group();
                 const upper = new THREE.Mesh(new THREE.BoxGeometry(0.45 * scale, 1.0 * scale, 0.45 * scale), sMat);
@@ -299,7 +377,6 @@
             group.add(makeArm(-1));
             group.add(makeArm(1));
 
-            // ── Legs ──
             function makeLeg(side) {
                 const legGroup = new THREE.Group();
                 const thigh = new THREE.Mesh(new THREE.BoxGeometry(0.5 * scale, 0.8 * scale, 0.5 * scale), sMat);
@@ -323,7 +400,6 @@
             group.add(makeLeg(-1));
             group.add(makeLeg(1));
 
-            // ── Wings ──
             if (config.wings) {
                 const wMat = new THREE.MeshStandardMaterial({ color: config.wingsColor || secondary, roughness: 0.3,
                     metalness: 0.7 });
@@ -334,7 +410,6 @@
                 rw.position.set(0.9 * scale, 1.4 * scale, 0);
                 group.add(rw);
             }
-            // ── Cannon ──
             if (config.cannon) {
                 const cMat = new THREE.MeshStandardMaterial({ color: config.cannonColor || 0x666688, metalness: 0.8,
                     roughness: 0.3 });
@@ -346,7 +421,6 @@
                 tip.position.set(1.5 * scale, 0.9 * scale, 0.85 * scale);
                 group.add(tip);
             }
-            // ── Smokestacks ──
             if (config.smokestacks) {
                 const stMat = new THREE.MeshStandardMaterial({ color: 0x888899, metalness: 0.9, roughness: 0.2 });
                 const s1 = new THREE.Mesh(new THREE.CylinderGeometry(0.08 * scale, 0.12 * scale, 0.5 * scale, 6), stMat);
@@ -356,30 +430,282 @@
                 s2.position.set(0.8 * scale, 1.2 * scale, 0.6 * scale);
                 group.add(s2);
             }
-
             return group;
         }
 
-        // ━━━ Transformer definitions (movie style) ━━━━━━━━━━━━
+        // ━━━ Vehicle Builder ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        function buildVehicle(config) {
+            const group = new THREE.Group();
+            const { primary, secondary, vehicleType, scale = 1 } = config;
+            const bodyMat = new THREE.MeshStandardMaterial({ color: primary, roughness: 0.4, metalness: 0.8 });
+            const accentMat = new THREE.MeshStandardMaterial({ color: secondary, roughness: 0.5, metalness: 0.6 });
+            const glassMat = new THREE.MeshStandardMaterial({ color: 0x4488aa, roughness: 0.1, metalness: 0.3, transparent: true,
+                opacity: 0.6 });
+
+            if (vehicleType === 'car') {
+                const body = new THREE.Mesh(new THREE.BoxGeometry(2.0 * scale, 0.6 * scale, 1.2 * scale), bodyMat);
+                body.position.y = 0.3 * scale;
+                body.castShadow = true;
+                group.add(body);
+                const cabin = new THREE.Mesh(new THREE.BoxGeometry(0.8 * scale, 0.4 * scale, 1.0 * scale), glassMat);
+                cabin.position.set(-0.2 * scale, 0.7 * scale, 0);
+                group.add(cabin);
+                const wheelMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9 });
+                for (let side = -1; side <= 1; side += 2) {
+                    for (let front = -1; front <= 1; front += 2) {
+                        const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.25 * scale, 0.25 * scale, 0.1 * scale,
+                            8), wheelMat);
+                        wheel.rotation.z = Math.PI / 2;
+                        wheel.position.set(front * 0.7 * scale, 0.1 * scale, side * 0.7 * scale);
+                        group.add(wheel);
+                    }
+                }
+                const lightMat = new THREE.MeshStandardMaterial({ color: 0xffee88, emissive: 0xffee88, emissiveIntensity: 0.5 });
+                const hl = new THREE.Mesh(new THREE.SphereGeometry(0.08 * scale, 6, 6), lightMat);
+                hl.position.set(1.0 * scale, 0.3 * scale, -0.3 * scale);
+                group.add(hl);
+                const hr = new THREE.Mesh(new THREE.SphereGeometry(0.08 * scale, 6, 6), lightMat);
+                hr.position.set(1.0 * scale, 0.3 * scale, 0.3 * scale);
+                group.add(hr);
+            } else if (vehicleType === 'truck') {
+                const cab = new THREE.Mesh(new THREE.BoxGeometry(1.2 * scale, 1.0 * scale, 1.2 * scale), bodyMat);
+                cab.position.set(-0.6 * scale, 0.5 * scale, 0);
+                cab.castShadow = true;
+                group.add(cab);
+                const trailer = new THREE.Mesh(new THREE.BoxGeometry(2.0 * scale, 0.8 * scale, 1.2 * scale), accentMat);
+                trailer.position.set(0.8 * scale, 0.4 * scale, 0);
+                trailer.castShadow = true;
+                group.add(trailer);
+                const glass = new THREE.Mesh(new THREE.BoxGeometry(0.5 * scale, 0.3 * scale, 0.8 * scale), glassMat);
+                glass.position.set(-0.2 * scale, 0.8 * scale, 0);
+                group.add(glass);
+                const wheelMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9 });
+                for (let side = -1; side <= 1; side += 2) {
+                    for (let pos = -0.8; pos <= 0.8; pos += 1.6) {
+                        const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.25 * scale, 0.25 * scale, 0.1 * scale,
+                            8), wheelMat);
+                        wheel.rotation.z = Math.PI / 2;
+                        wheel.position.set(pos * scale, 0.1 * scale, side * 0.7 * scale);
+                        group.add(wheel);
+                    }
+                }
+            } else if (vehicleType === 'jet') {
+                const fuse = new THREE.Mesh(new THREE.CylinderGeometry(0.3 * scale, 0.4 * scale, 2.0 * scale, 8), bodyMat);
+                fuse.rotation.x = Math.PI / 2;
+                fuse.position.set(0, 0.3 * scale, 0);
+                fuse.castShadow = true;
+                group.add(fuse);
+                const wing = new THREE.Mesh(new THREE.BoxGeometry(0.05 * scale, 0.4 * scale, 1.8 * scale), accentMat);
+                wing.position.set(0, 0.5 * scale, 0);
+                group.add(wing);
+                const tail = new THREE.Mesh(new THREE.BoxGeometry(0.05 * scale, 0.5 * scale, 0.5 * scale), accentMat);
+                tail.position.set(0, 0.7 * scale, -0.9 * scale);
+                group.add(tail);
+                const cockpit = new THREE.Mesh(new THREE.SphereGeometry(0.2 * scale, 8, 8), glassMat);
+                cockpit.position.set(0.4 * scale, 0.5 * scale, 0);
+                group.add(cockpit);
+            } else if (vehicleType === 'tank') {
+                const hull = new THREE.Mesh(new THREE.BoxGeometry(1.8 * scale, 0.6 * scale, 1.4 * scale), bodyMat);
+                hull.position.y = 0.3 * scale;
+                hull.castShadow = true;
+                group.add(hull);
+                const turret = new THREE.Mesh(new THREE.CylinderGeometry(0.5 * scale, 0.6 * scale, 0.4 * scale, 8), accentMat);
+                turret.position.set(0.2 * scale, 0.7 * scale, 0);
+                group.add(turret);
+                const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.08 * scale, 0.12 * scale, 0.8 * scale, 6),
+                    accentMat);
+                barrel.rotation.x = Math.PI / 2;
+                barrel.position.set(0.8 * scale, 0.7 * scale, 0);
+                group.add(barrel);
+                const trackMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.9 });
+                for (let side = -1; side <= 1; side += 2) {
+                    const track = new THREE.Mesh(new THREE.BoxGeometry(1.5 * scale, 0.1 * scale, 0.2 * scale), trackMat);
+                    track.position.set(0, 0.1 * scale, side * 0.8 * scale);
+                    group.add(track);
+                }
+            } else {
+                const body = new THREE.Mesh(new THREE.BoxGeometry(2.0 * scale, 0.6 * scale, 1.2 * scale), bodyMat);
+                body.position.y = 0.3 * scale;
+                body.castShadow = true;
+                group.add(body);
+                const cabin = new THREE.Mesh(new THREE.BoxGeometry(0.8 * scale, 0.4 * scale, 1.0 * scale), glassMat);
+                cabin.position.set(-0.2 * scale, 0.7 * scale, 0);
+                group.add(cabin);
+                const wheelMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9 });
+                for (let side = -1; side <= 1; side += 2) {
+                    for (let front = -1; front <= 1; front += 2) {
+                        const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.25 * scale, 0.25 * scale, 0.1 * scale,
+                            8), wheelMat);
+                        wheel.rotation.z = Math.PI / 2;
+                        wheel.position.set(front * 0.7 * scale, 0.1 * scale, side * 0.7 * scale);
+                        group.add(wheel);
+                    }
+                }
+            }
+            return group;
+        }
+
+        // ━━━ Boss Builder ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        function buildBoss(type) {
+            const group = new THREE.Group();
+            const isBruticus = type === 'bruticus';
+
+            const primary = isBruticus ? 0x445566 : 0x336633;
+            const secondary = isBruticus ? 0x667788 : 0x448844;
+            const accent = isBruticus ? 0xff6644 : 0xff4444;
+
+            const pMat = new THREE.MeshStandardMaterial({ color: primary, roughness: 0.3, metalness: 0.9 });
+            const sMat = new THREE.MeshStandardMaterial({ color: secondary, roughness: 0.4, metalness: 0.8 });
+            const aMat = new THREE.MeshStandardMaterial({ color: accent, roughness: 0.2, metalness: 0.9, emissive: accent,
+                emissiveIntensity: 0.2 });
+
+            // Body (massive)
+            const body = new THREE.Mesh(new THREE.BoxGeometry(3.0, 3.5, 2.0), pMat);
+            body.position.y = 1.8;
+            body.castShadow = true;
+            group.add(body);
+
+            // Chest detail
+            const chest = new THREE.Mesh(new THREE.BoxGeometry(2.0, 1.0, 0.3), aMat);
+            chest.position.set(0, 2.0, 1.1);
+            group.add(chest);
+            // Glowing core
+            const core = new THREE.Mesh(new THREE.SphereGeometry(0.5, 12, 12),
+                new THREE.MeshStandardMaterial({ color: 0xff4400, emissive: 0xff4400, emissiveIntensity: 0.8 }));
+            core.position.set(0, 2.0, 1.3);
+            group.add(core);
+
+            // Head
+            const head = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.0, 1.0), pMat);
+            head.position.set(0, 3.5, 0);
+            head.castShadow = true;
+            group.add(head);
+            // Visor/eyes
+            const eyeMat = new THREE.MeshStandardMaterial({ color: 0xff2200, emissive: 0xff2200, emissiveIntensity: 0.6 });
+            const visor = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.25, 0.1), eyeMat);
+            visor.position.set(0, 3.5, 0.55);
+            group.add(visor);
+            // Crest (helmet)
+            const crest = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.2, 0.3), aMat);
+            crest.position.set(0, 4.0, 0.15);
+            group.add(crest);
+
+            // Shoulder pads (massive)
+            const shoulderMat = new THREE.MeshStandardMaterial({ color: secondary, roughness: 0.5, metalness: 0.7 });
+            const lShoulder = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.4, 1.0), shoulderMat);
+            lShoulder.position.set(-2.0, 2.8, 0);
+            group.add(lShoulder);
+            const rShoulder = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.4, 1.0), shoulderMat);
+            rShoulder.position.set(2.0, 2.8, 0);
+            group.add(rShoulder);
+
+            // Arms (big)
+            function makeBossArm(side) {
+                const armGroup = new THREE.Group();
+                const upper = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.8, 0.8), sMat);
+                upper.position.y = 0.9;
+                upper.castShadow = true;
+                armGroup.add(upper);
+                const elbow = new THREE.Mesh(new THREE.SphereGeometry(0.5, 8, 8), pMat);
+                elbow.position.y = 0;
+                armGroup.add(elbow);
+                const forearm = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.5, 0.7), sMat);
+                forearm.position.y = -0.75;
+                forearm.castShadow = true;
+                armGroup.add(forearm);
+                const hand = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.4, 0.8), pMat);
+                hand.position.y = -1.5;
+                armGroup.add(hand);
+                // Weapon (cannon)
+                const weapon = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.4, 1.0, 8), aMat);
+                weapon.rotation.x = Math.PI / 2;
+                weapon.position.set(side * 0.2, -1.2, 0.8);
+                armGroup.add(weapon);
+                armGroup.position.x = side * 2.0;
+                armGroup.position.y = 2.0;
+                return armGroup;
+            }
+            group.add(makeBossArm(-1));
+            group.add(makeBossArm(1));
+
+            // Legs (thick)
+            function makeBossLeg(side) {
+                const legGroup = new THREE.Group();
+                const thigh = new THREE.Mesh(new THREE.BoxGeometry(0.9, 1.2, 0.9), sMat);
+                thigh.position.y = -0.6;
+                thigh.castShadow = true;
+                legGroup.add(thigh);
+                const knee = new THREE.Mesh(new THREE.SphereGeometry(0.5, 8, 8), pMat);
+                knee.position.y = -1.2;
+                legGroup.add(knee);
+                const shin = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.2, 0.8), sMat);
+                shin.position.y = -1.8;
+                shin.castShadow = true;
+                legGroup.add(shin);
+                const foot = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.3, 1.2), pMat);
+                foot.position.set(0, -2.5, 0.2);
+                legGroup.add(foot);
+                legGroup.position.x = side * 0.8;
+                legGroup.position.y = -0.5;
+                return legGroup;
+            }
+            group.add(makeBossLeg(-1));
+            group.add(makeBossLeg(1));
+
+            // Wings (for Bruticus)
+            if (isBruticus) {
+                const wMat = new THREE.MeshStandardMaterial({ color: 0x445566, roughness: 0.3, metalness: 0.7 });
+                const lw = new THREE.Mesh(new THREE.BoxGeometry(0.2, 1.5, 2.5), wMat);
+                lw.position.set(-1.8, 2.5, 0);
+                group.add(lw);
+                const rw = new THREE.Mesh(new THREE.BoxGeometry(0.2, 1.5, 2.5), wMat);
+                rw.position.set(1.8, 2.5, 0);
+                group.add(rw);
+            }
+
+            // Extra details for Devastator (green/purple)
+            if (!isBruticus) {
+                // Purple accents
+                const pAccent = new THREE.MeshStandardMaterial({ color: 0x8844aa, emissive: 0x8844aa, emissiveIntensity: 0.1 });
+                const accent1 = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.2, 0.8), pAccent);
+                accent1.position.set(0, 3.0, 1.1);
+                group.add(accent1);
+                // Drill on arm
+                const drillMat = new THREE.MeshStandardMaterial({ color: 0x888899, metalness: 0.9, roughness: 0.2 });
+                const drill = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.3, 1.0, 8), drillMat);
+                drill.rotation.x = Math.PI / 2;
+                drill.position.set(-2.2, 1.2, 1.2);
+                group.add(drill);
+            }
+
+            group.scale.set(1.2, 1.2, 1.2);
+            return group;
+        }
+
+        // ━━━ Transformer definitions ━━━━━━━━━━━━━━━━━━━━━━━━━━
         const TRANSFORMERS = {
             bumblebee: { name: 'BUMBLEBEE', primary: 0xffcc00, secondary: 0x222222, accent: 0x00aaff, scale: 1.0,
-                speed: 5.5, health: 100, damage: 18, fireRate: 12, icon: '🐝' },
+                speed: 5.5, health: 100, damage: 18, fireRate: 12, icon: '🐝', vehicleType: 'car' },
             soundwave: { name: 'SOUNDWAVE', primary: 0x2244aa, secondary: 0x111133, accent: 0x4488ff, scale: 1.0,
-                speed: 4.0, health: 120, damage: 22, fireRate: 18, icon: '📡', wings: true, wingsColor: 0x2244aa },
+                speed: 4.0, health: 120, damage: 22, fireRate: 18, icon: '📡', vehicleType: 'jet', wings: true,
+                wingsColor: 0x2244aa },
             shockwave: { name: 'SHOCKWAVE', primary: 0x8833aa, secondary: 0x441166, accent: 0xff44aa, scale: 1.0,
-                speed: 3.8, health: 130, damage: 28, fireRate: 20, icon: '🔬', cannon: true, cannonColor: 0xaa66cc,
-                crest: true },
+                speed: 3.8, health: 130, damage: 28, fireRate: 20, icon: '🔬', vehicleType: 'tank', cannon: true,
+                cannonColor: 0xaa66cc, crest: true },
             starscream: { name: 'STARSCREAM', primary: 0xcc2233, secondary: 0x444466, accent: 0xff6644, scale: 1.0,
-                speed: 6.2, health: 90, damage: 20, fireRate: 10, icon: '✈️', wings: true, wingsColor: 0xcc2233 },
+                speed: 6.2, health: 90, damage: 20, fireRate: 10, icon: '✈️', vehicleType: 'jet', wings: true,
+                wingsColor: 0xcc2233 },
             megatron: { name: 'MEGATRON', primary: 0x445566, secondary: 0x223344, accent: 0xff4444, scale: 1.2,
-                speed: 3.5, health: 160, damage: 32, fireRate: 25, icon: '💀', cannon: true, cannonColor: 0x888899,
+                speed: 3.5, health: 160, damage: 32, fireRate: 25, icon: '💀', vehicleType: 'tank', cannon: true,
+                cannonColor: 0x888899, crest: true },
+            grimlock: { name: 'GRIMLOCK', primary: 0x667788, secondary: 0xccaa44, accent: 0xff6633, scale: 1.2,
+                speed: 3.5, health: 200, damage: 40, fireRate: 25, icon: '🦖', vehicleType: 'truck', horn: true,
                 crest: true },
-            grimlock: { name: 'GRIMLOCK', primary: 0x667788, secondary: 0xccaa44, accent: 0xff6633, scale: 1.3,
-                speed: 3.0, health: 200, damage: 40, fireRate: 30, icon: '🦖', horn: true, crest: true },
             optimus: { name: 'OPTIMUS PRIME', primary: 0xcc2222, secondary: 0x2244aa, accent: 0xccccdd, scale: 1.15,
-                speed: 4.2, health: 180, damage: 30, fireRate: 20, icon: '🔥', crest: true, smokestacks: true },
+                speed: 4.2, health: 180, damage: 30, fireRate: 20, icon: '🔥', vehicleType: 'truck', crest: true,
+                smokestacks: true },
             mirage: { name: 'MIRAGE', primary: 0x2266cc, secondary: 0xccccdd, accent: 0x88aaff, scale: 1.0,
-                speed: 5.8, health: 110, damage: 24, fireRate: 14, icon: '🌀', crest: true }
+                speed: 5.8, health: 110, damage: 24, fireRate: 14, icon: '🌀', vehicleType: 'car', crest: true }
         };
         const TRANSFORM_LIST = ['bumblebee', 'soundwave', 'shockwave', 'starscream', 'megatron', 'grimlock', 'optimus', 'mirage'];
 
@@ -391,6 +717,12 @@
             wave: 1,
             kills: 0,
             enemies: [],
+            boss: null,
+            bossActive: false,
+            bossType: null,
+            bossHealth: 0,
+            bossMaxHealth: 0,
+            bossPhase: 0,
             projectiles: [],
             enemyProjectiles: [],
             particles: [],
@@ -418,25 +750,32 @@
         let shieldActive = false,
             shieldTimer = 0;
         let speedBoost = 1;
+        let isTransforming = false;
+        let transformProgress = 0;
+        let isVehicle = false;
+        let vehicleModel = null;
+        let trexModel = null;
+        let isTrex = false;
 
         // ━━━ Input ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         const keys = {};
         document.addEventListener('keydown', e => {
             keys[e.key.toLowerCase()] = true;
             if (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'ArrowDown') e.preventDefault();
-            if (e.key === ' ' && G.running && !G.over) shoot();
+            if (e.key === ' ' && G.running && !G.over && !isTransforming) shoot();
+            if (e.key === 't' || e.key === 'T') { if (G.running && !G.over) startTransform(); }
             if (e.key === 'e' || e.key === 'E') { if (G.running && !G.over) callTeammate(); }
             if (e.key === 'r' || e.key === 'R') { if (G.over) restartGame(); }
             const num = parseInt(e.key);
-            if (num >= 1 && num <= 8 && G.running && !G.over) {
+            if (num >= 1 && num <= 8 && G.running && !G.over && !isTransforming) {
                 const idx = num - 1;
-                if (idx < TRANSFORM_LIST.length) transformTo(TRANSFORM_LIST[idx]);
+                if (idx < TRANSFORM_LIST.length) changeCharacter(TRANSFORM_LIST[idx]);
             }
         });
         document.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
-        document.addEventListener('click', () => { if (G.running && !G.over) shoot(); });
+        document.addEventListener('click', () => { if (G.running && !G.over && !isTransforming) shoot(); });
 
-        // ━━━ Audio (simple) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // ━━━ Audio ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         let audioCtx = null;
 
         function initAudio() { if (!audioCtx) audioCtx = new(window.AudioContext || window.webkitAudioContext)(); }
@@ -467,12 +806,12 @@
                     osc.stop(now + 0.25);
                 } else if (type === 'transform') {
                     osc.type = 'sine';
-                    osc.frequency.setValueAtTime(400, now);
-                    osc.frequency.exponentialRampToValueAtTime(800, now + 0.12);
+                    osc.frequency.setValueAtTime(300, now);
+                    osc.frequency.exponentialRampToValueAtTime(900, now + 0.15);
                     gain.gain.setValueAtTime(0.15, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
                     osc.start(now);
-                    osc.stop(now + 0.12);
+                    osc.stop(now + 0.15);
                 } else if (type === 'hit') {
                     osc.type = 'sine';
                     osc.frequency.setValueAtTime(300, now);
@@ -489,13 +828,335 @@
                     gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
                     osc.start(now);
                     osc.stop(now + 0.1);
+                } else if (type === 'boss') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(80, now);
+                    osc.frequency.exponentialRampToValueAtTime(40, now + 0.5);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                    osc.start(now);
+                    osc.stop(now + 0.5);
                 }
             } catch (e) {}
         }
 
+        // ━━━ Transform Logic ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        function startTransform() {
+            if (isTransforming || !player) return;
+            isTransforming = true;
+            transformProgress = 0;
+            playSound('transform');
+            const pos = player.position.clone();
+            for (let i = 0; i < 60; i++) {
+                const dir = new THREE.Vector3((Math.random() - 0.5), (Math.random() - 0.5), (Math.random() - 0.5))
+                    .normalize()
+                    .multiplyScalar(2 + Math.random() * 6);
+                G.particles.push({
+                    pos: pos.clone().add(new THREE.Vector3((Math.random() - 0.5) * 0.5, (Math.random() - 0.5) * 0.5, (Math
+                        .random() - 0.5) * 0.5)),
+                    vel: dir,
+                    life: 20 + Math.random() * 20,
+                    maxLife: 40,
+                    color: new THREE.Color(0x88ddff),
+                    size: 0.1 + Math.random() * 0.3,
+                    alive: true,
+                    isGlow: true,
+                });
+            }
+            G.particles.push({
+                pos: pos.clone(),
+                vel: new THREE.Vector3(0, 0, 0),
+                life: 10,
+                maxLife: 10,
+                color: new THREE.Color(0xffffff),
+                size: 4,
+                alive: true,
+                isFlash: true,
+            });
+        }
+
+        function changeCharacter(mode) {
+            if (mode === currentMode) return;
+            currentMode = mode;
+            isVehicle = false;
+            isTrex = false;
+            if (vehicleModel) { scene.remove(vehicleModel);
+                vehicleModel = null; }
+            if (trexModel) { scene.remove(trexModel);
+                trexModel = null; }
+            if (playerModel) {
+                scene.remove(playerModel);
+                playerModel.traverse(c => { if (c.isMesh) { c.geometry.dispose(); if (Array.isArray(c.material)) c
+                            .material.forEach(m => m.dispose());
+                        else c.material.dispose(); } });
+                playerModel = null;
+            }
+            const cfg = TRANSFORMERS[currentMode];
+            maxHealth = cfg.health || 100;
+            health = Math.min(health, maxHealth);
+            const config = {
+                primary: cfg.primary,
+                secondary: cfg.secondary,
+                accent: cfg.accent,
+                scale: cfg.scale || 1,
+                wings: cfg.wings || false,
+                wingsColor: cfg.wingsColor || cfg.secondary,
+                cannon: cfg.cannon || false,
+                cannonColor: cfg.cannonColor || 0x666688,
+                horn: cfg.horn || false,
+                crest: cfg.crest || false,
+                smokestacks: cfg.smokestacks || false,
+            };
+            playerModel = buildMovieRobot(config);
+            playerModel.position.copy(player.position);
+            playerModel.rotation.copy(player.rotation);
+            scene.add(playerModel);
+
+            // Build vehicle
+            const vConfig = { primary: cfg.primary, secondary: cfg.secondary, vehicleType: cfg.vehicleType || 'car',
+                scale: cfg.scale || 1 };
+            vehicleModel = buildVehicle(vConfig);
+            vehicleModel.position.copy(player.position);
+            vehicleModel.rotation.copy(player.rotation);
+            vehicleModel.visible = false;
+            scene.add(vehicleModel);
+
+            // Build T-Rex for Grimlock
+            if (currentMode === 'grimlock') {
+                const tConfig = { primary: cfg.primary, secondary: cfg.secondary, accent: cfg.accent, scale: cfg.scale ||
+                        1 };
+                trexModel = buildTRex(tConfig);
+                trexModel.position.copy(player.position);
+                trexModel.rotation.copy(player.rotation);
+                trexModel.visible = false;
+                scene.add(trexModel);
+            }
+
+            modeBadge.textContent = `${cfg.icon || '⚡'} ${cfg.name} (Robot)`;
+            modeBadge.style.borderColor = `#${cfg.accent.toString(16).padStart(6,'0')}66`;
+            modeBadge.style.color = `#${cfg.accent.toString(16).padStart(6,'0')}`;
+            updateUI();
+        }
+
+        function finishTransform() {
+            const cfg = TRANSFORMERS[currentMode];
+            if (currentMode === 'grimlock') {
+                // Toggle between robot and T-Rex
+                isTrex = !isTrex;
+                if (isTrex) {
+                    playerModel.visible = false;
+                    vehicleModel.visible = false;
+                    trexModel.visible = true;
+                    modeBadge.textContent = `🦖 ${cfg.name} (T-Rex)`;
+                    // Scale up for T-Rex
+                    trexModel.scale.set(1.2, 1.2, 1.2);
+                } else {
+                    playerModel.visible = true;
+                    vehicleModel.visible = false;
+                    trexModel.visible = false;
+                    modeBadge.textContent = `🦖 ${cfg.name} (Robot)`;
+                }
+            } else {
+                isVehicle = !isVehicle;
+                if (isVehicle) {
+                    playerModel.visible = false;
+                    vehicleModel.visible = true;
+                    if (trexModel) trexModel.visible = false;
+                    modeBadge.textContent = `${cfg.icon} ${cfg.name} (Vehicle)`;
+                } else {
+                    playerModel.visible = true;
+                    vehicleModel.visible = false;
+                    if (trexModel) trexModel.visible = false;
+                    modeBadge.textContent = `${cfg.icon} ${cfg.name} (Robot)`;
+                }
+            }
+            isTransforming = false;
+        }
+
+        // ━━━ Boss System ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        function spawnBoss() {
+            if (G.bossActive) return;
+            const types = ['bruticus', 'devastator'];
+            const type = types[Math.floor(Math.random() * types.length)];
+            G.bossType = type;
+            G.bossActive = true;
+            const bossModel = buildBoss(type);
+            const angle = Math.random() * Math.PI * 2;
+            const dist = 25 + Math.random() * 10;
+            const pos = new THREE.Vector3(Math.cos(angle) * dist, 0, Math.sin(angle) * dist);
+            bossModel.position.copy(pos);
+            bossModel.rotation.y = Math.random() * Math.PI * 2;
+            scene.add(bossModel);
+
+            const bossHealth = 300 + G.wave * 50;
+            G.bossHealth = bossHealth;
+            G.bossMaxHealth = bossHealth;
+            G.bossPhase = 0;
+
+            G.boss = {
+                model: bossModel,
+                pos: pos,
+                type: type,
+                health: bossHealth,
+                maxHealth: bossHealth,
+                alive: true,
+                shootTimer: 40,
+                attackTimer: 0,
+                phase: 0,
+                speed: 0.8 + G.wave * 0.05,
+                damage: 25 + G.wave * 2,
+                size: 2.5,
+            };
+
+            bossHealthBar.style.display = 'block';
+            bossHealthFill.style.width = '100%';
+            bossNameEl.style.display = 'block';
+            bossNameEl.textContent = type === 'bruticus' ? '⚡ BRUTICUS ⚡' : '⚡ DEVASTATOR ⚡';
+            bossNameEl.style.color = type === 'bruticus' ? '#ff6644' : '#44ff44';
+
+            // Boss spawn effect
+            for (let i = 0; i < 80; i++) {
+                const dir = new THREE.Vector3((Math.random() - 0.5), (Math.random() - 0.5), (Math.random() - 0.5))
+                    .normalize()
+                    .multiplyScalar(2 + Math.random() * 8);
+                G.particles.push({
+                    pos: pos.clone().add(new THREE.Vector3((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math
+                        .random() - 0.5) * 2)),
+                    vel: dir,
+                    life: 25 + Math.random() * 30,
+                    maxLife: 55,
+                    color: new THREE.Color(type === 'bruticus' ? 0xff6644 : 0x44ff44),
+                    size: 0.2 + Math.random() * 0.5,
+                    alive: true,
+                    isGlow: true,
+                });
+            }
+            playSound('boss');
+        }
+
+        function updateBoss() {
+            if (!G.boss || !G.boss.alive || !G.bossActive) return;
+            const b = G.boss;
+
+            // Movement: slowly advance toward player
+            if (player) {
+                const dx = player.position.x - b.pos.x;
+                const dz = player.position.z - b.pos.z;
+                const dist = Math.sqrt(dx * dx + dz * dz);
+                if (dist > 8) {
+                    const spd = b.speed * 0.04;
+                    b.pos.x += (dx / dist) * spd;
+                    b.pos.z += (dz / dist) * spd;
+                }
+                // Face player
+                b.model.rotation.y = Math.atan2(dx, dz);
+            }
+            b.model.position.copy(b.pos);
+
+            // Boss shooting
+            b.shootTimer--;
+            if (b.shootTimer <= 0 && player) {
+                // Shoot multiple projectiles
+                const count = Math.min(3 + Math.floor(G.bossPhase / 2), 8);
+                for (let i = 0; i < count; i++) {
+                    const angleOffset = (i / count - 0.5) * 1.2;
+                    const dir = new THREE.Vector3().copy(player.position).sub(b.pos);
+                    dir.y += 0.5;
+                    const len = dir.length();
+                    if (len < 1) continue;
+                    dir.normalize();
+                    // Add spread
+                    const perp = new THREE.Vector3(-dir.z, 0, dir.x).normalize();
+                    const spread = perp.clone().multiplyScalar(angleOffset * 0.5);
+                    dir.add(spread);
+                    dir.normalize();
+                    const spd = 4 + G.wave * 0.2;
+                    const proj = {
+                        pos: b.pos.clone().add(new THREE.Vector3(0, 1.5, 0)).add(dir.clone().multiplyScalar(2)),
+                        vel: dir.multiplyScalar(spd),
+                        life: 120,
+                        damage: b.damage * 0.5,
+                        color: new THREE.Color(b.type === 'bruticus' ? 0xff6644 : 0x44ff44),
+                        size: 0.5,
+                        alive: true,
+                        isEnemy: true,
+                        isBoss: true,
+                    };
+                    G.enemyProjectiles.push(proj);
+                }
+                b.shootTimer = 40 + Math.random() * 30 - G.wave * 2;
+                if (b.shootTimer < 20) b.shootTimer = 20;
+                playSound('shoot');
+            }
+
+            // Phase changes
+            const healthPct = b.health / b.maxHealth;
+            if (healthPct < 0.5 && G.bossPhase < 1) {
+                G.bossPhase = 1;
+                // Phase 2: faster, more aggressive
+                b.speed *= 1.5;
+                b.damage *= 1.3;
+                // Visual effect
+                for (let i = 0; i < 50; i++) {
+                    const dir = new THREE.Vector3((Math.random() - 0.5), (Math.random() - 0.5), (Math.random() - 0.5))
+                        .normalize()
+                        .multiplyScalar(2 + Math.random() * 6);
+                    G.particles.push({
+                        pos: b.pos.clone().add(new THREE.Vector3((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (
+                            Math.random() - 0.5) * 2)),
+                        vel: dir,
+                        life: 20 + Math.random() * 20,
+                        maxLife: 40,
+                        color: new THREE.Color(0xff4400),
+                        size: 0.2 + Math.random() * 0.4,
+                        alive: true,
+                        isGlow: true,
+                    });
+                }
+                playSound('explode');
+            }
+            if (healthPct < 0.25 && G.bossPhase < 2) {
+                G.bossPhase = 2;
+                // Phase 3: summon minions
+                for (let i = 0; i < 3; i++) {
+                    setTimeout(() => {
+                        if (G.running && G.bossActive) spawnEnemy();
+                    }, i * 500);
+                }
+                for (let i = 0; i < 40; i++) {
+                    const dir = new THREE.Vector3((Math.random() - 0.5), (Math.random() - 0.5), (Math.random() - 0.5))
+                        .normalize()
+                        .multiplyScalar(2 + Math.random() * 6);
+                    G.particles.push({
+                        pos: b.pos.clone().add(new THREE.Vector3((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (
+                            Math.random() - 0.5) * 2)),
+                        vel: dir,
+                        life: 20 + Math.random() * 20,
+                        maxLife: 40,
+                        color: new THREE.Color(0xff8800),
+                        size: 0.2 + Math.random() * 0.4,
+                        alive: true,
+                        isGlow: true,
+                    });
+                }
+                playSound('transform');
+            }
+
+            // Health bar
+            const pct = (b.health / b.maxHealth) * 100;
+            bossHealthFill.style.width = pct + '%';
+            if (pct < 25) {
+                bossHealthFill.style.background = 'linear-gradient(90deg, #ff0000, #ff2244)';
+            } else if (pct < 50) {
+                bossHealthFill.style.background = 'linear-gradient(90deg, #ff6644, #ff8844)';
+            } else {
+                bossHealthFill.style.background = 'linear-gradient(90deg, #ff2244, #ff6644)';
+            }
+        }
+
         // ━━━ Core Functions ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         function shoot() {
-            if (shootCooldown > 0 || !player || G.over) return;
+            if (shootCooldown > 0 || !player || G.over || isTransforming) return;
             const cfg = TRANSFORMERS[currentMode];
             shootCooldown = Math.max(6, cfg.fireRate - 2);
             const dir = new THREE.Vector3(0, 0, -1);
@@ -522,49 +1183,6 @@
             }
         }
 
-        function transformTo(mode) {
-            if (mode === currentMode || !player) return;
-            if (!TRANSFORMERS[mode]) return;
-            currentMode = mode;
-            const cfg = TRANSFORMERS[mode];
-            maxHealth = cfg.health || 100;
-            health = Math.min(health, maxHealth);
-            if (playerModel) {
-                scene.remove(playerModel);
-                playerModel.traverse(c => { if (c.isMesh) { c.geometry.dispose(); if (Array.isArray(c.material)) c
-                            .material.forEach(m => m.dispose());
-                        else c.material.dispose(); } });
-            }
-            const config = {
-                primary: cfg.primary,
-                secondary: cfg.secondary,
-                accent: cfg.accent,
-                scale: cfg.scale || 1,
-                wings: cfg.wings || false,
-                wingsColor: cfg.wingsColor || cfg.secondary,
-                cannon: cfg.cannon || false,
-                cannonColor: cfg.cannonColor || 0x666688,
-                horn: cfg.horn || false,
-                crest: cfg.crest || false,
-                smokestacks: cfg.smokestacks || false,
-            };
-            playerModel = buildMovieTransformer(config);
-            playerModel.position.copy(player.position);
-            playerModel.rotation.copy(player.rotation);
-            scene.add(playerModel);
-            modeBadge.textContent = `${cfg.icon || '⚡'} ${cfg.name}`;
-            modeBadge.style.borderColor = `#${cfg.accent.toString(16).padStart(6,'0')}66`;
-            modeBadge.style.color = `#${cfg.accent.toString(16).padStart(6,'0')}`;
-            playSound('transform');
-            for (let i = 0; i < 20; i++) {
-                const pos = player.position.clone().add(new THREE.Vector3((Math.random() - 0.5) * 2, (Math.random() - 0.5) *
-                    2, (Math.random() - 0.5) * 2));
-                G.particles.push({ pos, vel: new THREE.Vector3((Math.random() - 0.5) * 6, (Math.random() - 0.5) * 6, (
-                        Math.random() - 0.5) * 6), life: 15 + Math.random() * 15, maxLife: 30,
-                    color: new THREE.Color(cfg.accent || 0x00e5ff), size: 0.1 + Math.random() * 0.3, alive: true });
-            }
-        }
-
         function callTeammate() {
             if (G.teammates.length >= G.maxTeammates || G.teammateCooldown > 0 || !player || G.over) return;
             G.teammateCooldown = 100;
@@ -576,7 +1194,7 @@
                 wings: cfg.wings || false, wingsColor: cfg.wingsColor || cfg.secondary, cannon: cfg.cannon || false,
                 cannonColor: cfg.cannonColor || 0x666688, horn: cfg.horn || false, crest: cfg.crest || false,
                 smokestacks: cfg.smokestacks || false };
-            const model = buildMovieTransformer(config);
+            const model = buildMovieRobot(config);
             model.position.copy(pos);
             scene.add(model);
             const teammate = {
@@ -643,7 +1261,7 @@
                 color = 0x664422;
                 accent = 0xff8844;
                 wings = true;
-            } else { // soldier
+            } else {
                 health = 30 + G.wave * 3;
                 speed = 1 + Math.random() * 0.6 + G.wave * 0.05;
                 damage = 10 + G.wave * 1.2;
@@ -652,7 +1270,7 @@
                 accent = 0xff4444;
             }
 
-            const model = buildMovieTransformer({ primary: color, secondary: 0x222244, accent, scale: size * 0.9,
+            const model = buildMovieRobot({ primary: color, secondary: 0x222244, accent, scale: size * 0.9,
                 wings, cannon, cannonColor: 0x888899, crest });
             model.position.set(x, 0, z);
             scene.add(model);
@@ -733,10 +1351,18 @@
 
         function startWave() {
             G.wave++;
-            G.waveMaxEnemies = Math.min(5 + G.wave * 2, 30);
+            G.waveMaxEnemies = Math.min(5 + G.wave * 2, 25);
             G.waveEnemyCount = 0;
             G.spawnInterval = Math.max(15, 70 - G.wave * 2);
             waveDisplay.textContent = G.wave;
+
+            // Boss every 5 waves
+            if (G.wave % 5 === 0 && G.wave > 0) {
+                setTimeout(() => {
+                    if (G.running && !G.over) spawnBoss();
+                }, 1000);
+            }
+
             for (let i = 0; i < 40; i++) {
                 const pos = new THREE.Vector3((Math.random() - 0.5) * 40, Math.random() * 15, (Math.random() - 0.5) * 40);
                 G.particles.push({ pos, vel: new THREE.Vector3((Math.random() - 0.5) * 1.5, -Math.random() * 3 - 1, (Math
@@ -749,6 +1375,13 @@
         function gameOver() {
             G.over = true;
             G.running = false;
+            if (G.boss) {
+                scene.remove(G.boss.model);
+                G.boss = null;
+                G.bossActive = false;
+                bossHealthBar.style.display = 'none';
+                bossNameEl.style.display = 'none';
+            }
             document.getElementById('finalScore').textContent = G.score;
             overlay.classList.remove('hidden');
             overlay.querySelector('h1').textContent = '💀 DECEPTICON VICTORY';
@@ -758,7 +1391,7 @@
             restartBtn.id = 'restartBtn';
             restartBtn.textContent = '↻ ROLL OUT AGAIN';
             restartBtn.style.cssText =
-                `pointer-events:auto; padding:14px 48px; font-size:16px; font-weight:700; color:#0a0a12; background:linear-gradient(135deg,#00e5ff,#0077ff); border:none; border-radius:40px; cursor:pointer; box-shadow:0 0 40px rgba(0,229,255,0.2); letter-spacing:2px; text-transform:uppercase; margin-top:8px;`;
+                'pointer-events:auto; padding:14px 48px; font-size:16px; font-weight:700; color:#0a0a12; background:linear-gradient(135deg,#00e5ff,#0077ff); border:none; border-radius:40px; cursor:pointer; box-shadow:0 0 40px rgba(0,229,255,0.2); letter-spacing:2px; text-transform:uppercase; margin-top:8px;';
             restartBtn.addEventListener('click', restartGame);
             document.querySelector('#overlay').appendChild(restartBtn);
         }
@@ -766,6 +1399,9 @@
         function restartGame() {
             G.enemies.forEach(e => { scene.remove(e.model); });
             G.teammates.forEach(t => { scene.remove(t.model); });
+            if (G.boss) { scene.remove(G.boss.model);
+                G.boss = null;
+                G.bossActive = false; }
             G.enemies = [];
             G.teammates = [];
             G.projectiles = [];
@@ -792,11 +1428,20 @@
             shieldActive = false;
             shieldTimer = 0;
             speedBoost = 1;
+            isTransforming = false;
+            isVehicle = false;
+            isTrex = false;
+            bossHealthBar.style.display = 'none';
+            bossNameEl.style.display = 'none';
             if (player) { player.position.set(0, 0, 0);
                 player.rotation.set(0, 0, 0); }
             if (playerModel) { scene.remove(playerModel);
                 playerModel = null; }
-            transformTo('bumblebee');
+            if (vehicleModel) { scene.remove(vehicleModel);
+                vehicleModel = null; }
+            if (trexModel) { scene.remove(trexModel);
+                trexModel = null; }
+            changeCharacter('bumblebee');
             scoreDisplay.textContent = '0';
             waveDisplay.textContent = '1';
             killDisplay.textContent = '0';
@@ -813,7 +1458,7 @@
             player = new THREE.Object3D();
             player.position.set(0, 0, 0);
             scene.add(player);
-            transformTo('bumblebee');
+            changeCharacter('bumblebee');
             G.running = true;
             G.over = false;
             overlay.classList.add('hidden');
@@ -830,6 +1475,45 @@
             if (!G.running || G.over) return;
             G.frame++;
 
+            // ── Transformation ──
+            if (isTransforming) {
+                transformProgress += 0.04;
+                if (transformProgress >= 1) {
+                    transformProgress = 1;
+                    finishTransform();
+                }
+                const s = currentMode === 'grimlock' ? 1 - transformProgress : 1 - transformProgress;
+                if (playerModel) playerModel.scale.set(s, s, s);
+                if (vehicleModel) vehicleModel.scale.set(transformProgress, transformProgress, transformProgress);
+                if (trexModel) trexModel.scale.set(transformProgress * 1.2, transformProgress * 1.2, transformProgress *
+                    1.2);
+                if (transformProgress < 0.5) {
+                    camera.position.x += (Math.random() - 0.5) * 0.3;
+                    camera.position.z += (Math.random() - 0.5) * 0.3;
+                }
+                if (G.frame % 2 === 0) {
+                    const pos = player.position.clone();
+                    for (let i = 0; i < 3; i++) {
+                        const dir = new THREE.Vector3((Math.random() - 0.5), (Math.random() - 0.5), (Math.random() - 0.5))
+                            .normalize()
+                            .multiplyScalar(1 + Math.random() * 3);
+                        G.particles.push({
+                            pos: pos.clone().add(new THREE.Vector3((Math.random() - 0.5) * 0.5, (Math.random() - 0.5) *
+                                0.5, (Math.random() - 0.5) * 0.5)),
+                            vel: dir,
+                            life: 10 + Math.random() * 10,
+                            maxLife: 20,
+                            color: new THREE.Color(0x88ddff),
+                            size: 0.05 + Math.random() * 0.15,
+                            alive: true,
+                            isGlow: true,
+                        });
+                    }
+                }
+                return;
+            }
+
+            // ── Player movement ──
             if (player && playerModel) {
                 const cfg = TRANSFORMERS[currentMode];
                 let moveX = 0,
@@ -850,7 +1534,9 @@
                 while (diff < -Math.PI) diff += Math.PI * 2;
                 currentRotation += diff * 0.12;
                 player.rotation.y = currentRotation;
-                playerModel.rotation.y = currentRotation;
+                if (playerModel) playerModel.rotation.y = currentRotation;
+                if (vehicleModel) vehicleModel.rotation.y = currentRotation;
+                if (trexModel) trexModel.rotation.y = currentRotation;
 
                 const spd = (cfg.speed || 4) * speedBoost * 0.1;
                 const newPos = player.position.clone();
@@ -860,8 +1546,13 @@
                 newPos.x = Math.max(-bound, Math.min(bound, newPos.x));
                 newPos.z = Math.max(-bound, Math.min(bound, newPos.z));
                 player.position.copy(newPos);
-                playerModel.position.copy(newPos);
-                playerModel.position.y = Math.sin(G.frame * 0.04) * 0.02;
+                if (playerModel) playerModel.position.copy(newPos);
+                if (vehicleModel) vehicleModel.position.copy(newPos);
+                if (trexModel) trexModel.position.copy(newPos);
+                const bob = Math.sin(G.frame * 0.04) * 0.02;
+                if (playerModel) playerModel.position.y = bob;
+                if (vehicleModel) vehicleModel.position.y = 0;
+                if (trexModel) trexModel.position.y = 0;
 
                 if (shootCooldown > 0) shootCooldown--;
                 if (invincible > 0) invincible--;
@@ -876,22 +1567,78 @@
                     'linear-gradient(90deg, #00e5ff, #00b8ff)';
             }
 
-            // Spawn
-            if (G.waveEnemyCount < G.waveMaxEnemies) {
-                G.spawnTimer--;
-                if (G.spawnTimer <= 0 && G.enemies.length < 20) {
-                    spawnEnemy();
-                    G.waveEnemyCount++;
-                    G.spawnTimer = G.spawnInterval + Math.random() * 30;
+            // ── Spawn ──
+            if (!G.bossActive) {
+                if (G.waveEnemyCount < G.waveMaxEnemies) {
+                    G.spawnTimer--;
+                    if (G.spawnTimer <= 0 && G.enemies.length < 20) {
+                        spawnEnemy();
+                        G.waveEnemyCount++;
+                        G.spawnTimer = G.spawnInterval + Math.random() * 30;
+                    }
+                } else if (G.enemies.length === 0 && G.waveEnemyCount >= G.waveMaxEnemies) {
+                    G.waveDelay--;
+                    if (G.waveDelay <= 0) { startWave();
+                        G.waveDelay = 40; }
+                    if (G.waveDelay === 0) G.waveDelay = 40;
                 }
-            } else if (G.enemies.length === 0 && G.waveEnemyCount >= G.waveMaxEnemies) {
-                G.waveDelay--;
-                if (G.waveDelay <= 0) { startWave();
-                    G.waveDelay = 40; }
-                if (G.waveDelay === 0) G.waveDelay = 40;
             }
 
-            // Enemies
+            // ── Boss ──
+            if (G.bossActive && G.boss) {
+                updateBoss();
+                // Boss damage from player projectiles
+                for (let i = G.projectiles.length - 1; i >= 0; i--) {
+                    const p = G.projectiles[i];
+                    if (!p.alive) continue;
+                    if (p.pos.distanceTo(G.boss.pos) < (G.boss.size + p.size)) {
+                        G.boss.health -= p.damage || 18;
+                        p.alive = false;
+                        G.projectiles.splice(i, 1);
+                        emitExplosion(p.pos.clone(), 0xff8844, 20, 5);
+                        playSound('hit');
+                        if (G.boss.health <= 0) {
+                            // Boss defeated!
+                            G.boss.alive = false;
+                            G.bossActive = false;
+                            G.score += 500;
+                            G.kills += 5;
+                            emitExplosion(G.boss.pos.clone(), G.boss.type === 'bruticus' ? 0xff6644 : 0x44ff44, 100, 12);
+                            playSound('explode');
+                            scene.remove(G.boss.model);
+                            G.boss = null;
+                            bossHealthBar.style.display = 'none';
+                            bossNameEl.style.display = 'none';
+                            // Drop powerups
+                            for (let j = 0; j < 5; j++) {
+                                const pPos = G.boss.pos.clone().add(new THREE.Vector3((Math.random() - 0.5) * 3, Math
+                                    .random() * 2, (Math.random() - 0.5) * 3));
+                                G.powerups.push({
+                                    pos: pPos,
+                                    type: ['health', 'speed', 'shield', 'health', 'shield'][j],
+                                    alive: true,
+                                    life: 400,
+                                    bob: 0,
+                                });
+                            }
+                            updateUI();
+                        }
+                        break;
+                    }
+                }
+                // Boss attacks player
+                if (G.boss && G.boss.alive && player) {
+                    if (player.position.distanceTo(G.boss.pos) < 3.0) {
+                        takeDamage(G.boss.damage * 0.3);
+                        emitExplosion(player.position.clone(), 0xff4444, 20, 5);
+                        // Push player back
+                        const dir = new THREE.Vector3().copy(player.position).sub(G.boss.pos).normalize();
+                        player.position.add(dir.multiplyScalar(2));
+                    }
+                }
+            }
+
+            // ── Enemies ──
             for (let i = G.enemies.length - 1; i >= 0; i--) {
                 const e = G.enemies[i];
                 if (!e.alive) { scene.remove(e.model);
@@ -948,7 +1695,7 @@
                 }
             }
 
-            // Teammates
+            // ── Teammates ──
             for (let i = G.teammates.length - 1; i >= 0; i--) {
                 const t = G.teammates[i];
                 if (!t.alive) { scene.remove(t.model);
@@ -962,7 +1709,13 @@
                     if (d < nearDist) { nearDist = d;
                         nearest = e; }
                 }
-                if (nearest && nearDist < 25) {
+                // Also target boss
+                if (G.boss && G.boss.alive) {
+                    const d = t.pos.distanceTo(G.boss.pos);
+                    if (d < nearDist) { nearDist = d;
+                        nearest = G.boss; }
+                }
+                if (nearest && nearDist < 30) {
                     const dx = nearest.pos.x - t.pos.x,
                         dz = nearest.pos.z - t.pos.z;
                     const dist = Math.sqrt(dx * dx + dz * dz);
@@ -971,7 +1724,7 @@
                         t.pos.z += (dz / dist) * spd; }
                     t.model.rotation.y = Math.atan2(dx, dz);
                     t.shootTimer--;
-                    if (t.shootTimer <= 0 && dist < 35) {
+                    if (t.shootTimer <= 0 && dist < 40) {
                         const dir = new THREE.Vector3().copy(nearest.pos).sub(t.pos);
                         dir.y += 0.3;
                         const len = dir.length();
@@ -1016,9 +1769,20 @@
                         }
                     }
                 }
+                // Teammate vs boss
+                if (G.boss && G.boss.alive && t.pos.distanceTo(G.boss.pos) < 3.0) {
+                    t.health -= 0.8;
+                    if (t.health <= 0) {
+                        t.alive = false;
+                        emitExplosion(t.pos.clone(), 0xff4444, 25, 5);
+                        scene.remove(t.model);
+                        G.teammates.splice(i, 1);
+                        updateTeamUI();
+                    }
+                }
             }
 
-            // Projectiles
+            // ── Projectiles ──
             for (let i = G.projectiles.length - 1; i >= 0; i--) {
                 const p = G.projectiles[i];
                 p.pos.add(p.vel.clone().multiplyScalar(0.06));
@@ -1036,6 +1800,7 @@
                         break;
                     }
                 }
+                // Also hit boss (handled above)
                 if (hit) { G.projectiles.splice(i, 1); continue; }
                 if (G.frame % 2 === 0) {
                     G.particles.push({ pos: p.pos.clone(), vel: new THREE.Vector3((Math.random() - 0.5) * 0.2, (Math
@@ -1045,7 +1810,7 @@
                 }
             }
 
-            // Enemy Projectiles
+            // ── Enemy Projectiles ──
             for (let i = G.enemyProjectiles.length - 1; i >= 0; i--) {
                 const p = G.enemyProjectiles[i];
                 p.pos.add(p.vel.clone().multiplyScalar(0.06));
@@ -1072,7 +1837,7 @@
                 }
             }
 
-            // Powerups
+            // ── Powerups ──
             for (let i = G.powerups.length - 1; i >= 0; i--) {
                 const p = G.powerups[i];
                 p.bob += 0.04;
@@ -1098,7 +1863,7 @@
                 }
             }
 
-            // Particles
+            // ── Particles ──
             for (let i = G.particles.length - 1; i >= 0; i--) {
                 const p = G.particles[i];
                 p.pos.add(p.vel.clone().multiplyScalar(0.04));
@@ -1112,7 +1877,7 @@
 
             updateUI();
 
-            // Camera
+            // ── Camera ──
             if (player) {
                 const target = player.position.clone();
                 const camDist = 14;
@@ -1146,7 +1911,6 @@
 
         // ━━━ Render ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         function render() {
-            // Projectiles
             for (const p of G.projectiles) {
                 if (!p.alive) continue;
                 const sphere = new THREE.Mesh(
@@ -1167,14 +1931,22 @@
                 scene.add(sphere);
                 setTimeout(() => scene.remove(sphere), 16);
             }
-            // Particles
             for (const p of G.particles) {
                 if (!p.alive) continue;
                 const fade = p.life / p.maxLife;
                 const size = p.size * fade;
                 if (size < 0.01) continue;
+                let color = p.color || 0x88ddff;
+                if (p.isFlash) {
+                    const mat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: fade });
+                    const mesh = new THREE.Mesh(new THREE.SphereGeometry(size, 8, 8), mat);
+                    mesh.position.copy(p.pos);
+                    scene.add(mesh);
+                    setTimeout(() => scene.remove(mesh), 16);
+                    continue;
+                }
                 const mat = new THREE.MeshBasicMaterial({
-                    color: p.color || 0x88ddff,
+                    color: color,
                     transparent: true,
                     opacity: p.isSmoke ? fade * 0.3 : fade * 0.8,
                 });
@@ -1183,7 +1955,6 @@
                 scene.add(mesh);
                 setTimeout(() => scene.remove(mesh), 16);
             }
-            // Powerups
             for (const p of G.powerups) {
                 if (!p.alive) continue;
                 const color = p.type === 'health' ? 0x44ff88 : p.type === 'speed' ? 0xffaa44 : 0x4488ff;
@@ -1202,7 +1973,6 @@
                 setTimeout(() => { scene.remove(glow);
                     scene.remove(core); }, 16);
             }
-            // Shield
             if (shieldActive && player) {
                 const ring = new THREE.Mesh(
                     new THREE.RingGeometry(1.0, 1.6, 24),
@@ -1237,11 +2007,13 @@
         overlay.classList.remove('hidden');
         startBtn.style.display = 'block';
         overlay.querySelector('h1').textContent = '⚡ EARTHSPARK 3D';
-        overlay.querySelector('.sub').textContent = '▼ MOVIE EDITION ▼';
+        overlay.querySelector('.sub').textContent = '▼ GRIMLOCK · BOSS BATTLES ▼';
         loop();
 
-        console.log('✅ Movie‑style Transformers game ready!');
-        console.log('🎮 WASD, Space, 1-8, E, R');
+        console.log('✅ Ultimate Transformers game loaded!');
+        console.log('🎮 1-8 Switch · T Transform · Space Shoot · E Teammate');
+        console.log('🦖 Grimlock becomes a T-Rex!');
+        console.log('💀 Boss battles every 5 waves: Bruticus & Devastator!');
     </script>
 </body>
 </html>
