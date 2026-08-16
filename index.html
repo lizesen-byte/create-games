@@ -5,285 +5,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
     <title>Transformers: EarthSpark 3D</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            background: #0a0a12;
-            overflow: hidden;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            touch-action: none;
-            user-select: none;
-        }
-        canvas {
-            display: block;
-        }
-        #ui {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            pointer-events: none;
-            z-index: 10;
-        }
-        #hud {
-            position: absolute;
-            top: 16px;
-            left: 20px;
-            right: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            pointer-events: none;
-            text-shadow: 0 0 20px rgba(0, 0, 0, 0.9);
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        #hudLeft {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        #hudRight {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 4px;
-        }
-        .hudLabel {
-            font-size: 10px;
-            color: #6a8bb0;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            font-weight: 600;
-        }
-        .hudValue {
-            font-size: 22px;
-            font-weight: 700;
-            color: #fff;
-            letter-spacing: 1px;
-        }
-        .hudValue.score {
-            color: #ffcc00;
-            text-shadow: 0 0 20px rgba(255, 204, 0, 0.3);
-        }
-        #healthBar {
-            width: 180px;
-            height: 10px;
-            background: rgba(0, 0, 0, 0.7);
-            border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            overflow: hidden;
-            margin-top: 2px;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6);
-        }
-        #healthFill {
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, #00e5ff, #00b8ff);
-            border-radius: 8px;
-            transition: width 0.15s ease;
-            box-shadow: 0 0 20px rgba(0, 229, 255, 0.3);
-        }
-        #modeBadge {
-            display: inline-block;
-            padding: 4px 14px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            background: rgba(0, 20, 40, 0.8);
-            border: 1px solid rgba(0, 180, 255, 0.2);
-            color: #00e5ff;
-            backdrop-filter: blur(4px);
-            box-shadow: 0 0 20px rgba(0, 180, 255, 0.1);
-        }
-        #controls {
-            position: absolute;
-            bottom: 18px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 18px;
-            font-size: 10px;
-            color: rgba(255, 255, 255, 0.3);
-            letter-spacing: 0.5px;
-            font-weight: 500;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 6px 18px;
-            border-radius: 30px;
-            backdrop-filter: blur(4px);
-            border: 1px solid rgba(255, 255, 255, 0.03);
-            pointer-events: none;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-        #controls span {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        #controls kbd {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 1px 8px;
-            border-radius: 4px;
-            font-size: 9px;
-            font-weight: 700;
-            color: rgba(255, 255, 255, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        #overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(5, 5, 15, 0.85);
-            backdrop-filter: blur(8px);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            pointer-events: auto;
-            z-index: 20;
-            text-align: center;
-            padding: 20px;
-        }
-        #overlay.hidden {
-            display: none;
-        }
-        #overlay h1 {
-            font-size: 48px;
-            font-weight: 900;
-            background: linear-gradient(135deg, #00e5ff, #0077ff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 60px rgba(0, 229, 255, 0.2);
-            letter-spacing: 4px;
-        }
-        #overlay .sub {
-            font-size: 16px;
-            color: #6a8bb0;
-            letter-spacing: 3px;
-            margin-bottom: 8px;
-        }
-        #overlay .heroes {
-            color: #8ab;
-            font-size: 13px;
-            letter-spacing: 1px;
-            margin-bottom: 16px;
-            max-width: 600px;
-            line-height: 1.6;
-        }
-        #startBtn {
-            pointer-events: auto;
-            padding: 14px 48px;
-            font-size: 16px;
-            font-weight: 700;
-            color: #0a0a12;
-            background: linear-gradient(135deg, #00e5ff, #0077ff);
-            border: none;
-            border-radius: 40px;
-            cursor: pointer;
-            transition: transform 0.15s, box-shadow 0.15s;
-            box-shadow: 0 0 40px rgba(0, 229, 255, 0.2);
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            margin-top: 8px;
-        }
-        #startBtn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 60px rgba(0, 229, 255, 0.4);
-        }
-        #teammateStatus {
-            position: absolute;
-            bottom: 70px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: rgba(255, 255, 255, 0.5);
-            font-size: 12px;
-            letter-spacing: 1px;
-            background: rgba(0, 0, 0, 0.4);
-            padding: 4px 16px;
-            border-radius: 20px;
-            backdrop-filter: blur(4px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            pointer-events: none;
-            white-space: nowrap;
-        }
-        #teammateStatus .count {
-            color: #88ddff;
-            font-weight: 700;
-        }
-        #errorMsg {
-            color: #ff4444;
-            background: rgba(0, 0, 0, 0.8);
-            padding: 10px 20px;
-            border-radius: 8px;
-            margin-top: 20px;
-            max-width: 80%;
-            display: none;
-        }
-        @media (max-width: 700px) {
-            #controls {
-                font-size: 7px;
-                gap: 6px;
-                padding: 4px 10px;
-                bottom: 8px;
-            }
-            #controls kbd {
-                font-size: 6px;
-                padding: 0 4px;
-            }
-            #healthBar {
-                width: 100px;
-                height: 8px;
-            }
-            .hudValue {
-                font-size: 16px;
-            }
-            #modeBadge {
-                font-size: 9px;
-                padding: 2px 8px;
-            }
-            #overlay h1 {
-                font-size: 28px;
-            }
-            #startBtn {
-                padding: 10px 24px;
-                font-size: 14px;
-            }
-            #teammateStatus {
-                font-size: 9px;
-                bottom: 50px;
-                padding: 2px 12px;
-            }
-        }
-        @media (max-width: 450px) {
-            #controls {
-                display: none;
-            }
-            #healthBar {
-                width: 60px;
-            }
-            .hudValue {
-                font-size: 12px;
-            }
-            #modeBadge {
-                font-size: 7px;
-                padding: 1px 6px;
-            }
-            .hudLabel {
-                font-size: 7px;
-            }
-        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background:#0a0a12; overflow:hidden; font-family:'Segoe UI',Arial,sans-serif; touch-action:none; user-select:none; }
+        canvas { display:block; width:100vw; height:100vh; }
+        #ui { position:absolute; top:0; left:0; right:0; bottom:0; pointer-events:none; z-index:10; }
+        #hud { position:absolute; top:16px; left:20px; right:20px; display:flex; justify-content:space-between; align-items:flex-start; pointer-events:none; text-shadow:0 0 20px rgba(0,0,0,0.9); flex-wrap:wrap; gap:8px; }
+        #hudLeft { display:flex; flex-direction:column; gap:4px; }
+        #hudRight { display:flex; flex-direction:column; align-items:flex-end; gap:4px; }
+        .hudLabel { font-size:10px; color:#6a8bb0; letter-spacing:2px; text-transform:uppercase; font-weight:600; }
+        .hudValue { font-size:22px; font-weight:700; color:#fff; letter-spacing:1px; }
+        .hudValue.score { color:#ffcc00; text-shadow:0 0 20px rgba(255,204,0,0.3); }
+        #healthBar { width:180px; height:10px; background:rgba(0,0,0,0.7); border-radius:8px; border:1px solid rgba(255,255,255,0.08); overflow:hidden; margin-top:2px; box-shadow:inset 0 2px 4px rgba(0,0,0,0.6); }
+        #healthFill { width:100%; height:100%; background:linear-gradient(90deg,#00e5ff,#00b8ff); border-radius:8px; transition:width 0.15s ease; box-shadow:0 0 20px rgba(0,229,255,0.3); }
+        #modeBadge { display:inline-block; padding:4px 14px; border-radius:20px; font-size:12px; font-weight:700; letter-spacing:1px; text-transform:uppercase; background:rgba(0,20,40,0.8); border:1px solid rgba(0,180,255,0.2); color:#00e5ff; backdrop-filter:blur(4px); box-shadow:0 0 20px rgba(0,180,255,0.1); }
+        #controls { position:absolute; bottom:18px; left:50%; transform:translateX(-50%); display:flex; gap:18px; font-size:10px; color:rgba(255,255,255,0.3); letter-spacing:0.5px; font-weight:500; background:rgba(0,0,0,0.5); padding:6px 18px; border-radius:30px; backdrop-filter:blur(4px); border:1px solid rgba(255,255,255,0.03); pointer-events:none; flex-wrap:wrap; justify-content:center; }
+        #controls span { display:flex; align-items:center; gap:6px; }
+        #controls kbd { background:rgba(255,255,255,0.05); padding:1px 8px; border-radius:4px; font-size:9px; font-weight:700; color:rgba(255,255,255,0.4); border:1px solid rgba(255,255,255,0.05); }
+        #overlay { position:absolute; top:0; left:0; right:0; bottom:0; background:rgba(5,5,15,0.85); backdrop-filter:blur(8px); display:flex; justify-content:center; align-items:center; flex-direction:column; pointer-events:auto; z-index:20; text-align:center; padding:20px; }
+        #overlay.hidden { display:none; }
+        #overlay h1 { font-size:48px; font-weight:900; background:linear-gradient(135deg,#00e5ff,#0077ff); -webkit-background-clip:text; -webkit-text-fill-color:transparent; text-shadow:0 0 60px rgba(0,229,255,0.2); letter-spacing:4px; }
+        #overlay .sub { font-size:16px; color:#6a8bb0; letter-spacing:3px; margin-bottom:8px; }
+        #overlay .heroes { color:#8ab; font-size:13px; letter-spacing:1px; margin-bottom:16px; max-width:600px; line-height:1.6; }
+        #startBtn { pointer-events:auto; padding:14px 48px; font-size:16px; font-weight:700; color:#0a0a12; background:linear-gradient(135deg,#00e5ff,#0077ff); border:none; border-radius:40px; cursor:pointer; transition:transform 0.15s, box-shadow 0.15s; box-shadow:0 0 40px rgba(0,229,255,0.2); letter-spacing:2px; text-transform:uppercase; margin-top:8px; }
+        #startBtn:hover { transform:scale(1.05); box-shadow:0 0 60px rgba(0,229,255,0.4); }
+        #teammateStatus { position:absolute; bottom:70px; left:50%; transform:translateX(-50%); color:rgba(255,255,255,0.5); font-size:12px; letter-spacing:1px; background:rgba(0,0,0,0.4); padding:4px 16px; border-radius:20px; backdrop-filter:blur(4px); border:1px solid rgba(255,255,255,0.05); pointer-events:none; white-space:nowrap; }
+        #teammateStatus .count { color:#88ddff; font-weight:700; }
+        #loading { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:#88ddff; font-size:20px; z-index:30; background:rgba(0,0,0,0.6); padding:12px 24px; border-radius:8px; display:flex; align-items:center; gap:12px; }
+        #loading.hidden { display:none; }
+        #errorMsg { color:#ff4444; background:rgba(0,0,0,0.8); padding:10px 20px; border-radius:8px; margin-top:20px; max-width:80%; display:none; }
+        @media (max-width:700px) { #controls { font-size:7px; gap:6px; padding:4px 10px; bottom:8px; } #controls kbd { font-size:6px; padding:0 4px; } #healthBar { width:100px; height:8px; } .hudValue { font-size:16px; } #modeBadge { font-size:9px; padding:2px 8px; } #overlay h1 { font-size:28px; } #startBtn { padding:10px 24px; font-size:14px; } #teammateStatus { font-size:9px; bottom:50px; padding:2px 12px; } }
+        @media (max-width:450px) { #controls { display:none; } #healthBar { width:60px; } .hudValue { font-size:12px; } #modeBadge { font-size:7px; padding:1px 6px; } .hudLabel { font-size:7px; } }
+        .spinner { display:inline-block; width:20px; height:20px; border:3px solid rgba(255,255,255,0.1); border-radius:50%; border-top-color:#88ddff; animation:spin 0.8s linear infinite; }
+        @keyframes spin { to { transform:rotate(360deg); } }
     </style>
 </head>
 <body>
+
+    <!-- Loading indicator -->
+    <div id="loading"><span class="spinner"></span> Loading Three.js...</div>
 
     <div id="ui">
         <div id="hud">
@@ -326,19 +85,23 @@
         </div>
     </div>
 
-    <!-- Load Three.js from CDN (classic script) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js">
+    <!-- Three.js from jsdelivr (very reliable) -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js">
     </script>
 
-    <!-- Main game script (plain JavaScript, no module) -->
     <script>
+        // Hide loading spinner once script runs
+        document.getElementById('loading').classList.add('hidden');
+
         // Check if THREE loaded
         if (typeof THREE === 'undefined') {
-            document.getElementById('errorMsg').style.display = 'block';
-            document.getElementById('errorMsg').textContent = '⚠️ Failed to load Three.js. Please check your internet connection or try a different browser.';
+            const err = document.getElementById('errorMsg');
+            err.style.display = 'block';
+            err.textContent = '❌ Failed to load Three.js. Please check your internet connection or try a different browser.';
+            console.error('THREE not loaded');
             throw new Error('THREE not loaded');
         }
-        console.log('✅ Three.js loaded via classic script');
+        console.log('✅ Three.js loaded successfully');
 
         // ━━━ DOM refs ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         const healthFill = document.getElementById('healthFill');
@@ -367,6 +130,8 @@
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
         renderer.toneMappingExposure = 1.2;
         document.body.prepend(renderer.domElement);
+
+        console.log('✅ Renderer created and added to DOM');
 
         // ━━━ Lights ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         const ambient = new THREE.AmbientLight(0x223355, 0.5);
@@ -1504,6 +1269,7 @@
         loop();
 
         console.log('🔥 Game started – use WASD, Space, 1-8, E, R');
+        console.log('💡 If you see this, everything is working!');
     </script>
 </body>
 </html>
