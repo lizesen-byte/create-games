@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-    <title>Transformers: EarthSpark 3D</title>
+    <title>Transformers: EarthSpark 3D – Ultimate</title>
     <style>
         * {
             margin: 0;
@@ -20,7 +20,6 @@
         canvas {
             display: block;
         }
-
         #ui {
             position: absolute;
             top: 0;
@@ -30,7 +29,6 @@
             pointer-events: none;
             z-index: 10;
         }
-
         #hud {
             position: absolute;
             top: 16px;
@@ -41,8 +39,9 @@
             align-items: flex-start;
             pointer-events: none;
             text-shadow: 0 0 20px rgba(0, 0, 0, 0.9);
+            flex-wrap: wrap;
+            gap: 8px;
         }
-
         #hudLeft {
             display: flex;
             flex-direction: column;
@@ -54,7 +53,6 @@
             align-items: flex-end;
             gap: 4px;
         }
-
         .hudLabel {
             font-size: 10px;
             color: #6a8bb0;
@@ -72,7 +70,6 @@
             color: #ffcc00;
             text-shadow: 0 0 20px rgba(255, 204, 0, 0.3);
         }
-
         #healthBar {
             width: 180px;
             height: 10px;
@@ -91,7 +88,6 @@
             transition: width 0.15s ease;
             box-shadow: 0 0 20px rgba(0, 229, 255, 0.3);
         }
-
         #modeBadge {
             display: inline-block;
             padding: 4px 14px;
@@ -106,7 +102,6 @@
             backdrop-filter: blur(4px);
             box-shadow: 0 0 20px rgba(0, 180, 255, 0.1);
         }
-
         #controls {
             position: absolute;
             bottom: 18px;
@@ -141,7 +136,6 @@
             color: rgba(255, 255, 255, 0.4);
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
-
         #overlay {
             position: absolute;
             top: 0;
@@ -154,9 +148,10 @@
             justify-content: center;
             align-items: center;
             flex-direction: column;
-            border-radius: 0;
             pointer-events: auto;
             z-index: 20;
+            text-align: center;
+            padding: 20px;
         }
         #overlay.hidden {
             display: none;
@@ -169,7 +164,6 @@
             -webkit-text-fill-color: transparent;
             text-shadow: 0 0 60px rgba(0, 229, 255, 0.2);
             letter-spacing: 4px;
-            text-align: center;
         }
         #overlay .sub {
             font-size: 16px;
@@ -177,20 +171,11 @@
             letter-spacing: 3px;
             margin-bottom: 8px;
         }
-        #overlay .finalScore {
-            font-size: 24px;
-            color: #fff;
-            margin-bottom: 20px;
-        }
-        #overlay .finalScore span {
-            color: #ffcc00;
-        }
         #overlay .heroes {
             color: #8ab;
             font-size: 13px;
             letter-spacing: 1px;
             margin-bottom: 16px;
-            text-align: center;
             max-width: 600px;
             line-height: 1.6;
         }
@@ -209,13 +194,13 @@
             box-shadow: 0 0 40px rgba(0, 229, 255, 0.2);
             letter-spacing: 2px;
             text-transform: uppercase;
+            margin-top: 8px;
         }
         #startBtn:hover,
         #restartBtn:hover {
             transform: scale(1.05);
             box-shadow: 0 0 60px rgba(0, 229, 255, 0.4);
         }
-
         #teammateStatus {
             position: absolute;
             bottom: 70px;
@@ -236,7 +221,59 @@
             color: #88ddff;
             font-weight: 700;
         }
-
+        #comboDisplay {
+            position: absolute;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #ffcc00;
+            font-size: 28px;
+            font-weight: 900;
+            text-shadow: 0 0 30px rgba(255, 204, 0, 0.4);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        #mobileControls {
+            position: absolute;
+            bottom: 80px;
+            left: 0;
+            right: 0;
+            display: none;
+            justify-content: space-between;
+            padding: 0 15px;
+            pointer-events: none;
+            z-index: 15;
+        }
+        .mBtn {
+            pointer-events: auto;
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            background: rgba(0, 180, 255, 0.15);
+            border: 1px solid rgba(0, 180, 255, 0.3);
+            color: #fff;
+            font-size: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(4px);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            touch-action: manipulation;
+            user-select: none;
+        }
+        .mBtn:active {
+            background: rgba(0, 180, 255, 0.3);
+            transform: scale(0.9);
+        }
+        #mLeft {
+            display: flex;
+            gap: 10px;
+        }
+        #mRight {
+            display: flex;
+            gap: 10px;
+        }
         @media (max-width: 700px) {
             #controls {
                 font-size: 7px;
@@ -272,6 +309,9 @@
                 bottom: 50px;
                 padding: 2px 12px;
             }
+            #mobileControls {
+                display: flex !important;
+            }
         }
         @media (max-width: 450px) {
             #controls {
@@ -290,6 +330,11 @@
             .hudLabel {
                 font-size: 7px;
             }
+            .mBtn {
+                width: 44px;
+                height: 44px;
+                font-size: 16px;
+            }
         }
     </style>
 </head>
@@ -300,19 +345,22 @@
             <div id="hudLeft">
                 <div class="hudLabel">⚡ Energon</div>
                 <div id="healthBar"><div id="healthFill"></div></div>
-                <div style="display:flex; gap:20px; margin-top:4px;">
+                <div style="display:flex; gap:20px; margin-top:4px; flex-wrap:wrap;">
                     <div><span class="hudLabel">Score</span> <span class="hudValue score" id="scoreDisplay">0</span></div>
                     <div><span class="hudLabel">Wave</span> <span class="hudValue" id="waveDisplay">1</span></div>
+                    <div><span class="hudLabel">Multiplier</span> <span class="hudValue" id="multDisplay" style="color:#ffaa00;">1×</span></div>
                 </div>
             </div>
             <div id="hudRight">
                 <div id="modeBadge">⚡ BUMBLEBEE</div>
-                <div style="display:flex; gap:16px; margin-top:4px;">
+                <div style="display:flex; gap:16px; margin-top:4px; flex-wrap:wrap;">
                     <div><span class="hudLabel">Kills</span> <span class="hudValue" id="killDisplay" style="color:#ff6644;">0</span></div>
                     <div><span class="hudLabel">Teammates</span> <span class="hudValue" id="teamDisplay" style="color:#88ddff;">0</span></div>
                 </div>
             </div>
         </div>
+
+        <div id="comboDisplay"></div>
 
         <div id="controls">
             <span><kbd>W A S D</kbd> Move</span>
@@ -324,16 +372,30 @@
 
         <div id="teammateStatus">🤖 Teammates: <span class="count" id="teamCount">0</span> &nbsp;|&nbsp; <kbd style="background:rgba(255,255,255,0.05);padding:0 6px;border-radius:3px;color:rgba(255,255,255,0.4);">E</kbd> to call</div>
 
+        <div id="mobileControls">
+            <div id="mLeft">
+                <button class="mBtn" id="mLeftBtn">◀</button>
+                <button class="mBtn" id="mRightBtn">▶</button>
+                <button class="mBtn" id="mUpBtn">▲</button>
+                <button class="mBtn" id="mDownBtn">▼</button>
+            </div>
+            <div id="mRight">
+                <button class="mBtn" id="mShootBtn">●</button>
+                <button class="mBtn" id="mTransformBtn">⚡</button>
+                <button class="mBtn" id="mTeamBtn">E</button>
+            </div>
+        </div>
+
         <div id="overlay">
             <h1>⚡ EARTHSPARK 3D</h1>
-            <div class="sub">▼ TRANSFORM &amp; DEFEND ▼</div>
+            <div class="sub">▼ ULTIMATE BATTLE ▼</div>
             <div class="heroes">
                 🟡 Bumblebee &nbsp;•&nbsp; 🔵 Soundwave &nbsp;•&nbsp; 🟣 Shockwave<br>
                 🔴 Starscream &nbsp;•&nbsp; ⚫ Megatron &nbsp;•&nbsp; 🟠 Grimlock<br>
-                🔴 Optimus Prime &nbsp;•&nbsp; 🔷 Mirage
+                🔥 Optimus Prime &nbsp;•&nbsp; 🌀 Mirage
             </div>
             <button id="startBtn">▶ DEPLOY</button>
-            <div style="margin-top:12px;color:#6a8bb0;font-size:12px;letter-spacing:1px;">Press 1-8 to transform · E to call teammates</div>
+            <div style="margin-top:12px;color:#6a8bb0;font-size:12px;letter-spacing:1px;">1-8 Transform · E Call · Space Shoot</div>
         </div>
     </div>
 
@@ -346,28 +408,30 @@
     </script>
 
     <script type="module">
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         import * as THREE from 'three';
 
-        // ━━━ DOM REFS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // ━━━ DOM ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         const healthFill = document.getElementById('healthFill');
         const scoreDisplay = document.getElementById('scoreDisplay');
         const waveDisplay = document.getElementById('waveDisplay');
         const killDisplay = document.getElementById('killDisplay');
+        const multDisplay = document.getElementById('multDisplay');
         const teamDisplay = document.getElementById('teamDisplay');
         const teamCount = document.getElementById('teamCount');
         const modeBadge = document.getElementById('modeBadge');
+        const comboDisplay = document.getElementById('comboDisplay');
         const overlay = document.getElementById('overlay');
         const startBtn = document.getElementById('startBtn');
         const restartBtn = document.getElementById('restartBtn');
 
-        // ━━━ THREE.JS SETUP ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // ━━━ THREE.JS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x0a0a18);
-        scene.fog = new THREE.Fog(0x0a0a18, 60, 180);
+        scene.fog = new THREE.Fog(0x0a0a18, 70, 180);
 
-        const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 300);
-        camera.position.set(0, 18, 32);
+        const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 300);
+        camera.position.set(0, 16, 28);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -378,11 +442,10 @@
         renderer.toneMappingExposure = 1.2;
         document.body.prepend(renderer.domElement);
 
-        // ━━━ LIGHTS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        const ambientLight = new THREE.AmbientLight(0x223355, 0.4);
-        scene.add(ambientLight);
-
-        const dirLight = new THREE.DirectionalLight(0xffeedd, 1.6);
+        // ━━━ LIGHTS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        const ambient = new THREE.AmbientLight(0x223355, 0.5);
+        scene.add(ambient);
+        const dirLight = new THREE.DirectionalLight(0xffeedd, 1.8);
         dirLight.position.set(30, 50, 20);
         dirLight.castShadow = true;
         dirLight.shadow.mapSize.width = 1024;
@@ -394,151 +457,172 @@
         dirLight.shadow.camera.top = 50;
         dirLight.shadow.camera.bottom = -50;
         scene.add(dirLight);
+        const rim = new THREE.DirectionalLight(0x4488ff, 0.4);
+        rim.position.set(-20, 10, -30);
+        scene.add(rim);
+        const hemi = new THREE.HemisphereLight(0x4488ff, 0x112233, 0.6);
+        scene.add(hemi);
 
-        const rimLight = new THREE.DirectionalLight(0x4488ff, 0.3);
-        rimLight.position.set(-20, 10, -30);
-        scene.add(rimLight);
-
-        const hemiLight = new THREE.HemisphereLight(0x4488ff, 0x112233, 0.6);
-        scene.add(hemiLight);
-
-        // ━━━ GROUND ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // ━━━ GROUND & GRID ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         const groundGeo = new THREE.PlaneGeometry(200, 200);
-        const groundMat = new THREE.MeshStandardMaterial({
-            color: 0x0d0d1a,
-            roughness: 0.9,
-            metalness: 0.2,
-        });
+        const groundMat = new THREE.MeshStandardMaterial({ color: 0x0d0d1a, roughness: 0.9, metalness: 0.2 });
         const ground = new THREE.Mesh(groundGeo, groundMat);
         ground.rotation.x = -Math.PI / 2;
         ground.position.y = -0.5;
         ground.receiveShadow = true;
         scene.add(ground);
 
-        // Grid
-        const gridHelper = new THREE.GridHelper(180, 60, 0x1a3a6a, 0x0a1a3a);
-        gridHelper.position.y = -0.4;
-        scene.add(gridHelper);
+        const grid = new THREE.GridHelper(180, 60, 0x1a3a6a, 0x0a1a3a);
+        grid.position.y = -0.4;
+        scene.add(grid);
 
-        // ━━━ CITYSCAPE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        function createBuilding(x, z, w, h, d, color) {
-            const geo = new THREE.BoxGeometry(w, h, d);
-            const mat = new THREE.MeshStandardMaterial({
-                color: color || 0x1a1a2e,
-                roughness: 0.7,
-                metalness: 0.3,
-            });
-            const mesh = new THREE.Mesh(geo, mat);
-            mesh.position.set(x, h / 2 - 0.5, z);
-            mesh.castShadow = true;
-            mesh.receiveShadow = true;
-            scene.add(mesh);
-            // windows
-            const winMat = new THREE.MeshStandardMaterial({
-                color: 0x223366,
-                emissive: 0x112244,
-                emissiveIntensity: 0.2,
-            });
-            for (let wy = 1; wy < h - 2; wy += 3) {
-                for (let wx = -w / 2 + 0.6; wx < w / 2 - 0.6; wx += 1.8) {
-                    if (Math.random() > 0.4) continue;
-                    const win = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 0.5), winMat);
-                    win.position.set(x + wx, wy, z + (z > 0 ? d / 2 + 0.01 : -d / 2 - 0.01));
-                    if (z > 0) win.rotation.y = 0;
-                    else win.rotation.y = Math.PI;
-                    scene.add(win);
+        // ━━━ CITY ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        function buildCity() {
+            const colors = [0x1a1a30, 0x222244, 0x151525, 0x1e1e3a, 0x28284a];
+            for (let i = 0; i < 60; i++) {
+                const a = Math.random() * Math.PI * 2;
+                const d = 20 + Math.random() * 50;
+                const x = Math.cos(a) * d,
+                    z = Math.sin(a) * d;
+                const w = 1.5 + Math.random() * 4,
+                    h = 3 + Math.random() * 14,
+                    dep = 1.5 + Math.random() * 4;
+                const col = colors[Math.floor(Math.random() * colors.length)];
+                const geo = new THREE.BoxGeometry(w, h, dep);
+                const mat = new THREE.MeshStandardMaterial({ color: col, roughness: 0.7, metalness: 0.3 });
+                const mesh = new THREE.Mesh(geo, mat);
+                mesh.position.set(x, h / 2 - 0.5, z);
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+                scene.add(mesh);
+                // Windows
+                const winMat = new THREE.MeshStandardMaterial({ color: 0x223366, emissive: 0x112244,
+                    emissiveIntensity: 0.2 });
+                for (let wy = 1; wy < h - 2; wy += 3) {
+                    for (let wx = -w / 2 + 0.6; wx < w / 2 - 0.6; wx += 1.8) {
+                        if (Math.random() > 0.45) continue;
+                        const win = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 0.5), winMat);
+                        win.position.set(x + wx, wy, z + (z > 0 ? dep / 2 + 0.01 : -dep / 2 - 0.01));
+                        if (z > 0) win.rotation.y = 0;
+                        else win.rotation.y = Math.PI;
+                        scene.add(win);
+                    }
                 }
             }
-            return mesh;
         }
+        buildCity();
 
-        const buildingColors = [0x1a1a30, 0x222244, 0x151525, 0x1e1e3a, 0x28284a];
-        for (let i = 0; i < 50; i++) {
-            const angle = Math.random() * Math.PI * 2;
-            const dist = 20 + Math.random() * 50;
-            const x = Math.cos(angle) * dist;
-            const z = Math.sin(angle) * dist;
-            const w = 1.5 + Math.random() * 3.5;
-            const h = 3 + Math.random() * 12;
-            const d = 1.5 + Math.random() * 3.5;
-            const col = buildingColors[Math.floor(Math.random() * buildingColors.length)];
-            createBuilding(x, z, w, h, d, col);
-        }
-
-        // ━━━ ENERGON CRYSTALS (decoration) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        function createCrystal(x, z) {
+        // ━━━ CRYSTALS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        for (let i = 0; i < 30; i++) {
+            const a = Math.random() * Math.PI * 2,
+                d = 8 + Math.random() * 25;
+            const x = Math.cos(a) * d,
+                z = Math.sin(a) * d;
             const group = new THREE.Group();
             const geo = new THREE.ConeGeometry(0.4, 1.2, 6);
-            const mat = new THREE.MeshStandardMaterial({
-                color: 0x00e5ff,
-                emissive: 0x00e5ff,
-                emissiveIntensity: 0.15,
-                transparent: true,
-                opacity: 0.6,
-            });
+            const mat = new THREE.MeshStandardMaterial({ color: 0x00e5ff, emissive: 0x00e5ff, emissiveIntensity: 0.2,
+                transparent: true, opacity: 0.6 });
             const m = new THREE.Mesh(geo, mat);
             m.position.y = 0.2;
             m.castShadow = true;
             group.add(m);
-            const glow = new THREE.Mesh(
-                new THREE.SphereGeometry(0.6, 8, 8),
-                new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.08 })
-            );
+            const glow = new THREE.Mesh(new THREE.SphereGeometry(0.6, 8, 8),
+                new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.08 }));
             glow.position.y = 0.2;
             group.add(glow);
             group.position.set(x, -0.5, z);
             scene.add(group);
-            return { group, glow: mat };
-        }
-        for (let i = 0; i < 20; i++) {
-            const angle = Math.random() * Math.PI * 2;
-            const dist = 8 + Math.random() * 25;
-            createCrystal(Math.cos(angle) * dist, Math.sin(angle) * dist);
         }
 
-        // ━━━ CHARACTER BUILDER ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // ━━━ AUDIO (Web Audio) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        let audioCtx = null;
+
+        function initAudio() { if (!audioCtx) audioCtx = new(window.AudioContext || window.webkitAudioContext)(); }
+
+        function playSound(type) {
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                const now = audioCtx.currentTime;
+                if (type === 'shoot') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(800, now);
+                    osc.frequency.exponentialRampToValueAtTime(200, now + 0.08);
+                    gain.gain.setValueAtTime(0.12, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+                    osc.start(now);
+                    osc.stop(now + 0.08);
+                } else if (type === 'explode') {
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(120, now);
+                    osc.frequency.exponentialRampToValueAtTime(30, now + 0.25);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                } else if (type === 'transform') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(400, now);
+                    osc.frequency.exponentialRampToValueAtTime(800, now + 0.12);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+                    osc.start(now);
+                    osc.stop(now + 0.12);
+                } else if (type === 'hit') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(300, now);
+                    osc.frequency.exponentialRampToValueAtTime(100, now + 0.07);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.07);
+                    osc.start(now);
+                    osc.stop(now + 0.07);
+                } else if (type === 'pickup') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(600, now);
+                    osc.frequency.exponentialRampToValueAtTime(1200, now + 0.1);
+                    gain.gain.setValueAtTime(0.12, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                    osc.start(now);
+                    osc.stop(now + 0.1);
+                }
+            } catch (e) {}
+        }
+
+        // ━━━ CHARACTER BUILDER ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         function makeRobot(config) {
             const group = new THREE.Group();
-            const { primary, secondary, accent, name, scale = 1 } = config;
-
+            const { primary, secondary, accent, scale = 1 } = config;
             const p = new THREE.MeshStandardMaterial({ color: primary, roughness: 0.4, metalness: 0.7 });
             const s = new THREE.MeshStandardMaterial({ color: secondary, roughness: 0.5, metalness: 0.5 });
             const a = new THREE.MeshStandardMaterial({ color: accent, roughness: 0.3, metalness: 0.8, emissive: accent,
                 emissiveIntensity: 0.15 });
 
-            // Torso
             const torso = new THREE.Mesh(new THREE.BoxGeometry(1.6 * scale, 1.8 * scale, 1.0 * scale), p);
             torso.position.y = 0.6 * scale;
             torso.castShadow = true;
             group.add(torso);
-
-            // Chest detail
             const chest = new THREE.Mesh(new THREE.BoxGeometry(0.8 * scale, 0.6 * scale, 0.15 * scale), a);
             chest.position.set(0, 0.8 * scale, 0.55 * scale);
             group.add(chest);
 
-            // Head
             const head = new THREE.Mesh(new THREE.BoxGeometry(0.9 * scale, 0.8 * scale, 0.8 * scale), p);
             head.position.set(0, 1.8 * scale, 0);
             head.castShadow = true;
             group.add(head);
-
-            // Visor
             const visor = new THREE.Mesh(new THREE.BoxGeometry(0.7 * scale, 0.2 * scale, 0.1 * scale), a);
             visor.position.set(0, 1.85 * scale, 0.45 * scale);
             group.add(visor);
 
-            // Left arm
             const lArm = new THREE.Mesh(new THREE.BoxGeometry(0.5 * scale, 1.2 * scale, 0.5 * scale), s);
             lArm.position.set(-1.1 * scale, 1.0 * scale, 0);
             lArm.castShadow = true;
             group.add(lArm);
-            // Left hand
             const lHand = new THREE.Mesh(new THREE.BoxGeometry(0.5 * scale, 0.3 * scale, 0.5 * scale), p);
             lHand.position.set(-1.1 * scale, 0.35 * scale, 0);
             group.add(lHand);
-
-            // Right arm
             const rArm = new THREE.Mesh(new THREE.BoxGeometry(0.5 * scale, 1.2 * scale, 0.5 * scale), s);
             rArm.position.set(1.1 * scale, 1.0 * scale, 0);
             rArm.castShadow = true;
@@ -547,7 +631,6 @@
             rHand.position.set(1.1 * scale, 0.35 * scale, 0);
             group.add(rHand);
 
-            // Left leg
             const lLeg = new THREE.Mesh(new THREE.BoxGeometry(0.5 * scale, 1.0 * scale, 0.5 * scale), s);
             lLeg.position.set(-0.5 * scale, -0.7 * scale, 0);
             lLeg.castShadow = true;
@@ -555,8 +638,6 @@
             const lFoot = new THREE.Mesh(new THREE.BoxGeometry(0.6 * scale, 0.2 * scale, 0.7 * scale), p);
             lFoot.position.set(-0.5 * scale, -1.2 * scale, 0.1 * scale);
             group.add(lFoot);
-
-            // Right leg
             const rLeg = new THREE.Mesh(new THREE.BoxGeometry(0.5 * scale, 1.0 * scale, 0.5 * scale), s);
             rLeg.position.set(0.5 * scale, -0.7 * scale, 0);
             rLeg.castShadow = true;
@@ -565,10 +646,8 @@
             rFoot.position.set(0.5 * scale, -1.2 * scale, 0.1 * scale);
             group.add(rFoot);
 
-            // Store parts for animation
             group.userData = { torso, head, lArm, rArm, lLeg, rLeg, lHand, rHand, visor, chest };
 
-            // Special features
             if (config.wings) {
                 const wMat = new THREE.MeshStandardMaterial({ color: config.wingsColor || secondary, roughness: 0.4,
                     metalness: 0.6 });
@@ -609,7 +688,6 @@
                 crest.position.set(0, 2.2 * scale, 0.15 * scale);
                 group.add(crest);
             }
-            // Extra: Optimus Prime's iconic smokestacks
             if (config.smokestacks) {
                 const stMat = new THREE.MeshStandardMaterial({ color: 0x888899, metalness: 0.9, roughness: 0.2 });
                 const s1 = new THREE.Mesh(new THREE.CylinderGeometry(0.08 * scale, 0.12 * scale, 0.5 * scale, 6), stMat);
@@ -620,147 +698,49 @@
                 group.add(s2);
                 group.userData.smokestacks = [s1, s2];
             }
-
             return group;
         }
 
-        // ━━━ TRANSFORMER CONFIGS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // ━━━ TRANSFORMER CONFIGS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         const TRANSFORMERS = {
-            bumblebee: {
-                name: 'BUMBLEBEE',
-                primary: 0xffcc00,
-                secondary: 0x222222,
-                accent: 0x00aaff,
-                scale: 0.9,
-                speed: 5.5,
-                health: 100,
-                damage: 18,
-                fireRate: 12,
-                icon: '🐝',
-                desc: 'Agile scout'
-            },
-            soundwave: {
-                name: 'SOUNDWAVE',
-                primary: 0x2244aa,
-                secondary: 0x111133,
-                accent: 0x4488ff,
-                scale: 1.0,
-                speed: 4.0,
-                health: 120,
-                damage: 22,
-                fireRate: 18,
-                icon: '📡',
-                desc: 'Communications',
-                wings: true,
-                wingsColor: 0x2244aa,
-            },
-            shockwave: {
-                name: 'SHOCKWAVE',
-                primary: 0x8833aa,
-                secondary: 0x441166,
-                accent: 0xff44aa,
-                scale: 1.0,
-                speed: 3.8,
-                health: 130,
-                damage: 28,
-                fireRate: 20,
-                icon: '🔬',
-                desc: 'Science',
-                cannon: true,
-                cannonColor: 0xaa66cc,
-                crest: true,
-            },
-            starscream: {
-                name: 'STARSCREAM',
-                primary: 0xcc2233,
-                secondary: 0x444466,
-                accent: 0xff6644,
-                scale: 0.95,
-                speed: 6.2,
-                health: 90,
-                damage: 20,
-                fireRate: 10,
-                icon: '✈️',
-                desc: 'Aerial assault',
-                wings: true,
-                wingsColor: 0xcc2233,
-            },
-            megatron: {
-                name: 'MEGATRON',
-                primary: 0x445566,
-                secondary: 0x223344,
-                accent: 0xff4444,
-                scale: 1.2,
-                speed: 3.5,
-                health: 160,
-                damage: 32,
-                fireRate: 25,
-                icon: '💀',
-                desc: 'Heavy artillery',
-                cannon: true,
-                cannonColor: 0x888899,
-                crest: true,
-            },
-            grimlock: {
-                name: 'GRIMLOCK',
-                primary: 0x667788,
-                secondary: 0xccaa44,
-                accent: 0xff6633,
-                scale: 1.3,
-                speed: 3.0,
-                health: 200,
-                damage: 40,
-                fireRate: 30,
-                icon: '🦖',
-                desc: 'T-Rex might',
-                horn: true,
-                crest: true,
-            },
-            optimus: {
-                name: 'OPTIMUS PRIME',
-                primary: 0xcc2222,
-                secondary: 0x2244aa,
-                accent: 0xccccdd,
-                scale: 1.15,
-                speed: 4.2,
-                health: 180,
-                damage: 30,
-                fireRate: 20,
-                icon: '🔥',
-                desc: 'Leader of Autobots',
-                crest: true,
-                smokestacks: true,
-            },
-            mirage: {
-                name: 'MIRAGE',
-                primary: 0x2266cc,
-                secondary: 0xccccdd,
-                accent: 0x88aaff,
-                scale: 0.95,
-                speed: 5.8,
-                health: 110,
-                damage: 24,
-                fireRate: 14,
-                icon: '🌀',
-                desc: 'Stealth & speed',
-                crest: true,
-            }
+            bumblebee: { name: 'BUMBLEBEE', primary: 0xffcc00, secondary: 0x222222, accent: 0x00aaff, scale: 0.9,
+                speed: 5.5, health: 100, damage: 18, fireRate: 12, icon: '🐝' },
+            soundwave: { name: 'SOUNDWAVE', primary: 0x2244aa, secondary: 0x111133, accent: 0x4488ff, scale: 1.0,
+                speed: 4.0, health: 120, damage: 22, fireRate: 18, icon: '📡', wings: true, wingsColor: 0x2244aa },
+            shockwave: { name: 'SHOCKWAVE', primary: 0x8833aa, secondary: 0x441166, accent: 0xff44aa, scale: 1.0,
+                speed: 3.8, health: 130, damage: 28, fireRate: 20, icon: '🔬', cannon: true, cannonColor: 0xaa66cc,
+                crest: true },
+            starscream: { name: 'STARSCREAM', primary: 0xcc2233, secondary: 0x444466, accent: 0xff6644, scale: 0.95,
+                speed: 6.2, health: 90, damage: 20, fireRate: 10, icon: '✈️', wings: true, wingsColor: 0xcc2233 },
+            megatron: { name: 'MEGATRON', primary: 0x445566, secondary: 0x223344, accent: 0xff4444, scale: 1.2,
+                speed: 3.5, health: 160, damage: 32, fireRate: 25, icon: '💀', cannon: true, cannonColor: 0x888899,
+                crest: true },
+            grimlock: { name: 'GRIMLOCK', primary: 0x667788, secondary: 0xccaa44, accent: 0xff6633, scale: 1.3,
+                speed: 3.0, health: 200, damage: 40, fireRate: 30, icon: '🦖', horn: true, crest: true },
+            optimus: { name: 'OPTIMUS PRIME', primary: 0xcc2222, secondary: 0x2244aa, accent: 0xccccdd, scale: 1.15,
+                speed: 4.2, health: 180, damage: 30, fireRate: 20, icon: '🔥', crest: true, smokestacks: true },
+            mirage: { name: 'MIRAGE', primary: 0x2266cc, secondary: 0xccccdd, accent: 0x88aaff, scale: 0.95,
+                speed: 5.8, health: 110, damage: 24, fireRate: 14, icon: '🌀', crest: true }
         };
+        const TRANSFORM_LIST = ['bumblebee', 'soundwave', 'shockwave', 'starscream', 'megatron', 'grimlock', 'optimus',
+            'mirage'
+        ];
 
-        const TRANSFORM_LIST = ['bumblebee', 'soundwave', 'shockwave', 'starscream', 'megatron', 'grimlock', 'optimus', 'mirage'];
-
-        // ━━━ GAME STATE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // ━━━ GAME STATE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         const G = {
             running: false,
             over: false,
             score: 0,
             wave: 1,
             kills: 0,
+            combo: 0,
+            multiplier: 1,
             enemies: [],
             projectiles: [],
             enemyProjectiles: [],
             particles: [],
             teammates: [],
+            powerups: [],
             spawnTimer: 0,
             spawnInterval: 80,
             waveEnemyCount: 0,
@@ -771,89 +751,95 @@
             teammateCooldown: 0,
         };
 
-        let player = null;
-        let playerModel = null;
-        let currentMode = 'bumblebee';
-        let health = 100;
-        let maxHealth = 100;
-        let shootCooldown = 0;
-        let invincible = 0;
-        let targetRotation = 0;
-        let currentRotation = 0;
-        let playerVelocity = new THREE.Vector3();
-        let isGrounded = true;
+        let player = null,
+            playerModel = null,
+            currentMode = 'bumblebee';
+        let health = 100,
+            maxHealth = 100,
+            shootCooldown = 0,
+            invincible = 0;
+        let targetRotation = 0,
+            currentRotation = 0;
+        let shieldActive = false,
+            shieldTimer = 0;
+        let speedBoost = 1;
 
-        // ━━━ KEYBOARD ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // ━━━ INPUT ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         const keys = {};
         document.addEventListener('keydown', e => {
             keys[e.key.toLowerCase()] = true;
             if (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'ArrowDown') e.preventDefault();
-            if (e.key === ' ' && G.running && !G.over && player) shoot();
+            if (e.key === ' ' && G.running && !G.over) shoot();
             if (e.key === 'e' || e.key === 'E') { if (G.running && !G.over) callTeammate(); }
             if (e.key === 'r' || e.key === 'R') { if (G.over) restartGame(); }
-            // Transform keys 1-8
             const num = parseInt(e.key);
             if (num >= 1 && num <= 8 && G.running && !G.over) {
                 const idx = num - 1;
-                if (idx < TRANSFORM_LIST.length) {
-                    transformTo(TRANSFORM_LIST[idx]);
-                }
+                if (idx < TRANSFORM_LIST.length) transformTo(TRANSFORM_LIST[idx]);
             }
         });
         document.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+        document.addEventListener('click', () => { if (G.running && !G.over) shoot(); });
 
-        // ━━━ MOUSE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        let mouseX = 0,
-            mouseY = 0;
-        document.addEventListener('mousemove', e => {
-            mouseX = (e.clientX / window.innerWidth) * 2 - 1;
-            mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
-        });
-        document.addEventListener('click', () => {
-            if (G.running && !G.over && player) shoot();
-        });
+        // ━━━ MOBILE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        const mobile = { left: false, right: false, up: false, down: false };
+        const setupMobile = (id, onStart, onEnd) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.addEventListener('touchstart', e => { e.preventDefault();
+                onStart(); });
+            el.addEventListener('touchend', e => { e.preventDefault();
+                onEnd(); });
+            el.addEventListener('touchcancel', e => { e.preventDefault();
+                onEnd(); });
+            el.addEventListener('mousedown', e => { e.preventDefault();
+                onStart(); });
+            el.addEventListener('mouseup', e => { e.preventDefault();
+                onEnd(); });
+            el.addEventListener('mouseleave', e => { e.preventDefault();
+                onEnd(); });
+        };
+        setupMobile('mLeftBtn', () => mobile.left = true, () => mobile.left = false);
+        setupMobile('mRightBtn', () => mobile.right = true, () => mobile.right = false);
+        setupMobile('mUpBtn', () => mobile.up = true, () => mobile.up = false);
+        setupMobile('mDownBtn', () => mobile.down = true, () => mobile.down = false);
+        setupMobile('mShootBtn', () => shoot(), () => {});
+        setupMobile('mTransformBtn', () => { if (G.running && !G.over) { const idx = Math.floor(Math.random() *
+                    TRANSFORM_LIST.length);
+                transformTo(TRANSFORM_LIST[idx]); } }, () => {});
+        setupMobile('mTeamBtn', () => { if (G.running && !G.over) callTeammate(); }, () => {});
 
-        // ━━━ SHOOT ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // ━━━ SHOOT ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         function shoot() {
             if (shootCooldown > 0 || !player || G.over) return;
             const cfg = TRANSFORMERS[currentMode];
-            shootCooldown = cfg.fireRate || 12;
+            shootCooldown = Math.max(6, cfg.fireRate - 2);
             const dir = new THREE.Vector3(0, 0, -1);
             dir.applyQuaternion(player.quaternion);
             const origin = player.position.clone().add(dir.clone().multiplyScalar(2));
             origin.y += 0.8;
-
             const proj = {
                 pos: origin.clone(),
-                vel: dir.clone().multiplyScalar(25 + (cfg.damage > 30 ? 5 : 0)),
-                life: 80,
+                vel: dir.clone().multiplyScalar(28 + (cfg.damage > 30 ? 6 : 0)),
+                life: 70,
                 damage: cfg.damage || 18,
                 color: new THREE.Color(cfg.accent || 0x00e5ff),
                 size: cfg.damage > 30 ? 0.5 : 0.35,
                 alive: true,
+                trail: []
             };
             G.projectiles.push(proj);
-
-            // Muzzle flash
-            for (let i = 0; i < 12; i++) {
-                const p = origin.clone().add(new THREE.Vector3(
-                    (Math.random() - 0.5) * 0.4,
-                    (Math.random() - 0.5) * 0.4,
-                    (Math.random() - 0.5) * 0.4
-                ));
-                G.particles.push({
-                    pos: p,
-                    vel: new THREE.Vector3((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, -Math.random() * 4 - 2),
-                    life: 8 + Math.random() * 8,
-                    maxLife: 16,
-                    color: new THREE.Color(0x88ddff),
-                    size: 0.08 + Math.random() * 0.15,
-                    alive: true,
-                });
+            playSound('shoot');
+            for (let i = 0; i < 10; i++) {
+                const p = origin.clone().add(new THREE.Vector3((Math.random() - 0.5) * 0.5, (Math.random() - 0.5) * 0.5, (
+                    Math.random() - 0.5) * 0.5));
+                G.particles.push({ pos: p, vel: new THREE.Vector3((Math.random() - 0.5) * 3, (Math.random() - 0.5) * 3, -
+                        Math.random() * 5 - 3), life: 8 + Math.random() * 8, maxLife: 16,
+                    color: new THREE.Color(0x88ddff), size: 0.08 + Math.random() * 0.15, alive: true });
             }
         }
 
-        // ━━━ TRANSFORM ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // ━━━ TRANSFORM ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         function transformTo(mode) {
             if (mode === currentMode || !player) return;
             if (!TRANSFORMERS[mode]) return;
@@ -861,27 +847,17 @@
             const cfg = TRANSFORMERS[mode];
             maxHealth = cfg.health || 100;
             health = Math.min(health, maxHealth);
-
-            // Remove old model
             if (playerModel) {
                 scene.remove(playerModel);
-                // clean up
-                playerModel.traverse(child => {
-                    if (child.isMesh) {
-                        child.geometry.dispose();
-                        if (Array.isArray(child.material)) child.material.forEach(m => m.dispose());
-                        else child.material.dispose();
-                    }
-                });
+                playerModel.traverse(c => { if (c.isMesh) { c.geometry.dispose(); if (Array.isArray(c.material)) c
+                            .material.forEach(m => m.dispose());
+                        else c.material.dispose(); } });
             }
-
-            // Build new model
             const config = {
                 primary: cfg.primary,
                 secondary: cfg.secondary,
                 accent: cfg.accent,
                 scale: cfg.scale || 1,
-                name: cfg.name,
                 wings: cfg.wings || false,
                 wingsColor: cfg.wingsColor || cfg.secondary,
                 cannon: cfg.cannon || false,
@@ -894,65 +870,34 @@
             playerModel.position.copy(player.position);
             playerModel.rotation.copy(player.rotation);
             scene.add(playerModel);
-
-            // Update badge
             modeBadge.textContent = `${cfg.icon || '⚡'} ${cfg.name}`;
             modeBadge.style.borderColor = `#${cfg.accent.toString(16).padStart(6,'0')}66`;
             modeBadge.style.color = `#${cfg.accent.toString(16).padStart(6,'0')}`;
-
-            // Transform particles
-            for (let i = 0; i < 30; i++) {
-                const pos = player.position.clone().add(new THREE.Vector3(
-                    (Math.random() - 0.5) * 3,
-                    (Math.random() - 0.5) * 3,
-                    (Math.random() - 0.5) * 3
-                ));
-                G.particles.push({
-                    pos,
-                    vel: new THREE.Vector3((Math.random() - 0.5) * 6, (Math.random() - 0.5) * 6, (Math.random() - 0.5) * 6),
-                    life: 20 + Math.random() * 20,
-                    maxLife: 40,
-                    color: new THREE.Color(cfg.accent || 0x00e5ff),
-                    size: 0.1 + Math.random() * 0.3,
-                    alive: true,
-                });
+            playSound('transform');
+            for (let i = 0; i < 35; i++) {
+                const pos = player.position.clone().add(new THREE.Vector3((Math.random() - 0.5) * 3, (Math.random() - 0.5) *
+                    3, (Math.random() - 0.5) * 3));
+                G.particles.push({ pos, vel: new THREE.Vector3((Math.random() - 0.5) * 8, (Math.random() - 0.5) * 8, (
+                        Math.random() - 0.5) * 8), life: 20 + Math.random() * 20, maxLife: 40,
+                    color: new THREE.Color(cfg.accent || 0x00e5ff), size: 0.1 + Math.random() * 0.4, alive: true });
             }
         }
 
-        // ━━━ TEAMMATES ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // ━━━ TEAMMATES ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         function callTeammate() {
             if (G.teammates.length >= G.maxTeammates || G.teammateCooldown > 0 || !player || G.over) return;
-            G.teammateCooldown = 120;
-
-            // Pick a random transformer for teammate
-            const modes = ['bumblebee', 'soundwave', 'shockwave', 'starscream', 'megatron', 'grimlock', 'optimus', 'mirage'];
-            const mode = modes[Math.floor(Math.random() * modes.length)];
+            G.teammateCooldown = 100;
+            const mode = TRANSFORM_LIST[Math.floor(Math.random() * TRANSFORM_LIST.length)];
             const cfg = TRANSFORMERS[mode];
-
-            const pos = player.position.clone().add(new THREE.Vector3(
-                (Math.random() - 0.5) * 6,
-                0,
-                (Math.random() - 0.5) * 6 + 4
-            ));
-
-            const config = {
-                primary: cfg.primary,
-                secondary: cfg.secondary,
-                accent: cfg.accent,
-                scale: cfg.scale || 1,
-                name: cfg.name,
-                wings: cfg.wings || false,
-                wingsColor: cfg.wingsColor || cfg.secondary,
-                cannon: cfg.cannon || false,
-                cannonColor: cfg.cannonColor || 0x666688,
-                horn: cfg.horn || false,
-                crest: cfg.crest || false,
-                smokestacks: cfg.smokestacks || false,
-            };
+            const pos = player.position.clone().add(new THREE.Vector3((Math.random() - 0.5) * 6, 0, (Math.random() - 0.5) *
+                6 + 4));
+            const config = { primary: cfg.primary, secondary: cfg.secondary, accent: cfg.accent, scale: cfg.scale || 1,
+                wings: cfg.wings || false, wingsColor: cfg.wingsColor || cfg.secondary, cannon: cfg.cannon || false,
+                cannonColor: cfg.cannonColor || 0x666688, horn: cfg.horn || false, crest: cfg.crest || false,
+                smokestacks: cfg.smokestacks || false };
             const model = makeRobot(config);
             model.position.copy(pos);
             scene.add(model);
-
             const teammate = {
                 model,
                 mode,
@@ -965,25 +910,15 @@
                 speed: 2 + Math.random() * 1.5,
                 alive: true,
                 target: null,
-                state: 'idle',
-                angle: Math.random() * Math.PI * 2,
             };
             G.teammates.push(teammate);
-
-            // Spawn particles
+            playSound('transform');
             for (let i = 0; i < 20; i++) {
                 const p = pos.clone().add(new THREE.Vector3((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math
-                .random() - 0.5) * 2));
-                G.particles.push({
-                    pos: p,
-                    vel: new THREE.Vector3((Math.random() - 0.5) * 4, (Math.random() - 0.5) * 4, (Math.random() - 0.5) *
-                    4),
-                    life: 15 + Math.random() * 15,
-                    maxLife: 30,
-                    color: new THREE.Color(cfg.accent || 0x44ff88),
-                    size: 0.1 + Math.random() * 0.25,
-                    alive: true,
-                });
+                    .random() - 0.5) * 2));
+                G.particles.push({ pos: p, vel: new THREE.Vector3((Math.random() - 0.5) * 4, (Math.random() - 0.5) * 4, (
+                        Math.random() - 0.5) * 4), life: 15 + Math.random() * 15, maxLife: 30,
+                    color: new THREE.Color(cfg.accent || 0x44ff88), size: 0.1 + Math.random() * 0.25, alive: true });
             }
             updateTeamUI();
         }
@@ -994,23 +929,26 @@
             teamCount.textContent = alive;
         }
 
-        // ━━━ ENEMY (Decepticon) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // ━━━ ENEMY SPAWN ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         function spawnEnemy() {
             const angle = Math.random() * Math.PI * 2;
             const dist = 30 + Math.random() * 20;
-            const x = Math.cos(angle) * dist;
-            const z = Math.sin(angle) * dist;
-
-            const types = ['soldier', 'soldier', 'tank', 'flyer'];
+            const x = Math.cos(angle) * dist,
+                z = Math.sin(angle) * dist;
+            const types = ['soldier', 'soldier', 'tank', 'flyer', 'heavy', 'scout'];
             const type = types[Math.floor(Math.random() * types.length)];
 
-            let health = 30 + G.wave * 3;
-            let speed = 1 + Math.random() * 0.8 + G.wave * 0.05;
-            let damage = 10 + G.wave * 1.2;
-            let size = 1;
-            let color = 0xaa2244;
-            let accent = 0xff4444;
-            let name = 'Decepticon';
+            let health = 30 + G.wave * 3,
+                speed = 1 + Math.random() * 0.8 + G.wave * 0.05,
+                damage = 10 + G.wave * 1.2,
+                size = 1,
+                color = 0xaa2244,
+                accent = 0xff4444,
+                name = 'Decepticon';
+            let wings = false,
+                cannon = false,
+                horn = false,
+                crest = false;
 
             if (type === 'tank') {
                 health = 60 + G.wave * 4;
@@ -1020,6 +958,7 @@
                 color = 0x445566;
                 accent = 0xff6644;
                 name = 'Tank';
+                cannon = true;
             } else if (type === 'flyer') {
                 health = 25 + G.wave * 2;
                 speed = 2.5 + Math.random() * 1.2 + G.wave * 0.08;
@@ -1028,22 +967,39 @@
                 color = 0x664422;
                 accent = 0xff8844;
                 name = 'Flyer';
+                wings = true;
+            } else if (type === 'heavy') {
+                health = 80 + G.wave * 5;
+                speed = 0.4 + Math.random() * 0.2;
+                damage = 22 + G.wave * 2;
+                size = 1.5;
+                color = 0x334466;
+                accent = 0xff4466;
+                name = 'Heavy';
+                cannon = true;
+                crest = true;
+            } else if (type === 'scout') {
+                health = 20 + G.wave * 2;
+                speed = 3.5 + Math.random() * 1.5 + G.wave * 0.1;
+                damage = 8 + G.wave * 1;
+                size = 0.7;
+                color = 0x66aa44;
+                accent = 0x88ff44;
+                name = 'Scout';
+            } else { // soldier
+                health = 30 + G.wave * 3;
+                speed = 1 + Math.random() * 0.8 + G.wave * 0.05;
+                damage = 10 + G.wave * 1.2;
+                size = 1;
+                color = 0xaa2244;
+                accent = 0xff4444;
+                name = 'Soldier';
             }
 
-            const model = makeRobot({
-                primary: color,
-                secondary: 0x222244,
-                accent: accent,
-                scale: size * 0.9,
-                name: name,
-                wings: type === 'flyer',
-                wingsColor: color,
-                cannon: type === 'tank',
-                cannonColor: 0x888899,
-            });
+            const model = makeRobot({ primary: color, secondary: 0x222244, accent, scale: size * 0.9, wings, wingsColor: color,
+                cannon, cannonColor: 0x888899, horn, crest });
             model.position.set(x, 0, z);
             scene.add(model);
-
             const enemy = {
                 model,
                 type,
@@ -1057,7 +1013,6 @@
                 accent,
                 alive: true,
                 shootTimer: 60 + Math.random() * 80,
-                state: 'chase',
                 attackCooldown: 0,
                 yOffset: type === 'flyer' ? 4 + Math.random() * 3 : 0,
                 phase: Math.random() * Math.PI * 2,
@@ -1065,7 +1020,6 @@
             G.enemies.push(enemy);
         }
 
-        // ━━━ PROJECTILE (enemy) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         function enemyShoot(enemy) {
             if (!player || !enemy.alive) return;
             const dir = new THREE.Vector3().copy(player.position).sub(enemy.pos);
@@ -1073,11 +1027,11 @@
             const len = dir.length();
             if (len < 1) return;
             dir.normalize();
-
+            const spd = 6 + G.wave * 0.3 + (enemy.type === 'scout' ? 2 : 0);
             const proj = {
                 pos: enemy.pos.clone().add(new THREE.Vector3(0, 0.6, 0)).add(dir.clone().multiplyScalar(1.5)),
-                vel: dir.multiplyScalar(6 + G.wave * 0.3),
-                life: 90,
+                vel: dir.multiplyScalar(spd),
+                life: 100,
                 damage: enemy.damage * 0.6,
                 color: new THREE.Color(enemy.accent || 0xff4444),
                 size: 0.3,
@@ -1087,8 +1041,8 @@
             G.enemyProjectiles.push(proj);
         }
 
-        // ━━━ PARTICLES ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        function emitExplosion(pos, color, count = 30, speed = 6) {
+        // ━━━ PARTICLES ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        function emitExplosion(pos, color, count = 35, speed = 7) {
             for (let i = 0; i < count; i++) {
                 const dir = new THREE.Vector3((Math.random() - 0.5), (Math.random() - 0.5), (Math.random() - 0.5))
                     .normalize()
@@ -1100,40 +1054,47 @@
                     life: 15 + Math.random() * 25,
                     maxLife: 40,
                     color: new THREE.Color(color),
-                    size: 0.05 + Math.random() * 0.25,
-                    alive: true,
+                    size: 0.05 + Math.random() * 0.3,
+                    alive: true
                 });
             }
-        }
-
-        // ━━━ WAVE SYSTEM ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        function startWave() {
-            G.wave++;
-            G.waveMaxEnemies = Math.min(5 + G.wave * 2, 30);
-            G.waveEnemyCount = 0;
-            G.spawnInterval = Math.max(15, 70 - G.wave * 2);
-            waveDisplay.textContent = G.wave;
-
-            // Wave announcement particles
-            for (let i = 0; i < 50; i++) {
-                const pos = new THREE.Vector3(
-                    (Math.random() - 0.5) * 40,
-                    Math.random() * 20,
-                    (Math.random() - 0.5) * 40
-                );
+            // smoke
+            for (let i = 0; i < 15; i++) {
+                const dir = new THREE.Vector3((Math.random() - 0.5), Math.random() * 2, (Math.random() - 0.5))
+                    .normalize()
+                    .multiplyScalar(1 + Math.random() * 2);
                 G.particles.push({
-                    pos,
-                    vel: new THREE.Vector3((Math.random() - 0.5) * 2, -Math.random() * 3 - 1, (Math.random() - 0.5) * 2),
+                    pos: pos.clone().add(new THREE.Vector3((Math.random() - 0.5) * 0.5, (Math.random() - 0.5) * 0.5, (Math
+                        .random() - 0.5) * 0.5)),
+                    vel: dir,
                     life: 30 + Math.random() * 30,
                     maxLife: 60,
-                    color: new THREE.Color(0x00e5ff),
-                    size: 0.1 + Math.random() * 0.3,
+                    color: new THREE.Color(0x888899),
+                    size: 0.3 + Math.random() * 0.5,
                     alive: true,
+                    isSmoke: true,
                 });
             }
         }
 
-        // ━━━ GAME OVER ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // ━━━ WAVE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        function startWave() {
+            G.wave++;
+            G.waveMaxEnemies = Math.min(5 + G.wave * 2, 35);
+            G.waveEnemyCount = 0;
+            G.spawnInterval = Math.max(12, 70 - G.wave * 2);
+            waveDisplay.textContent = G.wave;
+            // Announce
+            for (let i = 0; i < 60; i++) {
+                const pos = new THREE.Vector3((Math.random() - 0.5) * 50, Math.random() * 25, (Math.random() - 0.5) * 50);
+                G.particles.push({ pos, vel: new THREE.Vector3((Math.random() - 0.5) * 2, -Math.random() * 4 - 1, (Math
+                        .random() - 0.5) * 2), life: 30 + Math.random() * 30, maxLife: 60,
+                    color: new THREE.Color(0x00e5ff), size: 0.1 + Math.random() * 0.4, alive: true });
+            }
+            playSound('explode');
+        }
+
+        // ━━━ GAME OVER / RESTART ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         function gameOver() {
             G.over = true;
             G.running = false;
@@ -1146,7 +1107,6 @@
         }
 
         function restartGame() {
-            // Clean up
             G.enemies.forEach(e => { scene.remove(e.model); });
             G.teammates.forEach(t => { scene.remove(t.model); });
             G.enemies = [];
@@ -1154,9 +1114,12 @@
             G.projectiles = [];
             G.enemyProjectiles = [];
             G.particles = [];
+            G.powerups = [];
             G.score = 0;
             G.wave = 1;
             G.kills = 0;
+            G.combo = 0;
+            G.multiplier = 1;
             G.over = false;
             G.running = true;
             G.waveEnemyCount = 0;
@@ -1166,142 +1129,115 @@
             G.waveDelay = 0;
             G.frame = 0;
             G.teammateCooldown = 0;
-
             health = 100;
             maxHealth = 100;
             currentMode = 'bumblebee';
             shootCooldown = 0;
             invincible = 0;
-
-            if (player) {
-                player.position.set(0, 0, 0);
-                player.rotation.set(0, 0, 0);
-            }
-            if (playerModel) {
-                scene.remove(playerModel);
-                playerModel = null;
-            }
+            shieldActive = false;
+            shieldTimer = 0;
+            speedBoost = 1;
+            if (player) { player.position.set(0, 0, 0);
+                player.rotation.set(0, 0, 0); }
+            if (playerModel) { scene.remove(playerModel);
+                playerModel = null; }
             transformTo('bumblebee');
-
             scoreDisplay.textContent = '0';
             waveDisplay.textContent = '1';
             killDisplay.textContent = '0';
+            multDisplay.textContent = '1×';
             healthFill.style.width = '100%';
             overlay.classList.add('hidden');
             restartBtn.style.display = 'none';
             startBtn.style.display = 'block';
             updateTeamUI();
+            comboDisplay.style.opacity = '0';
+            comboDisplay.textContent = '';
         }
 
-        // ━━━ INIT ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // ━━━ INIT ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         function initGame() {
+            initAudio();
             player = new THREE.Object3D();
             player.position.set(0, 0, 0);
             scene.add(player);
-
             transformTo('bumblebee');
             G.running = true;
             G.over = false;
             overlay.classList.add('hidden');
             startBtn.style.display = 'none';
             restartBtn.style.display = 'none';
-
-            // Spawn initial enemies
-            for (let i = 0; i < 3; i++) {
-                setTimeout(() => { if (G.running) spawnEnemy(); }, i * 300);
-            }
+            for (let i = 0; i < 3; i++) setTimeout(() => { if (G.running) spawnEnemy(); }, i * 300);
         }
 
         startBtn.addEventListener('click', initGame);
         restartBtn.addEventListener('click', restartGame);
 
-        // ━━━ UPDATE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // ━━━ UPDATE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         function update() {
             if (!G.running || G.over) return;
             G.frame++;
 
-            // ── Player Movement ──
+            // ── Player ──
             if (player && playerModel) {
                 const cfg = TRANSFORMERS[currentMode];
-                const speed = cfg.speed || 4;
                 let moveX = 0,
                     moveZ = 0;
-                if (keys['w'] || keys['arrowup']) moveZ = -1;
-                if (keys['s'] || keys['arrowdown']) moveZ = 1;
-                if (keys['a'] || keys['arrowleft']) moveX = -1;
-                if (keys['d'] || keys['arrowright']) moveX = 1;
+                if (keys['w'] || keys['arrowup'] || mobile.up) moveZ = -1;
+                if (keys['s'] || keys['arrowdown'] || mobile.down) moveZ = 1;
+                if (keys['a'] || keys['arrowleft'] || mobile.left) moveX = -1;
+                if (keys['d'] || keys['arrowright'] || mobile.right) moveX = 1;
 
                 if (moveX !== 0 || moveZ !== 0) {
                     const len = Math.sqrt(moveX * moveX + moveZ * moveZ);
                     moveX /= len;
                     moveZ /= len;
-                    const angle = Math.atan2(moveX, moveZ);
-                    targetRotation = angle;
+                    targetRotation = Math.atan2(moveX, moveZ);
                 }
-
-                // Smooth rotation
                 let diff = targetRotation - currentRotation;
                 while (diff > Math.PI) diff -= Math.PI * 2;
                 while (diff < -Math.PI) diff += Math.PI * 2;
                 currentRotation += diff * 0.12;
-
                 player.rotation.y = currentRotation;
                 playerModel.rotation.y = currentRotation;
 
-                const moveSpeed = speed * 0.12;
+                const spd = (cfg.speed || 4) * speedBoost * 0.12;
                 const newPos = player.position.clone();
-                newPos.x += moveX * moveSpeed;
-                newPos.z += moveZ * moveSpeed;
-
-                // Boundaries
+                newPos.x += moveX * spd;
+                newPos.z += moveZ * spd;
                 const bound = 45;
                 newPos.x = Math.max(-bound, Math.min(bound, newPos.x));
                 newPos.z = Math.max(-bound, Math.min(bound, newPos.z));
-
                 player.position.copy(newPos);
                 playerModel.position.copy(newPos);
-
-                // Idle bob
                 const bob = Math.sin(G.frame * 0.04) * 0.03;
                 playerModel.position.y = bob;
 
-                // Footstep particles
                 if ((moveX !== 0 || moveZ !== 0) && G.frame % 4 === 0) {
                     const p = newPos.clone();
                     p.y = -0.2;
-                    G.particles.push({
-                        pos: p,
-                        vel: new THREE.Vector3((Math.random() - 0.5) * 0.5, Math.random() * 0.5, (Math.random() - 0.5) *
-                        0.5),
-                        life: 10 + Math.random() * 10,
-                        maxLife: 20,
-                        color: new THREE.Color(0x445577),
-                        size: 0.05 + Math.random() * 0.1,
-                        alive: true,
-                    });
+                    G.particles.push({ pos: p, vel: new THREE.Vector3((Math.random() - 0.5) * 0.5, Math.random() * 0.5, (
+                            Math.random() - 0.5) * 0.5), life: 10 + Math.random() * 10, maxLife: 20,
+                        color: new THREE.Color(0x445577), size: 0.05 + Math.random() * 0.1, alive: true });
                 }
 
-                // Shoot cooldown
                 if (shootCooldown > 0) shootCooldown--;
                 if (invincible > 0) invincible--;
+                if (shieldActive) { shieldTimer--; if (shieldTimer <= 0) shieldActive = false; }
+                if (G.teammateCooldown > 0) G.teammateCooldown--;
 
-                // Auto-shoot with space or mouse
                 if (keys[' ']) shoot();
 
-                // Health UI
                 const pct = Math.max(0, (health / maxHealth) * 100);
                 healthFill.style.width = pct + '%';
-                if (pct < 30) {
-                    healthFill.style.background = 'linear-gradient(90deg, #ff2244, #ff6644)';
-                } else {
-                    healthFill.style.background = 'linear-gradient(90deg, #00e5ff, #00b8ff)';
-                }
+                healthFill.style.background = pct < 30 ? 'linear-gradient(90deg, #ff2244, #ff6644)' :
+                    'linear-gradient(90deg, #00e5ff, #00b8ff)';
             }
 
-            // ── Spawn Enemies ──
+            // ── Spawn ──
             if (G.waveEnemyCount < G.waveMaxEnemies) {
                 G.spawnTimer--;
-                if (G.spawnTimer <= 0 && G.enemies.length < 20) {
+                if (G.spawnTimer <= 0 && G.enemies.length < 25) {
                     spawnEnemy();
                     G.waveEnemyCount++;
                     G.spawnTimer = G.spawnInterval + Math.random() * 30;
@@ -1313,45 +1249,29 @@
                 if (G.waveDelay === 0) G.waveDelay = 40;
             }
 
-            // ── Update Enemies ──
+            // ── Enemies ──
             for (let i = G.enemies.length - 1; i >= 0; i--) {
                 const e = G.enemies[i];
                 if (!e.alive) { scene.remove(e.model);
                     G.enemies.splice(i, 1); continue; }
-
-                // Movement
                 if (player) {
-                    const dx = player.position.x - e.pos.x;
-                    const dz = player.position.z - e.pos.z;
+                    const dx = player.position.x - e.pos.x,
+                        dz = player.position.z - e.pos.z;
                     const dist = Math.sqrt(dx * dx + dz * dz);
-
                     if (dist > 1.5) {
-                        const speed = e.speed * 0.06;
-                        e.pos.x += (dx / dist) * speed;
-                        e.pos.z += (dz / dist) * speed;
+                        const spd = e.speed * 0.06;
+                        e.pos.x += (dx / dist) * spd;
+                        e.pos.z += (dz / dist) * spd;
                     }
-
-                    // Flyer y oscillation
-                    if (e.type === 'flyer') {
-                        e.phase += 0.03;
-                        e.pos.y = e.yOffset + Math.sin(e.phase) * 1.5;
-                    } else {
-                        e.pos.y = 0;
-                    }
-
-                    // Face player
-                    const angle = Math.atan2(dx, dz);
-                    e.model.rotation.y = angle;
-
-                    // Shoot
+                    if (e.type === 'flyer') { e.phase += 0.03;
+                        e.pos.y = e.yOffset + Math.sin(e.phase) * 1.8; } else e.pos.y = 0;
+                    e.model.rotation.y = Math.atan2(dx, dz);
                     e.shootTimer--;
-                    if (e.shootTimer <= 0 && dist < 45) {
+                    if (e.shootTimer <= 0 && dist < 50) {
                         enemyShoot(e);
-                        e.shootTimer = 60 + Math.random() * 80 - G.wave * 2;
-                        if (e.shootTimer < 20) e.shootTimer = 20;
+                        e.shootTimer = 50 + Math.random() * 80 - G.wave * 2;
+                        if (e.shootTimer < 15) e.shootTimer = 15;
                     }
-
-                    // Melee attack
                     if (dist < 2.5) {
                         e.attackCooldown--;
                         if (e.attackCooldown <= 0) {
@@ -1360,29 +1280,35 @@
                             emitExplosion(player.position.clone(), 0xff4444, 15, 4);
                         }
                     }
-
                     e.model.position.copy(e.pos);
                 }
-
-                // Health check
                 if (e.health <= 0) {
                     e.alive = false;
-                    G.score += e.type === 'tank' ? 30 : e.type === 'flyer' ? 20 : 15;
                     G.kills++;
-                    emitExplosion(e.pos.clone(), e.accent || 0xff4444, 40, 7);
-                    // Drop pickup chance
-                    if (Math.random() < 0.12) {
-                        // Health pickup
-                        G.particles.push({
+                    G.combo++;
+                    const mult = Math.min(5, 1 + Math.floor(G.combo / 5));
+                    G.multiplier = mult;
+                    const addScore = (e.type === 'tank' ? 30 : e.type === 'flyer' ? 20 : e.type === 'heavy' ? 40 : e
+                        .type === 'scout' ? 15 : 15) * mult;
+                    G.score += addScore;
+                    emitExplosion(e.pos.clone(), e.accent || 0xff4444, 45, 8);
+                    playSound('explode');
+                    // Combo display
+                    if (G.combo >= 3) {
+                        comboDisplay.textContent = `${G.combo}× COMBO!`;
+                        comboDisplay.style.opacity = '1';
+                        setTimeout(() => { comboDisplay.style.opacity = '0'; }, 800);
+                    }
+                    // Drop powerup
+                    if (Math.random() < 0.15) {
+                        const types = ['health', 'speed', 'shield'];
+                        const pType = types[Math.floor(Math.random() * types.length)];
+                        G.powerups.push({
                             pos: e.pos.clone().add(new THREE.Vector3(0, 0.5, 0)),
-                            vel: new THREE.Vector3(0, 0.5, 0),
-                            life: 200,
-                            maxLife: 200,
-                            color: new THREE.Color(0x44ff88),
-                            size: 0.6,
+                            type: pType,
                             alive: true,
-                            isPickup: true,
-                            pickupType: 'health',
+                            life: 300,
+                            bob: 0,
                         });
                     }
                     scene.remove(e.model);
@@ -1391,14 +1317,12 @@
                 }
             }
 
-            // ── Update Teammates ──
+            // ── Teammates ──
             for (let i = G.teammates.length - 1; i >= 0; i--) {
                 const t = G.teammates[i];
                 if (!t.alive) { scene.remove(t.model);
                     G.teammates.splice(i, 1);
                     updateTeamUI(); continue; }
-
-                // Find nearest enemy
                 let nearest = null,
                     nearDist = 999;
                 for (const e of G.enemies) {
@@ -1407,20 +1331,14 @@
                     if (d < nearDist) { nearDist = d;
                         nearest = e; }
                 }
-
                 if (nearest && nearDist < 30) {
-                    // Move toward enemy
-                    const dx = nearest.pos.x - t.pos.x;
-                    const dz = nearest.pos.z - t.pos.z;
+                    const dx = nearest.pos.x - t.pos.x,
+                        dz = nearest.pos.z - t.pos.z;
                     const dist = Math.sqrt(dx * dx + dz * dz);
-                    if (dist > 2) {
-                        const spd = t.speed * 0.06;
+                    if (dist > 2) { const spd = t.speed * 0.06;
                         t.pos.x += (dx / dist) * spd;
-                        t.pos.z += (dz / dist) * spd;
-                    }
+                        t.pos.z += (dz / dist) * spd; }
                     t.model.rotation.y = Math.atan2(dx, dz);
-
-                    // Shoot at enemy
                     t.shootTimer--;
                     if (t.shootTimer <= 0 && dist < 40) {
                         const dir = new THREE.Vector3().copy(nearest.pos).sub(t.pos);
@@ -1428,45 +1346,31 @@
                         const len = dir.length();
                         if (len > 0.5) {
                             dir.normalize();
-                            const proj = {
-                                pos: t.pos.clone().add(new THREE.Vector3(0, 0.6, 0)).add(dir.clone().multiplyScalar(
-                                1.5)),
-                                vel: dir.multiplyScalar(14),
-                                life: 60,
-                                damage: t.damage || 12,
-                                color: new THREE.Color(0x44ff88),
-                                size: 0.3,
-                                alive: true,
-                                isTeammate: true,
-                            };
+                            const proj = { pos: t.pos.clone().add(new THREE.Vector3(0, 0.6, 0)).add(dir.clone()
+                                    .multiplyScalar(1.5)), vel: dir.multiplyScalar(14), life: 60,
+                                damage: t.damage || 12, color: new THREE.Color(0x44ff88), size: 0.3,
+                                alive: true, isTeammate: true };
                             G.projectiles.push(proj);
                             t.shootTimer = t.fireRate || 25;
                             emitExplosion(t.pos.clone().add(new THREE.Vector3(0, 0.6, 0)), 0x44ff88, 5, 2);
                         }
                     }
                 } else {
-                    // Follow player
                     if (player) {
-                        const dx = player.position.x - t.pos.x;
-                        const dz = player.position.z - t.pos.z;
+                        const dx = player.position.x - t.pos.x,
+                            dz = player.position.z - t.pos.z;
                         const dist = Math.sqrt(dx * dx + dz * dz);
-                        if (dist > 5) {
-                            const spd = t.speed * 0.05;
+                        if (dist > 5) { const spd = t.speed * 0.05;
                             t.pos.x += (dx / dist) * spd;
-                            t.pos.z += (dz / dist) * spd;
-                        }
+                            t.pos.z += (dz / dist) * spd; }
                         t.model.rotation.y = Math.atan2(dx, dz);
                     }
                 }
-
-                // Keep in bounds
                 const bound = 42;
                 t.pos.x = Math.max(-bound, Math.min(bound, t.pos.x));
                 t.pos.z = Math.max(-bound, Math.min(bound, t.pos.z));
                 t.pos.y = 0;
                 t.model.position.copy(t.pos);
-
-                // Health check (take damage from enemies)
                 for (const e of G.enemies) {
                     if (!e.alive) continue;
                     if (t.pos.distanceTo(e.pos) < 2.5) {
@@ -1483,183 +1387,165 @@
                 }
             }
 
-            // ── Update Projectiles (player & teammate) ──
+            // ── Projectiles ──
             for (let i = G.projectiles.length - 1; i >= 0; i--) {
                 const p = G.projectiles[i];
                 p.pos.add(p.vel.clone().multiplyScalar(0.06));
                 p.life--;
                 if (p.life <= 0) { p.alive = false;
                     G.projectiles.splice(i, 1); continue; }
-
-                // Hit enemies
                 let hit = false;
                 for (const e of G.enemies) {
                     if (!e.alive) continue;
                     if (p.pos.distanceTo(e.pos) < (e.size * 0.6 + p.size)) {
                         e.health -= p.damage || 18;
                         hit = true;
-                        emitExplosion(p.pos.clone(), p.color || 0x00e5ff, 15, 4);
-                        // Spark particles
+                        emitExplosion(p.pos.clone(), p.color || 0x00e5ff, 18, 5);
+                        playSound('hit');
                         for (let j = 0; j < 8; j++) {
-                            G.particles.push({
-                                pos: p.pos.clone(),
-                                vel: new THREE.Vector3((Math.random() - 0.5) * 5, (Math.random() - 0.5) * 5, (Math
-                                    .random() - 0.5) * 5),
-                                life: 10 + Math.random() * 15,
-                                maxLife: 25,
-                                color: new THREE.Color(0xffcc44),
-                                size: 0.05 + Math.random() * 0.15,
-                                alive: true,
-                            });
+                            G.particles.push({ pos: p.pos.clone(), vel: new THREE.Vector3((Math.random() - 0.5) * 6, (
+                                    Math.random() - 0.5) * 6, (Math.random() - 0.5) * 6), life: 10 + Math
+                                    .random() * 15, maxLife: 25, color: new THREE.Color(0xffcc44),
+                                size: 0.05 + Math.random() * 0.15, alive: true });
                         }
                         break;
                     }
                 }
                 if (hit) { G.projectiles.splice(i, 1); continue; }
-
-                // Trail particles
+                // Trail
                 if (G.frame % 2 === 0) {
-                    G.particles.push({
-                        pos: p.pos.clone(),
-                        vel: new THREE.Vector3((Math.random() - 0.5) * 0.3, (Math.random() - 0.5) * 0.3, (Math.random() -
-                            0.5) * 0.3),
-                        life: 6 + Math.random() * 6,
-                        maxLife: 12,
-                        color: p.color || new THREE.Color(0x00e5ff),
-                        size: 0.03 + Math.random() * 0.08,
-                        alive: true,
-                    });
+                    G.particles.push({ pos: p.pos.clone(), vel: new THREE.Vector3((Math.random() - 0.5) * 0.3, (Math
+                            .random() - 0.5) * 0.3, (Math.random() - 0.5) * 0.3), life: 6 + Math.random() * 6,
+                        maxLife: 12, color: p.color || new THREE.Color(0x00e5ff), size: 0.03 + Math.random() *
+                            0.08, alive: true });
                 }
             }
 
-            // ── Update Enemy Projectiles ──
+            // ── Enemy Projectiles ──
             for (let i = G.enemyProjectiles.length - 1; i >= 0; i--) {
                 const p = G.enemyProjectiles[i];
                 p.pos.add(p.vel.clone().multiplyScalar(0.06));
                 p.life--;
                 if (p.life <= 0) { p.alive = false;
                     G.enemyProjectiles.splice(i, 1); continue; }
-
-                // Hit player
                 if (player && p.pos.distanceTo(player.position) < 1.2) {
-                    takeDamage(p.damage || 10);
-                    emitExplosion(p.pos.clone(), 0xff4444, 20, 5);
+                    if (shieldActive) { // block
+                        emitExplosion(p.pos.clone(), 0x44ff88, 15, 4);
+                        playSound('hit');
+                    } else {
+                        takeDamage(p.damage || 10);
+                        emitExplosion(p.pos.clone(), 0xff4444, 20, 5);
+                    }
                     p.alive = false;
                     G.enemyProjectiles.splice(i, 1);
                     continue;
                 }
-
-                // Trail
                 if (G.frame % 2 === 0) {
-                    G.particles.push({
-                        pos: p.pos.clone(),
-                        vel: new THREE.Vector3((Math.random() - 0.5) * 0.2, (Math.random() - 0.5) * 0.2, (Math.random() -
-                            0.5) * 0.2),
-                        life: 5 + Math.random() * 5,
-                        maxLife: 10,
-                        color: p.color || new THREE.Color(0xff4444),
-                        size: 0.03 + Math.random() * 0.08,
-                        alive: true,
-                    });
+                    G.particles.push({ pos: p.pos.clone(), vel: new THREE.Vector3((Math.random() - 0.5) * 0.2, (Math
+                            .random() - 0.5) * 0.2, (Math.random() - 0.5) * 0.2), life: 5 + Math.random() * 5,
+                        maxLife: 10, color: p.color || new THREE.Color(0xff4444), size: 0.03 + Math.random() *
+                            0.08, alive: true });
                 }
             }
 
-            // ── Update Particles ──
+            // ── Powerups ──
+            for (let i = G.powerups.length - 1; i >= 0; i--) {
+                const p = G.powerups[i];
+                p.bob += 0.04;
+                p.pos.y = 0.5 + Math.sin(p.bob) * 0.2;
+                p.life--;
+                if (p.life <= 0) { p.alive = false;
+                    G.powerups.splice(i, 1); continue; }
+                if (player && p.pos.distanceTo(player.position) < 1.8) {
+                    if (p.type === 'health') { health = Math.min(maxHealth, health + 30);
+                        playSound('pickup');
+                        emitExplosion(p.pos.clone(), 0x44ff88, 25, 5); } else if (p.type === 'speed') { speedBoost =
+                            1.5;
+                        setTimeout(() => speedBoost = 1, 5000);
+                        playSound('pickup');
+                        emitExplosion(p.pos.clone(), 0xffaa44, 25, 5); } else if (p.type === 'shield') { shieldActive =
+                            true;
+                        shieldTimer = 300;
+                        playSound('pickup');
+                        emitExplosion(p.pos.clone(), 0x4488ff, 25, 5); }
+                    p.alive = false;
+                    G.powerups.splice(i, 1);
+                    continue;
+                }
+                // Draw powerup as glowing sphere (rendered in render loop)
+            }
+
+            // ── Particles ──
             for (let i = G.particles.length - 1; i >= 0; i--) {
                 const p = G.particles[i];
                 p.pos.add(p.vel.clone().multiplyScalar(0.05));
-                p.vel.y -= 0.02;
+                if (!p.isSmoke) p.vel.y -= 0.02;
+                else p.vel.y += 0.01;
                 p.life--;
                 if (p.life <= 0) { p.alive = false;
                     G.particles.splice(i, 1); continue; }
-
-                // Pickup
-                if (p.isPickup && p.pickupType === 'health' && player) {
-                    if (p.pos.distanceTo(player.position) < 1.5) {
-                        health = Math.min(maxHealth, health + 25);
-                        emitExplosion(p.pos.clone(), 0x44ff88, 20, 5);
-                        p.alive = false;
-                        G.particles.splice(i, 1);
-                        continue;
-                    }
-                }
-                // Size fade
-                const fade = p.life / p.maxLife;
-                p.size *= 0.998;
+                p.size *= 0.997;
             }
 
-            // ── Teammate Cooldown ──
-            if (G.teammateCooldown > 0) G.teammateCooldown--;
-
-            // ── Update UI ──
+            // ── UI ──
             updateUI();
-
-            // ── Camera ──
+            // Camera
             if (player) {
                 const target = player.position.clone();
                 const camDist = 24;
                 const camHeight = 14;
-                const idealPos = new THREE.Vector3(
+                const ideal = new THREE.Vector3(
                     target.x + Math.sin(currentRotation) * camDist,
-                    camHeight,
+                    camHeight + Math.sin(G.frame * 0.01) * 0.5,
                     target.z + Math.cos(currentRotation) * camDist
                 );
-                camera.position.lerp(idealPos, 0.04);
+                camera.position.lerp(ideal, 0.04);
                 camera.lookAt(target.x, 0, target.z);
             }
         }
 
         function takeDamage(dmg) {
-            if (invincible > 0 || !player) return;
+            if (invincible > 0 || !player || shieldActive) return;
             health -= dmg;
             invincible = 20;
             if (health < 0) health = 0;
             emitExplosion(player.position.clone(), 0xff4444, 20, 5);
-            if (health <= 0) { gameOver(); }
+            playSound('hit');
+            if (health <= 0) gameOver();
         }
 
         function updateUI() {
             scoreDisplay.textContent = G.score;
             waveDisplay.textContent = G.wave;
             killDisplay.textContent = G.kills;
+            multDisplay.textContent = `${G.multiplier}×`;
             updateTeamUI();
         }
 
-        // ━━━ RENDER ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // ━━━ RENDER ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         function render() {
-            // ── Render projectiles ──
+            // Projectiles (instanced would be faster, but we add/remove quickly)
             for (const p of G.projectiles) {
                 if (!p.alive) continue;
                 const sphere = new THREE.Mesh(
                     new THREE.SphereGeometry(p.size || 0.3, 8, 8),
-                    new THREE.MeshBasicMaterial({
-                        color: p.color || 0x00e5ff,
-                        transparent: true,
-                        opacity: 0.9,
-                    })
+                    new THREE.MeshBasicMaterial({ color: p.color || 0x00e5ff, transparent: true, opacity: 0.9 })
                 );
                 sphere.position.copy(p.pos);
                 scene.add(sphere);
-                // Clean up next frame
                 setTimeout(() => scene.remove(sphere), 16);
             }
-
             for (const p of G.enemyProjectiles) {
                 if (!p.alive) continue;
                 const sphere = new THREE.Mesh(
                     new THREE.SphereGeometry(p.size || 0.3, 8, 8),
-                    new THREE.MeshBasicMaterial({
-                        color: p.color || 0xff4444,
-                        transparent: true,
-                        opacity: 0.9,
-                    })
+                    new THREE.MeshBasicMaterial({ color: p.color || 0xff4444, transparent: true, opacity: 0.9 })
                 );
                 sphere.position.copy(p.pos);
                 scene.add(sphere);
                 setTimeout(() => scene.remove(sphere), 16);
             }
-
-            // ── Render particles ──
+            // Particles
             for (const p of G.particles) {
                 if (!p.alive) continue;
                 const fade = p.life / p.maxLife;
@@ -1668,78 +1554,74 @@
                 const mat = new THREE.MeshBasicMaterial({
                     color: p.color || 0x88ddff,
                     transparent: true,
-                    opacity: fade * 0.8,
+                    opacity: p.isSmoke ? fade * 0.3 : fade * 0.8,
                 });
-                const mesh = new THREE.Mesh(
-                    new THREE.SphereGeometry(size, 4, 4),
-                    mat
-                );
+                const mesh = new THREE.Mesh(new THREE.SphereGeometry(size, 4, 4), mat);
                 mesh.position.copy(p.pos);
                 scene.add(mesh);
                 setTimeout(() => scene.remove(mesh), 16);
             }
-
-            // ── Pickup glow ──
-            for (const p of G.particles) {
-                if (!p.alive || !p.isPickup) continue;
+            // Powerups
+            for (const p of G.powerups) {
+                if (!p.alive) continue;
+                const color = p.type === 'health' ? 0x44ff88 : p.type === 'speed' ? 0xffaa44 : 0x4488ff;
                 const glow = new THREE.Mesh(
-                    new THREE.SphereGeometry(p.size * 2 + Math.sin(G.frame * 0.05) * 0.2, 8, 8),
-                    new THREE.MeshBasicMaterial({
-                        color: p.color || 0x44ff88,
-                        transparent: true,
-                        opacity: 0.15 + Math.sin(G.frame * 0.05) * 0.05,
-                    })
+                    new THREE.SphereGeometry(0.6 + Math.sin(G.frame * 0.05) * 0.15, 8, 8),
+                    new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.2 })
                 );
                 glow.position.copy(p.pos);
                 scene.add(glow);
-                setTimeout(() => scene.remove(glow), 16);
+                const core = new THREE.Mesh(
+                    new THREE.SphereGeometry(0.25, 6, 6),
+                    new THREE.MeshBasicMaterial({ color })
+                );
+                core.position.copy(p.pos);
+                scene.add(core);
+                setTimeout(() => { scene.remove(glow);
+                    scene.remove(core); }, 16);
             }
+            // Shield effect
+            if (shieldActive && player) {
+                const ring = new THREE.Mesh(
+                    new THREE.RingGeometry(1.2, 1.8, 32),
+                    new THREE.MeshBasicMaterial({ color: 0x4488ff, transparent: true, opacity: 0.3, side: THREE
+                            .DoubleSide })
+                );
+                ring.position.copy(player.position);
+                ring.position.y = 0.5;
+                ring.rotation.x = -Math.PI / 2;
+                scene.add(ring);
+                setTimeout(() => scene.remove(ring), 16);
+            }
+            renderer.render(scene, camera);
         }
 
-        // ━━━ LOOP ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // ━━━ LOOP ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         function loop() {
             update();
-            renderer.render(scene, camera);
+            render();
             requestAnimationFrame(loop);
         }
 
-        // ━━━ RESIZE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         window.addEventListener('resize', () => {
-            const w = window.innerWidth;
-            const h = window.innerHeight;
+            const w = window.innerWidth,
+                h = window.innerHeight;
             camera.aspect = w / h;
             camera.updateProjectionMatrix();
             renderer.setSize(w, h);
         });
 
         // ━━━ START ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        // Show overlay with start button
         overlay.classList.remove('hidden');
         startBtn.style.display = 'block';
         restartBtn.style.display = 'none';
         overlay.querySelector('h1').textContent = '⚡ EARTHSPARK 3D';
-        overlay.querySelector('.sub').textContent = '▼ TRANSFORM & DEFEND ▼';
-
-        // Start loop
+        overlay.querySelector('.sub').textContent = '▼ ULTIMATE BATTLE ▼';
         loop();
 
-        console.log('⚡ Transformers: EarthSpark 3D loaded!');
-        console.log('🎮 Controls: WASD move, Space shoot, 1-8 transform, E call teammate');
-        console.log('🤖 Characters: Bumblebee, Soundwave, Shockwave, Starscream, Megatron, Grimlock, Optimus Prime, Mirage');
-
-        // ━━━ CLEANUP ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        // Periodic cleanup of orphaned meshes (safety)
-        setInterval(() => {
-            const toRemove = [];
-            scene.children.forEach(child => {
-                if (child.isMesh && child.geometry && !child.parent) {
-                    toRemove.push(child);
-                }
-            });
-            toRemove.forEach(child => scene.remove(child));
-        }, 5000);
-
-        console.log('✅ Game ready! Click DEPLOY to start.');
+        console.log('🔥 Transformers: EarthSpark 3D Ultimate loaded!');
+        console.log('🎮 1-8 Transform · E Call · Space Shoot · WASD Move');
+        console.log('💪 Powerups: Health, Speed, Shield');
     </script>
 </body>
 </html>
