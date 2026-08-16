@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-    <title>Transformers: EarthSpark – Fixed</title>
+    <title>Transformers – Movie Style</title>
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
         body { background:#0a0a12; overflow:hidden; font-family:'Segoe UI',Arial,sans-serif; touch-action:none; user-select:none; }
@@ -32,7 +32,6 @@
         #teammateStatus .count { color:#88ddff; font-weight:700; }
         #loading { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:#88ddff; font-size:20px; z-index:30; background:rgba(0,0,0,0.6); padding:12px 24px; border-radius:8px; display:flex; align-items:center; gap:12px; }
         #loading.hidden { display:none; }
-        #errorMsg { color:#ff4444; background:rgba(0,0,0,0.8); padding:10px 20px; border-radius:8px; margin-top:20px; max-width:80%; display:none; }
         @media (max-width:700px) { #controls { font-size:7px; gap:6px; padding:4px 10px; bottom:8px; } #controls kbd { font-size:6px; padding:0 4px; } #healthBar { width:100px; height:8px; } .hudValue { font-size:16px; } #modeBadge { font-size:9px; padding:2px 8px; } #overlay h1 { font-size:28px; } #startBtn { padding:10px 24px; font-size:14px; } #teammateStatus { font-size:9px; bottom:50px; padding:2px 12px; } }
         @media (max-width:450px) { #controls { display:none; } #healthBar { width:60px; } .hudValue { font-size:12px; } #modeBadge { font-size:7px; padding:1px 6px; } .hudLabel { font-size:7px; } }
         .spinner { display:inline-block; width:20px; height:20px; border:3px solid rgba(255,255,255,0.1); border-radius:50%; border-top-color:#88ddff; animation:spin 0.8s linear infinite; }
@@ -40,7 +39,7 @@
     </style>
 </head>
 <body>
-    <div id="loading"><span class="spinner"></span> Loading...</div>
+    <div id="loading"><span class="spinner"></span> Loading Cybertron...</div>
     <div id="ui">
         <div id="hud">
             <div id="hudLeft">
@@ -67,7 +66,7 @@
         <div id="teammateStatus">🤖 Teammates: <span class="count" id="teamCount">0</span></div>
         <div id="overlay">
             <h1>⚡ EARTHSPARK 3D</h1>
-            <div class="sub">▼ ULTIMATE BATTLE ▼</div>
+            <div class="sub">▼ MOVIE EDITION ▼</div>
             <div class="heroes">
                 🟡 Bumblebee &nbsp;•&nbsp; 🔵 Soundwave &nbsp;•&nbsp; 🟣 Shockwave<br>
                 🔴 Starscream &nbsp;•&nbsp; ⚫ Megatron &nbsp;•&nbsp; 🟠 Grimlock<br>
@@ -75,20 +74,19 @@
             </div>
             <button id="startBtn">▶ DEPLOY</button>
             <div style="margin-top:12px;color:#6a8bb0;font-size:12px;letter-spacing:1px;">1-8 Transform · E Call · Space Shoot</div>
-            <div id="errorMsg"></div>
         </div>
     </div>
 
-    <script type="importmap">
-        {
-            "imports": {
-                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
-            }
-        }
+    <!-- Three.js from CDN (classic script, no import map) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js">
     </script>
 
-    <script type="module">
-        import * as THREE from 'three';
+    <script>
+        // ━━━ Check THREE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        if (typeof THREE === 'undefined') {
+            document.getElementById('loading').textContent = '❌ Failed to load Three.js';
+            throw new Error('THREE not loaded');
+        }
         document.getElementById('loading').classList.add('hidden');
 
         // ━━━ DOM ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -106,9 +104,9 @@
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x0a0a18);
 
-        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 200);
-        camera.position.set(0, 8, 16);
-        camera.lookAt(0, 0, 0);
+        const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 200);
+        camera.position.set(0, 6, 14);
+        camera.lookAt(0, 1, 0);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -119,171 +117,259 @@
         renderer.toneMappingExposure = 1.2;
         document.body.prepend(renderer.domElement);
 
-        // ━━━ Lights ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        const ambient = new THREE.AmbientLight(0x223366, 0.6);
+        // ━━━ Lights (cinematic) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        const ambient = new THREE.AmbientLight(0x223366, 0.5);
         scene.add(ambient);
-        const mainLight = new THREE.DirectionalLight(0xffeedd, 2.0);
-        mainLight.position.set(20, 30, 20);
-        mainLight.castShadow = true;
-        mainLight.shadow.mapSize.width = 1024;
-        mainLight.shadow.mapSize.height = 1024;
-        mainLight.shadow.camera.near = 0.5;
-        mainLight.shadow.camera.far = 50;
-        mainLight.shadow.camera.left = -20;
-        mainLight.shadow.camera.right = 20;
-        mainLight.shadow.camera.top = 20;
-        mainLight.shadow.camera.bottom = -20;
-        scene.add(mainLight);
-        const fill = new THREE.DirectionalLight(0x4488ff, 0.5);
-        fill.position.set(-10, 5, -20);
-        scene.add(fill);
 
-        // ━━━ Ground ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        const keyLight = new THREE.DirectionalLight(0xffeedd, 2.0);
+        keyLight.position.set(10, 20, 15);
+        keyLight.castShadow = true;
+        keyLight.shadow.mapSize.width = 1024;
+        keyLight.shadow.mapSize.height = 1024;
+        keyLight.shadow.camera.near = 0.5;
+        keyLight.shadow.camera.far = 40;
+        keyLight.shadow.camera.left = -15;
+        keyLight.shadow.camera.right = 15;
+        keyLight.shadow.camera.top = 15;
+        keyLight.shadow.camera.bottom = -15;
+        scene.add(keyLight);
+
+        const fillLight = new THREE.DirectionalLight(0x4488ff, 0.6);
+        fillLight.position.set(-10, 5, -10);
+        scene.add(fillLight);
+
+        const rimLight = new THREE.DirectionalLight(0x88aaff, 0.4);
+        rimLight.position.set(-5, 2, -20);
+        scene.add(rimLight);
+
+        // ━━━ Environment ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // Ground
         const groundGeo = new THREE.PlaneGeometry(60, 60);
-        const groundMat = new THREE.MeshStandardMaterial({ color: 0x0d0d1a, roughness: 0.7, metalness: 0.2 });
+        const groundMat = new THREE.MeshStandardMaterial({ color: 0x0d0d1a, roughness: 0.6, metalness: 0.3 });
         const ground = new THREE.Mesh(groundGeo, groundMat);
         ground.rotation.x = -Math.PI / 2;
         ground.position.y = -0.5;
         ground.receiveShadow = true;
         scene.add(ground);
 
-        const gridHelper = new THREE.GridHelper(50, 20, 0x1a3a7a, 0x0a1a3a);
-        gridHelper.position.y = -0.4;
-        scene.add(gridHelper);
+        const grid = new THREE.GridHelper(50, 20, 0x1a3a7a, 0x0a1a3a);
+        grid.position.y = -0.4;
+        scene.add(grid);
 
-        // ━━━ Simple Robot Builder (ensured visible) ━━━━━━━━━
-        function buildRobot(config) {
+        // Simple buildings
+        function addBuilding(x, z, w, h, d, color) {
+            const mat = new THREE.MeshStandardMaterial({ color: color || 0x1a1a30, roughness: 0.7, metalness: 0.2 });
+            const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+            mesh.position.set(x, h / 2 - 0.5, z);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            scene.add(mesh);
+            // windows
+            const winMat = new THREE.MeshStandardMaterial({ color: 0x223366, emissive: 0x112244, emissiveIntensity: 0.3 });
+            for (let wy = 1; wy < h - 2; wy += 2.5) {
+                for (let wx = -w / 2 + 0.6; wx < w / 2 - 0.6; wx += 1.5) {
+                    if (Math.random() > 0.5) continue;
+                    const win = new THREE.Mesh(new THREE.PlaneGeometry(0.2, 0.4), winMat);
+                    win.position.set(x + wx, wy, z + (z > 0 ? d / 2 + 0.01 : -d / 2 - 0.01));
+                    if (z > 0) win.rotation.y = 0;
+                    else win.rotation.y = Math.PI;
+                    scene.add(win);
+                }
+            }
+        }
+        for (let i = 0; i < 30; i++) {
+            const a = Math.random() * Math.PI * 2;
+            const d = 12 + Math.random() * 20;
+            const x = Math.cos(a) * d,
+                z = Math.sin(a) * d;
+            const w = 1.2 + Math.random() * 3,
+                h = 2 + Math.random() * 8,
+                dep = 1.2 + Math.random() * 3;
+            addBuilding(x, z, w, h, dep, 0x1a1a30 + Math.floor(Math.random() * 0x111111));
+        }
+
+        // ━━━ Movie‑style Transformer Builder ━━━━━━━━━━━━━━━━━━
+        function buildMovieTransformer(config) {
             const group = new THREE.Group();
             const { primary, secondary, accent, scale = 1 } = config;
 
-            const pMat = new THREE.MeshStandardMaterial({ color: primary, roughness: 0.3, metalness: 0.8 });
-            const sMat = new THREE.MeshStandardMaterial({ color: secondary, roughness: 0.4, metalness: 0.7 });
-            const aMat = new THREE.MeshStandardMaterial({ color: accent, roughness: 0.2, metalness: 0.9, emissive: accent,
-                emissiveIntensity: 0.2 });
+            // High‑quality metallic materials
+            const pMat = new THREE.MeshStandardMaterial({
+                color: primary,
+                roughness: 0.3,
+                metalness: 0.9,
+                emissive: new THREE.Color(primary).multiplyScalar(0.05),
+            });
+            const sMat = new THREE.MeshStandardMaterial({
+                color: secondary,
+                roughness: 0.4,
+                metalness: 0.8,
+            });
+            const aMat = new THREE.MeshStandardMaterial({
+                color: accent,
+                roughness: 0.2,
+                metalness: 0.9,
+                emissive: new THREE.Color(accent),
+                emissiveIntensity: 0.15,
+            });
+            const glowMat = new THREE.MeshStandardMaterial({
+                color: 0x00e5ff,
+                emissive: 0x00e5ff,
+                emissiveIntensity: 0.6,
+                transparent: true,
+                opacity: 0.7,
+            });
 
-            // Torso
-            const torso = new THREE.Mesh(new THREE.BoxGeometry(1.4 * scale, 1.6 * scale, 0.8 * scale), pMat);
+            // ── Torso ──
+            const torso = new THREE.Mesh(new THREE.BoxGeometry(1.6 * scale, 1.8 * scale, 0.9 * scale), pMat);
             torso.position.y = 0.6 * scale;
             torso.castShadow = true;
             group.add(torso);
-            // Chest plate
-            const chest = new THREE.Mesh(new THREE.BoxGeometry(0.8 * scale, 0.6 * scale, 0.12 * scale), aMat);
-            chest.position.set(0, 0.8 * scale, 0.5 * scale);
-            group.add(chest);
 
-            // Head
-            const head = new THREE.Mesh(new THREE.BoxGeometry(0.8 * scale, 0.8 * scale, 0.7 * scale), pMat);
-            head.position.set(0, 1.7 * scale, 0);
+            // Chest plate (glowing core)
+            const core = new THREE.Mesh(new THREE.BoxGeometry(0.7 * scale, 0.6 * scale, 0.15 * scale), aMat);
+            core.position.set(0, 0.8 * scale, 0.55 * scale);
+            group.add(core);
+            // Inner glow
+            const glowSphere = new THREE.Mesh(
+                new THREE.SphereGeometry(0.25 * scale, 12, 12),
+                glowMat
+            );
+            glowSphere.position.set(0, 0.8 * scale, 0.7 * scale);
+            group.add(glowSphere);
+
+            // Shoulder pads
+            const shoulderMat = new THREE.MeshStandardMaterial({ color: secondary, roughness: 0.5, metalness: 0.7 });
+            const lShoulder = new THREE.Mesh(new THREE.BoxGeometry(0.8 * scale, 0.25 * scale, 0.6 * scale), shoulderMat);
+            lShoulder.position.set(-1.2 * scale, 1.2 * scale, 0);
+            group.add(lShoulder);
+            const rShoulder = new THREE.Mesh(new THREE.BoxGeometry(0.8 * scale, 0.25 * scale, 0.6 * scale), shoulderMat);
+            rShoulder.position.set(1.2 * scale, 1.2 * scale, 0);
+            group.add(rShoulder);
+
+            // ── Head ──
+            const head = new THREE.Mesh(new THREE.BoxGeometry(0.9 * scale, 0.8 * scale, 0.8 * scale), pMat);
+            head.position.set(0, 1.8 * scale, 0);
             head.castShadow = true;
             group.add(head);
             // Visor
-            const visor = new THREE.Mesh(new THREE.BoxGeometry(0.6 * scale, 0.15 * scale, 0.08 * scale), aMat);
-            visor.position.set(0, 1.75 * scale, 0.4 * scale);
+            const visor = new THREE.Mesh(new THREE.BoxGeometry(0.7 * scale, 0.2 * scale, 0.08 * scale), aMat);
+            visor.position.set(0, 1.85 * scale, 0.45 * scale);
             group.add(visor);
             // Crest
             if (config.crest) {
-                const crest = new THREE.Mesh(new THREE.BoxGeometry(0.5 * scale, 0.08 * scale, 0.15 * scale), aMat);
-                crest.position.set(0, 2.1 * scale, 0.1 * scale);
+                const crest = new THREE.Mesh(new THREE.BoxGeometry(0.5 * scale, 0.1 * scale, 0.2 * scale), aMat);
+                crest.position.set(0, 2.2 * scale, 0.15 * scale);
                 group.add(crest);
             }
             // Horns
             if (config.horn) {
                 const hMat = new THREE.MeshStandardMaterial({ color: 0xccaa44, metalness: 0.9, roughness: 0.2 });
-                const h1 = new THREE.Mesh(new THREE.ConeGeometry(0.15 * scale, 0.5 * scale, 6), hMat);
-                h1.position.set(-0.25 * scale, 2.1 * scale, 0.05 * scale);
+                const h1 = new THREE.Mesh(new THREE.ConeGeometry(0.2 * scale, 0.6 * scale, 8), hMat);
+                h1.position.set(-0.3 * scale, 2.2 * scale, 0.1 * scale);
                 h1.rotation.z = -0.2;
                 group.add(h1);
-                const h2 = new THREE.Mesh(new THREE.ConeGeometry(0.15 * scale, 0.5 * scale, 6), hMat);
-                h2.position.set(0.25 * scale, 2.1 * scale, 0.05 * scale);
+                const h2 = new THREE.Mesh(new THREE.ConeGeometry(0.2 * scale, 0.6 * scale, 8), hMat);
+                h2.position.set(0.3 * scale, 2.2 * scale, 0.1 * scale);
                 h2.rotation.z = 0.2;
                 group.add(h2);
             }
 
-            // Arms
-            const armMat = sMat;
-            const lArm = new THREE.Mesh(new THREE.BoxGeometry(0.4 * scale, 1.0 * scale, 0.4 * scale), armMat);
-            lArm.position.set(-1.0 * scale, 1.0 * scale, 0);
-            lArm.castShadow = true;
-            group.add(lArm);
-            const rArm = new THREE.Mesh(new THREE.BoxGeometry(0.4 * scale, 1.0 * scale, 0.4 * scale), armMat);
-            rArm.position.set(1.0 * scale, 1.0 * scale, 0);
-            rArm.castShadow = true;
-            group.add(rArm);
-            // Hands
-            const handMat = pMat;
-            const lHand = new THREE.Mesh(new THREE.BoxGeometry(0.4 * scale, 0.2 * scale, 0.4 * scale), handMat);
-            lHand.position.set(-1.0 * scale, 0.45 * scale, 0);
-            group.add(lHand);
-            const rHand = new THREE.Mesh(new THREE.BoxGeometry(0.4 * scale, 0.2 * scale, 0.4 * scale), handMat);
-            rHand.position.set(1.0 * scale, 0.45 * scale, 0);
-            group.add(rHand);
+            // ── Arms ──
+            function makeArm(side) {
+                const armGroup = new THREE.Group();
+                const upper = new THREE.Mesh(new THREE.BoxGeometry(0.45 * scale, 1.0 * scale, 0.45 * scale), sMat);
+                upper.position.y = 0.5 * scale;
+                upper.castShadow = true;
+                armGroup.add(upper);
+                const elbow = new THREE.Mesh(new THREE.SphereGeometry(0.3 * scale, 8, 8), pMat);
+                elbow.position.y = 0;
+                armGroup.add(elbow);
+                const forearm = new THREE.Mesh(new THREE.BoxGeometry(0.4 * scale, 0.9 * scale, 0.4 * scale), sMat);
+                forearm.position.y = -0.45 * scale;
+                forearm.castShadow = true;
+                armGroup.add(forearm);
+                const hand = new THREE.Mesh(new THREE.BoxGeometry(0.45 * scale, 0.25 * scale, 0.45 * scale), pMat);
+                hand.position.y = -0.9 * scale;
+                armGroup.add(hand);
+                armGroup.position.x = side * 1.2 * scale;
+                armGroup.position.y = 1.0 * scale;
+                return armGroup;
+            }
+            group.add(makeArm(-1));
+            group.add(makeArm(1));
 
-            // Legs
-            const legMat = sMat;
-            const lLeg = new THREE.Mesh(new THREE.BoxGeometry(0.4 * scale, 0.9 * scale, 0.4 * scale), legMat);
-            lLeg.position.set(-0.4 * scale, -0.4 * scale, 0);
-            lLeg.castShadow = true;
-            group.add(lLeg);
-            const rLeg = new THREE.Mesh(new THREE.BoxGeometry(0.4 * scale, 0.9 * scale, 0.4 * scale), legMat);
-            rLeg.position.set(0.4 * scale, -0.4 * scale, 0);
-            rLeg.castShadow = true;
-            group.add(rLeg);
-            // Feet
-            const footMat = pMat;
-            const lFoot = new THREE.Mesh(new THREE.BoxGeometry(0.5 * scale, 0.15 * scale, 0.6 * scale), footMat);
-            lFoot.position.set(-0.4 * scale, -0.9 * scale, 0.1 * scale);
-            group.add(lFoot);
-            const rFoot = new THREE.Mesh(new THREE.BoxGeometry(0.5 * scale, 0.15 * scale, 0.6 * scale), footMat);
-            rFoot.position.set(0.4 * scale, -0.9 * scale, 0.1 * scale);
-            group.add(rFoot);
+            // ── Legs ──
+            function makeLeg(side) {
+                const legGroup = new THREE.Group();
+                const thigh = new THREE.Mesh(new THREE.BoxGeometry(0.5 * scale, 0.8 * scale, 0.5 * scale), sMat);
+                thigh.position.y = -0.4 * scale;
+                thigh.castShadow = true;
+                legGroup.add(thigh);
+                const knee = new THREE.Mesh(new THREE.SphereGeometry(0.3 * scale, 8, 8), pMat);
+                knee.position.y = -0.8 * scale;
+                legGroup.add(knee);
+                const shin = new THREE.Mesh(new THREE.BoxGeometry(0.45 * scale, 0.8 * scale, 0.45 * scale), sMat);
+                shin.position.y = -1.2 * scale;
+                shin.castShadow = true;
+                legGroup.add(shin);
+                const foot = new THREE.Mesh(new THREE.BoxGeometry(0.6 * scale, 0.2 * scale, 0.8 * scale), pMat);
+                foot.position.set(0, -1.7 * scale, 0.15 * scale);
+                legGroup.add(foot);
+                legGroup.position.x = side * 0.55 * scale;
+                legGroup.position.y = -0.4 * scale;
+                return legGroup;
+            }
+            group.add(makeLeg(-1));
+            group.add(makeLeg(1));
 
-            // Wings
+            // ── Wings ──
             if (config.wings) {
                 const wMat = new THREE.MeshStandardMaterial({ color: config.wingsColor || secondary, roughness: 0.3,
                     metalness: 0.7 });
-                const lw = new THREE.Mesh(new THREE.BoxGeometry(0.12 * scale, 0.6 * scale, 1.6 * scale), wMat);
-                lw.position.set(-0.8 * scale, 1.4 * scale, 0);
+                const lw = new THREE.Mesh(new THREE.BoxGeometry(0.12 * scale, 0.6 * scale, 1.8 * scale), wMat);
+                lw.position.set(-0.9 * scale, 1.4 * scale, 0);
                 group.add(lw);
-                const rw = new THREE.Mesh(new THREE.BoxGeometry(0.12 * scale, 0.6 * scale, 1.6 * scale), wMat);
-                rw.position.set(0.8 * scale, 1.4 * scale, 0);
+                const rw = new THREE.Mesh(new THREE.BoxGeometry(0.12 * scale, 0.6 * scale, 1.8 * scale), wMat);
+                rw.position.set(0.9 * scale, 1.4 * scale, 0);
                 group.add(rw);
             }
-            // Cannon
+            // ── Cannon ──
             if (config.cannon) {
                 const cMat = new THREE.MeshStandardMaterial({ color: config.cannonColor || 0x666688, metalness: 0.8,
                     roughness: 0.3 });
-                const cannon = new THREE.Mesh(new THREE.CylinderGeometry(0.15 * scale, 0.25 * scale, 0.7 * scale, 8), cMat);
+                const cannon = new THREE.Mesh(new THREE.CylinderGeometry(0.2 * scale, 0.3 * scale, 0.8 * scale, 8), cMat);
                 cannon.rotation.x = Math.PI / 2;
-                cannon.position.set(1.4 * scale, 0.8 * scale, 0.3 * scale);
+                cannon.position.set(1.5 * scale, 0.9 * scale, 0.4 * scale);
                 group.add(cannon);
-                const tip = new THREE.Mesh(new THREE.SphereGeometry(0.2 * scale, 6, 6), aMat);
-                tip.position.set(1.4 * scale, 0.8 * scale, 0.7 * scale);
+                const tip = new THREE.Mesh(new THREE.SphereGeometry(0.25 * scale, 6, 6), aMat);
+                tip.position.set(1.5 * scale, 0.9 * scale, 0.85 * scale);
                 group.add(tip);
             }
-            // Smokestacks
+            // ── Smokestacks ──
             if (config.smokestacks) {
                 const stMat = new THREE.MeshStandardMaterial({ color: 0x888899, metalness: 0.9, roughness: 0.2 });
-                const s1 = new THREE.Mesh(new THREE.CylinderGeometry(0.06 * scale, 0.1 * scale, 0.4 * scale, 6), stMat);
-                s1.position.set(-0.7 * scale, 1.2 * scale, 0.5 * scale);
+                const s1 = new THREE.Mesh(new THREE.CylinderGeometry(0.08 * scale, 0.12 * scale, 0.5 * scale, 6), stMat);
+                s1.position.set(-0.8 * scale, 1.2 * scale, 0.6 * scale);
                 group.add(s1);
-                const s2 = new THREE.Mesh(new THREE.CylinderGeometry(0.06 * scale, 0.1 * scale, 0.4 * scale, 6), stMat);
-                s2.position.set(0.7 * scale, 1.2 * scale, 0.5 * scale);
+                const s2 = new THREE.Mesh(new THREE.CylinderGeometry(0.08 * scale, 0.12 * scale, 0.5 * scale, 6), stMat);
+                s2.position.set(0.8 * scale, 1.2 * scale, 0.6 * scale);
                 group.add(s2);
             }
 
             return group;
         }
 
-        // ━━━ Transformer configs ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // ━━━ Transformer definitions (movie style) ━━━━━━━━━━━━
         const TRANSFORMERS = {
-            bumblebee: { name: 'BUMBLEBEE', primary: 0xffcc00, secondary: 0x222222, accent: 0x00aaff, scale: 0.9,
+            bumblebee: { name: 'BUMBLEBEE', primary: 0xffcc00, secondary: 0x222222, accent: 0x00aaff, scale: 1.0,
                 speed: 5.5, health: 100, damage: 18, fireRate: 12, icon: '🐝' },
             soundwave: { name: 'SOUNDWAVE', primary: 0x2244aa, secondary: 0x111133, accent: 0x4488ff, scale: 1.0,
                 speed: 4.0, health: 120, damage: 22, fireRate: 18, icon: '📡', wings: true, wingsColor: 0x2244aa },
             shockwave: { name: 'SHOCKWAVE', primary: 0x8833aa, secondary: 0x441166, accent: 0xff44aa, scale: 1.0,
                 speed: 3.8, health: 130, damage: 28, fireRate: 20, icon: '🔬', cannon: true, cannonColor: 0xaa66cc,
                 crest: true },
-            starscream: { name: 'STARSCREAM', primary: 0xcc2233, secondary: 0x444466, accent: 0xff6644, scale: 0.95,
+            starscream: { name: 'STARSCREAM', primary: 0xcc2233, secondary: 0x444466, accent: 0xff6644, scale: 1.0,
                 speed: 6.2, health: 90, damage: 20, fireRate: 10, icon: '✈️', wings: true, wingsColor: 0xcc2233 },
             megatron: { name: 'MEGATRON', primary: 0x445566, secondary: 0x223344, accent: 0xff4444, scale: 1.2,
                 speed: 3.5, health: 160, damage: 32, fireRate: 25, icon: '💀', cannon: true, cannonColor: 0x888899,
@@ -292,12 +378,12 @@
                 speed: 3.0, health: 200, damage: 40, fireRate: 30, icon: '🦖', horn: true, crest: true },
             optimus: { name: 'OPTIMUS PRIME', primary: 0xcc2222, secondary: 0x2244aa, accent: 0xccccdd, scale: 1.15,
                 speed: 4.2, health: 180, damage: 30, fireRate: 20, icon: '🔥', crest: true, smokestacks: true },
-            mirage: { name: 'MIRAGE', primary: 0x2266cc, secondary: 0xccccdd, accent: 0x88aaff, scale: 0.95,
+            mirage: { name: 'MIRAGE', primary: 0x2266cc, secondary: 0xccccdd, accent: 0x88aaff, scale: 1.0,
                 speed: 5.8, health: 110, damage: 24, fireRate: 14, icon: '🌀', crest: true }
         };
         const TRANSFORM_LIST = ['bumblebee', 'soundwave', 'shockwave', 'starscream', 'megatron', 'grimlock', 'optimus', 'mirage'];
 
-        // ━━━ Game State ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // ━━━ Game State ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         const G = {
             running: false,
             over: false,
@@ -350,7 +436,7 @@
         document.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
         document.addEventListener('click', () => { if (G.running && !G.over) shoot(); });
 
-        // ━━━ Audio ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // ━━━ Audio (simple) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         let audioCtx = null;
 
         function initAudio() { if (!audioCtx) audioCtx = new(window.AudioContext || window.webkitAudioContext)(); }
@@ -407,19 +493,18 @@
             } catch (e) {}
         }
 
-        // ━━━ Core functions ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+        // ━━━ Core Functions ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         function shoot() {
             if (shootCooldown > 0 || !player || G.over) return;
             const cfg = TRANSFORMERS[currentMode];
             shootCooldown = Math.max(6, cfg.fireRate - 2);
             const dir = new THREE.Vector3(0, 0, -1);
             dir.applyQuaternion(player.quaternion);
-            const origin = player.position.clone().add(dir.clone().multiplyScalar(2));
+            const origin = player.position.clone().add(dir.clone().multiplyScalar(2.5));
             origin.y += 0.8;
             const proj = {
                 pos: origin.clone(),
-                vel: dir.clone().multiplyScalar(25 + (cfg.damage > 30 ? 5 : 0)),
+                vel: dir.clone().multiplyScalar(28 + (cfg.damage > 30 ? 5 : 0)),
                 life: 60,
                 damage: cfg.damage || 18,
                 color: new THREE.Color(cfg.accent || 0x00e5ff),
@@ -463,7 +548,7 @@
                 crest: cfg.crest || false,
                 smokestacks: cfg.smokestacks || false,
             };
-            playerModel = buildRobot(config);
+            playerModel = buildMovieTransformer(config);
             playerModel.position.copy(player.position);
             playerModel.rotation.copy(player.rotation);
             scene.add(playerModel);
@@ -491,7 +576,7 @@
                 wings: cfg.wings || false, wingsColor: cfg.wingsColor || cfg.secondary, cannon: cfg.cannon || false,
                 cannonColor: cfg.cannonColor || 0x666688, horn: cfg.horn || false, crest: cfg.crest || false,
                 smokestacks: cfg.smokestacks || false };
-            const model = buildRobot(config);
+            const model = buildMovieTransformer(config);
             model.position.copy(pos);
             scene.add(model);
             const teammate = {
@@ -567,8 +652,8 @@
                 accent = 0xff4444;
             }
 
-            const model = buildRobot({ primary: color, secondary: 0x222244, accent, scale: size * 0.9, wings, cannon,
-                cannonColor: 0x888899, crest });
+            const model = buildMovieTransformer({ primary: color, secondary: 0x222244, accent, scale: size * 0.9,
+                wings, cannon, cannonColor: 0x888899, crest });
             model.position.set(x, 0, z);
             scene.add(model);
             const enemy = {
@@ -628,7 +713,6 @@
                     alive: true
                 });
             }
-            // smoke
             for (let i = 0; i < 10; i++) {
                 const dir = new THREE.Vector3((Math.random() - 0.5), Math.random() * 2, (Math.random() - 0.5))
                     .normalize()
@@ -1153,11 +1237,11 @@
         overlay.classList.remove('hidden');
         startBtn.style.display = 'block';
         overlay.querySelector('h1').textContent = '⚡ EARTHSPARK 3D';
-        overlay.querySelector('.sub').textContent = '▼ BATTLE READY ▼';
+        overlay.querySelector('.sub').textContent = '▼ MOVIE EDITION ▼';
         loop();
 
-        console.log('✅ Transformers game loaded – you should see your robot!');
-        console.log('🎮 WASD move, Space shoot, 1-8 transform, E call teammate.');
+        console.log('✅ Movie‑style Transformers game ready!');
+        console.log('🎮 WASD, Space, 1-8, E, R');
     </script>
 </body>
 </html>
