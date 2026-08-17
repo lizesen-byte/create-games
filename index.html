@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-    <title>Transformers – Grimlock & Boss Battles</title>
+    <title>Transformers – Movie Colours</title>
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
         body { background:#0a0a12; overflow:hidden; font-family:'Segoe UI',Arial,sans-serif; touch-action:none; user-select:none; }
@@ -17,7 +17,7 @@
         .hudValue.score { color:#ffcc00; text-shadow:0 0 20px rgba(255,204,0,0.3); }
         #healthBar { width:180px; height:10px; background:rgba(0,0,0,0.7); border-radius:8px; border:1px solid rgba(255,255,255,0.08); overflow:hidden; margin-top:2px; box-shadow:inset 0 2px 4px rgba(0,0,0,0.6); }
         #healthFill { width:100%; height:100%; background:linear-gradient(90deg,#00e5ff,#00b8ff); border-radius:8px; transition:width 0.15s ease; box-shadow:0 0 20px rgba(0,229,255,0.3); }
-        #modeBadge { display:inline-block; padding:4px 14px; border-radius:20px; font-size:12px; font-weight:700; letter-spacing:1px; text-transform:uppercase; background:rgba(0,20,40,0.8); border:1px solid rgba(0,180,255,0.2); color:#00e5ff; backdrop-filter:blur(4px); box-shadow:0 0 20px rgba(0,180,255,0.1); }
+        #modeBadge { display:inline-block; padding:4px 14px; border-radius:20px; font-size:12px; font-weight:700; letter-spacing:1px; text-transform:uppercase; background:rgba(0,20,40,0.8); border:1px solid rgba(0,180,255,0.2); color:#00e5ff; backdrop-filter:blur(4px); box-shadow:0 0 20px rgba(0,180,255,0.1); transition:all 0.3s; }
         #controls { position:absolute; bottom:18px; left:50%; transform:translateX(-50%); display:flex; gap:18px; font-size:10px; color:rgba(255,255,255,0.3); letter-spacing:0.5px; font-weight:500; background:rgba(0,0,0,0.5); padding:6px 18px; border-radius:30px; backdrop-filter:blur(4px); border:1px solid rgba(255,255,255,0.03); pointer-events:none; flex-wrap:wrap; justify-content:center; }
         #controls span { display:flex; align-items:center; gap:6px; }
         #controls kbd { background:rgba(255,255,255,0.05); padding:1px 8px; border-radius:4px; font-size:9px; font-weight:700; color:rgba(255,255,255,0.4); border:1px solid rgba(255,255,255,0.05); }
@@ -35,10 +35,11 @@
         #bossName { position:absolute; top:52px; left:50%; transform:translateX(-50%); color:#ff4444; font-size:18px; font-weight:900; letter-spacing:3px; text-transform:uppercase; text-shadow:0 0 30px rgba(255,0,0,0.5); pointer-events:none; z-index:15; display:none; }
         #loading { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:#88ddff; font-size:20px; z-index:30; background:rgba(0,0,0,0.6); padding:12px 24px; border-radius:8px; display:flex; align-items:center; gap:12px; }
         #loading.hidden { display:none; }
-        @media (max-width:700px) { #controls { font-size:7px; gap:6px; padding:4px 10px; bottom:8px; } #controls kbd { font-size:6px; padding:0 4px; } #healthBar { width:100px; height:8px; } .hudValue { font-size:16px; } #modeBadge { font-size:9px; padding:2px 8px; } #overlay h1 { font-size:28px; } #startBtn { padding:10px 24px; font-size:14px; } #teammateStatus { font-size:9px; bottom:50px; padding:2px 12px; } #bossHealthBar { width:80%; height:12px; top:60px; } #bossName { font-size:14px; top:44px; } }
-        @media (max-width:450px) { #controls { display:none; } #healthBar { width:60px; } .hudValue { font-size:12px; } #modeBadge { font-size:7px; padding:1px 6px; } .hudLabel { font-size:7px; } }
         .spinner { display:inline-block; width:20px; height:20px; border:3px solid rgba(255,255,255,0.1); border-radius:50%; border-top-color:#88ddff; animation:spin 0.8s linear infinite; }
         @keyframes spin { to { transform:rotate(360deg); } }
+        #transformMsg { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:#88ddff; font-size:28px; font-weight:900; text-shadow:0 0 40px rgba(0,180,255,0.5); pointer-events:none; z-index:25; opacity:0; transition:opacity 0.3s; }
+        @media (max-width:700px) { #controls { font-size:7px; gap:6px; padding:4px 10px; bottom:8px; } #controls kbd { font-size:6px; padding:0 4px; } #healthBar { width:100px; height:8px; } .hudValue { font-size:16px; } #modeBadge { font-size:9px; padding:2px 8px; } #overlay h1 { font-size:28px; } #startBtn { padding:10px 24px; font-size:14px; } #teammateStatus { font-size:9px; bottom:50px; padding:2px 12px; } #bossHealthBar { width:80%; height:12px; top:60px; } #bossName { font-size:14px; top:44px; } }
+        @media (max-width:450px) { #controls { display:none; } #healthBar { width:60px; } .hudValue { font-size:12px; } #modeBadge { font-size:7px; padding:1px 6px; } .hudLabel { font-size:7px; } }
     </style>
 </head>
 <body>
@@ -56,11 +57,12 @@
                 </div>
             </div>
             <div id="hudRight">
-                <div id="modeBadge">⚡ BUMBLEBEE</div>
+                <div id="modeBadge">⚡ BUMBLEBEE (Robot)</div>
             </div>
         </div>
         <div id="bossName">⚡ BOSS ⚡</div>
         <div id="bossHealthBar"><div id="bossHealthFill"></div></div>
+        <div id="transformMsg">⚡ TRANSFORM ⚡</div>
         <div id="controls">
             <span><kbd>W A S D</kbd> Move</span>
             <span><kbd>Space</kbd> Shoot</span>
@@ -72,20 +74,19 @@
         <div id="teammateStatus">🤖 Teammates: <span class="count" id="teamCount">0</span></div>
         <div id="overlay">
             <h1>⚡ EARTHSPARK 3D</h1>
-            <div class="sub">▼ GRIMLOCK · BOSS BATTLES ▼</div>
+            <div class="sub">▼ MOVIE EDITION ▼</div>
             <div class="heroes">
                 🟡 Bumblebee &nbsp;•&nbsp; 🔵 Soundwave &nbsp;•&nbsp; 🟣 Shockwave<br>
                 🔴 Starscream &nbsp;•&nbsp; ⚫ Megatron &nbsp;•&nbsp; 🦖 Grimlock<br>
                 🔥 Optimus Prime &nbsp;•&nbsp; 🌀 Mirage
             </div>
             <button id="startBtn">▶ DEPLOY</button>
-            <div style="margin-top:12px;color:#6a8bb0;font-size:12px;letter-spacing:1px;">1-8 Switch · T Transform · Space Shoot · Boss every 5 waves!</div>
+            <div style="margin-top:12px;color:#6a8bb0;font-size:12px;letter-spacing:1px;">1-8 Switch · T Transform · Space Shoot</div>
         </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js">
     </script>
-
     <script>
         if (typeof THREE === 'undefined') {
             document.getElementById('loading').textContent = '❌ Failed to load Three.js';
@@ -106,10 +107,12 @@
         const bossHealthBar = document.getElementById('bossHealthBar');
         const bossHealthFill = document.getElementById('bossHealthFill');
         const bossNameEl = document.getElementById('bossName');
+        const transformMsg = document.getElementById('transformMsg');
 
         // ━━━ Scene ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x0a0a18);
+        scene.fog = new THREE.Fog(0x0a0a18, 60, 120);
 
         const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 200);
         camera.position.set(0, 6, 14);
@@ -121,13 +124,14 @@
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.2;
+        renderer.toneMappingExposure = 1.5; // Brighter
         document.body.prepend(renderer.domElement);
 
-        // ━━━ Lights ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        const ambient = new THREE.AmbientLight(0x223366, 0.5);
+        // ━━━ Cinematic Lights ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        const ambient = new THREE.AmbientLight(0x223366, 0.6);
         scene.add(ambient);
-        const keyLight = new THREE.DirectionalLight(0xffeedd, 2.0);
+
+        const keyLight = new THREE.DirectionalLight(0xffeedd, 2.5);
         keyLight.position.set(10, 20, 15);
         keyLight.castShadow = true;
         keyLight.shadow.mapSize.width = 1024;
@@ -139,37 +143,108 @@
         keyLight.shadow.camera.top = 15;
         keyLight.shadow.camera.bottom = -15;
         scene.add(keyLight);
-        const fillLight = new THREE.DirectionalLight(0x4488ff, 0.6);
+
+        const fillLight = new THREE.DirectionalLight(0x4488ff, 0.8);
         fillLight.position.set(-10, 5, -10);
         scene.add(fillLight);
-        const rimLight = new THREE.DirectionalLight(0x88aaff, 0.4);
+
+        const rimLight = new THREE.DirectionalLight(0x88aaff, 0.6);
         rimLight.position.set(-5, 2, -20);
         scene.add(rimLight);
 
+        // Back rim
+        const backRim = new THREE.DirectionalLight(0xff8844, 0.3);
+        backRim.position.set(0, 10, -20);
+        scene.add(backRim);
+
         // ━━━ Environment ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         const groundGeo = new THREE.PlaneGeometry(80, 80);
-        const groundMat = new THREE.MeshStandardMaterial({ color: 0x0d0d1a, roughness: 0.6, metalness: 0.3 });
+        const groundMat = new THREE.MeshStandardMaterial({ color: 0x0d0d1a, roughness: 0.3, metalness: 0.9 });
         const ground = new THREE.Mesh(groundGeo, groundMat);
         ground.rotation.x = -Math.PI / 2;
         ground.position.y = -0.5;
         ground.receiveShadow = true;
         scene.add(ground);
+
         const grid = new THREE.GridHelper(70, 25, 0x1a3a7a, 0x0a1a3a);
         grid.position.y = -0.4;
         scene.add(grid);
 
-        // Buildings
+        // Reflective ground glow
+        for (let i = 0; i < 30; i++) {
+            const x = (Math.random() - 0.5) * 70;
+            const z = (Math.random() - 0.5) * 70;
+            const glow = new THREE.Mesh(
+                new THREE.PlaneGeometry(0.5, 0.5),
+                new THREE.MeshBasicMaterial({ color: 0x224488, transparent: true, opacity: 0.1 })
+            );
+            glow.rotation.x = -Math.PI / 2;
+            glow.position.set(x, -0.45, z);
+            scene.add(glow);
+        }
+
+        // Sky gradient (fake)
+        const skyGeo2 = new THREE.SphereGeometry(180, 16, 16);
+        const skyMat2 = new THREE.ShaderMaterial({
+            uniforms: {
+                topColor: { value: new THREE.Color(0x001133) },
+                bottomColor: { value: new THREE.Color(0x0a0a20) },
+                offset: { value: 20 },
+                exponent: { value: 0.6 },
+            },
+            vertexShader: `
+                varying vec3 vWorldPosition;
+                void main() {
+                    vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+                    vWorldPosition = worldPosition.xyz;
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                }
+            `,
+            fragmentShader: `
+                uniform vec3 topColor;
+                uniform vec3 bottomColor;
+                uniform float offset;
+                uniform float exponent;
+                varying vec3 vWorldPosition;
+                void main() {
+                    float h = normalize(vWorldPosition + offset).y;
+                    gl_FragColor = vec4(mix(bottomColor, topColor, max(pow(max(h, 0.0), exponent), 0.0)), 1.0);
+                }
+            `,
+            side: THREE.BackSide,
+        });
+        const sky2 = new THREE.Mesh(skyGeo2, skyMat2);
+        scene.add(sky2);
+
+        // Stars
+        const starCount2 = 1500;
+        const starGeo2 = new THREE.BufferGeometry();
+        const starPos2 = new Float32Array(starCount2 * 3);
+        for (let i = 0; i < starCount2 * 3; i += 3) {
+            const r = 150 + Math.random() * 30;
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.acos(2 * Math.random() - 1);
+            starPos2[i] = r * Math.sin(phi) * Math.cos(theta);
+            starPos2[i + 1] = Math.abs(r * Math.cos(phi));
+            starPos2[i + 2] = r * Math.sin(phi) * Math.sin(theta);
+        }
+        starGeo2.setAttribute('position', new THREE.BufferAttribute(starPos2, 3));
+        const starMat2 = new THREE.PointsMaterial({ color: 0x88aaff, size: 0.3, transparent: true, opacity: 0.7 });
+        const stars2 = new THREE.Points(starGeo2, starMat2);
+        scene.add(stars2);
+
+        // Buildings with brighter windows
         function addBuilding(x, z, w, h, d, color) {
-            const mat = new THREE.MeshStandardMaterial({ color: color || 0x1a1a30, roughness: 0.7, metalness: 0.2 });
+            const mat = new THREE.MeshStandardMaterial({ color: color || 0x1a1a30, roughness: 0.6, metalness: 0.3 });
             const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
             mesh.position.set(x, h / 2 - 0.5, z);
             mesh.castShadow = true;
             mesh.receiveShadow = true;
             scene.add(mesh);
-            const winMat = new THREE.MeshStandardMaterial({ color: 0x223366, emissive: 0x112244, emissiveIntensity: 0.3 });
+            const winMat = new THREE.MeshStandardMaterial({ color: 0x4488aa, emissive: 0x4488aa, emissiveIntensity: 0.6 });
             for (let wy = 1; wy < h - 2; wy += 2.5) {
                 for (let wx = -w / 2 + 0.6; wx < w / 2 - 0.6; wx += 1.5) {
-                    if (Math.random() > 0.5) continue;
+                    if (Math.random() > 0.4) continue;
                     const win = new THREE.Mesh(new THREE.PlaneGeometry(0.2, 0.4), winMat);
                     win.position.set(x + wx, wy, z + (z > 0 ? d / 2 + 0.01 : -d / 2 - 0.01));
                     if (z > 0) win.rotation.y = 0;
@@ -189,127 +264,32 @@
             addBuilding(x, z, w, h, dep, 0x1a1a30 + Math.floor(Math.random() * 0x111111));
         }
 
-        // ━━━ T-Rex Builder (Grimlock Dinosaur) ━━━━━━━━━━━━━━━
-        function buildTRex(config) {
-            const group = new THREE.Group();
-            const { primary, secondary, accent, scale = 1 } = config;
-
-            const bodyMat = new THREE.MeshStandardMaterial({ color: primary, roughness: 0.4, metalness: 0.7 });
-            const darkMat = new THREE.MeshStandardMaterial({ color: secondary, roughness: 0.5, metalness: 0.6 });
-            const accentMat = new THREE.MeshStandardMaterial({ color: accent, roughness: 0.3, metalness: 0.8, emissive: accent,
-                emissiveIntensity: 0.15 });
-
-            // Body (torso)
-            const body = new THREE.Mesh(new THREE.BoxGeometry(1.2 * scale, 0.8 * scale, 1.8 * scale), bodyMat);
-            body.position.set(0, 0.6 * scale, 0);
-            body.castShadow = true;
-            group.add(body);
-
-            // Tail
-            const tail = new THREE.Mesh(new THREE.ConeGeometry(0.4 * scale, 1.2 * scale, 6), darkMat);
-            tail.position.set(0, 0.4 * scale, -1.4 * scale);
-            tail.rotation.x = 0.3;
-            tail.castShadow = true;
-            group.add(tail);
-            const tailTip = new THREE.Mesh(new THREE.ConeGeometry(0.2 * scale, 0.8 * scale, 6), darkMat);
-            tailTip.position.set(0, 0.3 * scale, -2.1 * scale);
-            tailTip.rotation.x = 0.5;
-            group.add(tailTip);
-
-            // Neck
-            const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.4 * scale, 0.6 * scale, 0.6 * scale, 8), darkMat);
-            neck.position.set(0, 1.0 * scale, 0.8 * scale);
-            neck.rotation.x = -0.3;
-            neck.castShadow = true;
-            group.add(neck);
-
-            // Head
-            const head = new THREE.Mesh(new THREE.BoxGeometry(0.7 * scale, 0.5 * scale, 0.6 * scale), bodyMat);
-            head.position.set(0, 1.3 * scale, 1.2 * scale);
-            head.castShadow = true;
-            group.add(head);
-            // Jaw
-            const jaw = new THREE.Mesh(new THREE.BoxGeometry(0.5 * scale, 0.2 * scale, 0.4 * scale), darkMat);
-            jaw.position.set(0, 1.05 * scale, 1.4 * scale);
-            group.add(jaw);
-            // Teeth
-            const toothMat = new THREE.MeshStandardMaterial({ color: 0xeeeeee, roughness: 0.3 });
-            for (let i = -0.2; i <= 0.2; i += 0.2) {
-                const tooth = new THREE.Mesh(new THREE.ConeGeometry(0.04 * scale, 0.1 * scale, 4), toothMat);
-                tooth.position.set(i * scale, 0.95 * scale, 1.5 * scale);
-                group.add(tooth);
-                const tooth2 = new THREE.Mesh(new THREE.ConeGeometry(0.04 * scale, 0.1 * scale, 4), toothMat);
-                tooth2.position.set(i * scale, 1.15 * scale, 1.5 * scale);
-                tooth2.rotation.x = Math.PI;
-                group.add(tooth2);
-            }
-            // Eye (glowing)
-            const eyeMat = new THREE.MeshStandardMaterial({ color: 0xff4400, emissive: 0xff4400, emissiveIntensity: 0.5 });
-            const eye = new THREE.Mesh(new THREE.SphereGeometry(0.08 * scale, 8, 8), eyeMat);
-            eye.position.set(0.2 * scale, 1.4 * scale, 1.4 * scale);
-            group.add(eye);
-            const eye2 = new THREE.Mesh(new THREE.SphereGeometry(0.08 * scale, 8, 8), eyeMat);
-            eye2.position.set(-0.2 * scale, 1.4 * scale, 1.4 * scale);
-            group.add(eye2);
-
-            // Arms (tiny T-Rex arms)
-            const armMat = darkMat;
-            for (let side = -1; side <= 1; side += 2) {
-                const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.08 * scale, 0.12 * scale, 0.4 * scale, 6), armMat);
-                arm.position.set(side * 0.6 * scale, 0.8 * scale, 0.9 * scale);
-                arm.rotation.z = side * 0.3;
-                arm.rotation.x = -0.5;
-                group.add(arm);
-                const claw = new THREE.Mesh(new THREE.ConeGeometry(0.05 * scale, 0.1 * scale, 4), toothMat);
-                claw.position.set(side * 0.6 * scale, 0.7 * scale, 1.1 * scale);
-                group.add(claw);
-            }
-
-            // Legs (strong)
-            for (let side = -1; side <= 1; side += 2) {
-                const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.2 * scale, 0.3 * scale, 0.5 * scale, 8), darkMat);
-                leg.position.set(side * 0.4 * scale, 0.2 * scale, 0.2 * scale);
-                leg.castShadow = true;
-                group.add(leg);
-                const foot = new THREE.Mesh(new THREE.BoxGeometry(0.3 * scale, 0.1 * scale, 0.4 * scale), darkMat);
-                foot.position.set(side * 0.4 * scale, -0.05 * scale, 0.3 * scale);
-                group.add(foot);
-                // Claws on feet
-                for (let c = -0.1; c <= 0.1; c += 0.1) {
-                    const claw = new THREE.Mesh(new THREE.ConeGeometry(0.03 * scale, 0.08 * scale, 4), toothMat);
-                    claw.position.set(side * 0.4 * scale + c * scale, -0.1 * scale, 0.5 * scale);
-                    group.add(claw);
-                }
-            }
-
-            // Spikes on back (Grimlock signature)
-            const spikeMat = new THREE.MeshStandardMaterial({ color: 0xccaa44, metalness: 0.8, roughness: 0.3 });
-            for (let i = -0.6; i <= 0.6; i += 0.3) {
-                const spike = new THREE.Mesh(new THREE.ConeGeometry(0.08 * scale, 0.3 * scale, 6), spikeMat);
-                spike.position.set(0, 1.0 * scale + Math.abs(i) * 0.1 * scale, i * scale);
-                group.add(spike);
-            }
-
-            // Chest glow
-            const glow = new THREE.Mesh(new THREE.SphereGeometry(0.15 * scale, 8, 8), accentMat);
-            glow.position.set(0, 0.7 * scale, 0.9 * scale);
-            group.add(glow);
-
-            group.scale.set(1, 1, 1);
-            return group;
+        // ━━━ Movie Material Builder ━━━━━━━━━━━━━━━━━━━━━━━━
+        function makeMovieMaterial(color, emissive = null, emissiveIntensity = 0) {
+            return new THREE.MeshStandardMaterial({
+                color: color,
+                roughness: 0.2,
+                metalness: 0.95,
+                emissive: emissive || new THREE.Color(0x000000),
+                emissiveIntensity: emissiveIntensity,
+            });
         }
 
-        // ━━━ Robot Builder ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // ━━━ Builders ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         function buildMovieRobot(config) {
             const group = new THREE.Group();
             const { primary, secondary, accent, scale = 1 } = config;
 
-            const pMat = new THREE.MeshStandardMaterial({ color: primary, roughness: 0.3, metalness: 0.9 });
-            const sMat = new THREE.MeshStandardMaterial({ color: secondary, roughness: 0.4, metalness: 0.8 });
-            const aMat = new THREE.MeshStandardMaterial({ color: accent, roughness: 0.2, metalness: 0.9, emissive: accent,
-                emissiveIntensity: 0.15 });
-            const glowMat = new THREE.MeshStandardMaterial({ color: 0x00e5ff, emissive: 0x00e5ff, emissiveIntensity: 0.6,
-                transparent: true, opacity: 0.7 });
+            const pMat = makeMovieMaterial(primary, new THREE.Color(primary).multiplyScalar(0.1), 0.1);
+            const sMat = makeMovieMaterial(secondary);
+            const aMat = makeMovieMaterial(accent, new THREE.Color(accent), 0.2);
+            const glowMat = new THREE.MeshStandardMaterial({
+                color: 0x00e5ff,
+                emissive: 0x00e5ff,
+                emissiveIntensity: 1.0,
+                transparent: true,
+                opacity: 0.7,
+            });
 
             const torso = new THREE.Mesh(new THREE.BoxGeometry(1.6 * scale, 1.8 * scale, 0.9 * scale), pMat);
             torso.position.y = 0.6 * scale;
@@ -322,7 +302,7 @@
             glowSphere.position.set(0, 0.8 * scale, 0.7 * scale);
             group.add(glowSphere);
 
-            const shoulderMat = new THREE.MeshStandardMaterial({ color: secondary, roughness: 0.5, metalness: 0.7 });
+            const shoulderMat = new THREE.MeshStandardMaterial({ color: secondary, roughness: 0.4, metalness: 0.8 });
             const lShoulder = new THREE.Mesh(new THREE.BoxGeometry(0.8 * scale, 0.25 * scale, 0.6 * scale), shoulderMat);
             lShoulder.position.set(-1.2 * scale, 1.2 * scale, 0);
             group.add(lShoulder);
@@ -402,7 +382,7 @@
 
             if (config.wings) {
                 const wMat = new THREE.MeshStandardMaterial({ color: config.wingsColor || secondary, roughness: 0.3,
-                    metalness: 0.7 });
+                    metalness: 0.8 });
                 const lw = new THREE.Mesh(new THREE.BoxGeometry(0.12 * scale, 0.6 * scale, 1.8 * scale), wMat);
                 lw.position.set(-0.9 * scale, 1.4 * scale, 0);
                 group.add(lw);
@@ -411,8 +391,8 @@
                 group.add(rw);
             }
             if (config.cannon) {
-                const cMat = new THREE.MeshStandardMaterial({ color: config.cannonColor || 0x666688, metalness: 0.8,
-                    roughness: 0.3 });
+                const cMat = new THREE.MeshStandardMaterial({ color: config.cannonColor || 0x666688, metalness: 0.9,
+                    roughness: 0.2 });
                 const cannon = new THREE.Mesh(new THREE.CylinderGeometry(0.2 * scale, 0.3 * scale, 0.8 * scale, 8), cMat);
                 cannon.rotation.x = Math.PI / 2;
                 cannon.position.set(1.5 * scale, 0.9 * scale, 0.4 * scale);
@@ -433,14 +413,13 @@
             return group;
         }
 
-        // ━━━ Vehicle Builder ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         function buildVehicle(config) {
             const group = new THREE.Group();
             const { primary, secondary, vehicleType, scale = 1 } = config;
-            const bodyMat = new THREE.MeshStandardMaterial({ color: primary, roughness: 0.4, metalness: 0.8 });
-            const accentMat = new THREE.MeshStandardMaterial({ color: secondary, roughness: 0.5, metalness: 0.6 });
-            const glassMat = new THREE.MeshStandardMaterial({ color: 0x4488aa, roughness: 0.1, metalness: 0.3, transparent: true,
-                opacity: 0.6 });
+            const bodyMat = new THREE.MeshStandardMaterial({ color: primary, roughness: 0.2, metalness: 0.9 });
+            const accentMat = new THREE.MeshStandardMaterial({ color: secondary, roughness: 0.3, metalness: 0.8 });
+            const glassMat = new THREE.MeshStandardMaterial({ color: 0x4488aa, roughness: 0.1, metalness: 0.2, transparent: true,
+                opacity: 0.5 });
 
             if (vehicleType === 'car') {
                 const body = new THREE.Mesh(new THREE.BoxGeometry(2.0 * scale, 0.6 * scale, 1.2 * scale), bodyMat);
@@ -460,7 +439,7 @@
                         group.add(wheel);
                     }
                 }
-                const lightMat = new THREE.MeshStandardMaterial({ color: 0xffee88, emissive: 0xffee88, emissiveIntensity: 0.5 });
+                const lightMat = new THREE.MeshStandardMaterial({ color: 0xffee88, emissive: 0xffee88, emissiveIntensity: 0.8 });
                 const hl = new THREE.Mesh(new THREE.SphereGeometry(0.08 * scale, 6, 6), lightMat);
                 hl.position.set(1.0 * scale, 0.3 * scale, -0.3 * scale);
                 group.add(hl);
@@ -545,53 +524,140 @@
             return group;
         }
 
-        // ━━━ Boss Builder ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        function buildTRex(config) {
+            const group = new THREE.Group();
+            const { primary, secondary, accent, scale = 1 } = config;
+            const bodyMat = new THREE.MeshStandardMaterial({ color: primary, roughness: 0.3, metalness: 0.8 });
+            const darkMat = new THREE.MeshStandardMaterial({ color: secondary, roughness: 0.4, metalness: 0.7 });
+            const accentMat = new THREE.MeshStandardMaterial({ color: accent, roughness: 0.2, metalness: 0.9, emissive: accent,
+                emissiveIntensity: 0.3 });
+            const toothMat = new THREE.MeshStandardMaterial({ color: 0xeeeeee, roughness: 0.3 });
+
+            const body = new THREE.Mesh(new THREE.BoxGeometry(1.2 * scale, 0.8 * scale, 1.8 * scale), bodyMat);
+            body.position.set(0, 0.6 * scale, 0);
+            body.castShadow = true;
+            group.add(body);
+
+            const tail = new THREE.Mesh(new THREE.ConeGeometry(0.4 * scale, 1.2 * scale, 6), darkMat);
+            tail.position.set(0, 0.4 * scale, -1.4 * scale);
+            tail.rotation.x = 0.3;
+            tail.castShadow = true;
+            group.add(tail);
+            const tailTip = new THREE.Mesh(new THREE.ConeGeometry(0.2 * scale, 0.8 * scale, 6), darkMat);
+            tailTip.position.set(0, 0.3 * scale, -2.1 * scale);
+            tailTip.rotation.x = 0.5;
+            group.add(tailTip);
+
+            const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.4 * scale, 0.6 * scale, 0.6 * scale, 8), darkMat);
+            neck.position.set(0, 1.0 * scale, 0.8 * scale);
+            neck.rotation.x = -0.3;
+            neck.castShadow = true;
+            group.add(neck);
+
+            const head = new THREE.Mesh(new THREE.BoxGeometry(0.7 * scale, 0.5 * scale, 0.6 * scale), bodyMat);
+            head.position.set(0, 1.3 * scale, 1.2 * scale);
+            head.castShadow = true;
+            group.add(head);
+            const jaw = new THREE.Mesh(new THREE.BoxGeometry(0.5 * scale, 0.2 * scale, 0.4 * scale), darkMat);
+            jaw.position.set(0, 1.05 * scale, 1.4 * scale);
+            group.add(jaw);
+            for (let i = -0.2; i <= 0.2; i += 0.2) {
+                const tooth = new THREE.Mesh(new THREE.ConeGeometry(0.04 * scale, 0.1 * scale, 4), toothMat);
+                tooth.position.set(i * scale, 0.95 * scale, 1.5 * scale);
+                group.add(tooth);
+                const tooth2 = new THREE.Mesh(new THREE.ConeGeometry(0.04 * scale, 0.1 * scale, 4), toothMat);
+                tooth2.position.set(i * scale, 1.15 * scale, 1.5 * scale);
+                tooth2.rotation.x = Math.PI;
+                group.add(tooth2);
+            }
+            const eyeMat = new THREE.MeshStandardMaterial({ color: 0xff4400, emissive: 0xff4400, emissiveIntensity: 1.0 });
+            const eye = new THREE.Mesh(new THREE.SphereGeometry(0.08 * scale, 8, 8), eyeMat);
+            eye.position.set(0.2 * scale, 1.4 * scale, 1.4 * scale);
+            group.add(eye);
+            const eye2 = new THREE.Mesh(new THREE.SphereGeometry(0.08 * scale, 8, 8), eyeMat);
+            eye2.position.set(-0.2 * scale, 1.4 * scale, 1.4 * scale);
+            group.add(eye2);
+
+            const armMat = darkMat;
+            for (let side = -1; side <= 1; side += 2) {
+                const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.08 * scale, 0.12 * scale, 0.4 * scale, 6), armMat);
+                arm.position.set(side * 0.6 * scale, 0.8 * scale, 0.9 * scale);
+                arm.rotation.z = side * 0.3;
+                arm.rotation.x = -0.5;
+                group.add(arm);
+                const claw = new THREE.Mesh(new THREE.ConeGeometry(0.05 * scale, 0.1 * scale, 4), toothMat);
+                claw.position.set(side * 0.6 * scale, 0.7 * scale, 1.1 * scale);
+                group.add(claw);
+            }
+
+            for (let side = -1; side <= 1; side += 2) {
+                const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.2 * scale, 0.3 * scale, 0.5 * scale, 8), darkMat);
+                leg.position.set(side * 0.4 * scale, 0.2 * scale, 0.2 * scale);
+                leg.castShadow = true;
+                group.add(leg);
+                const foot = new THREE.Mesh(new THREE.BoxGeometry(0.3 * scale, 0.1 * scale, 0.4 * scale), darkMat);
+                foot.position.set(side * 0.4 * scale, -0.05 * scale, 0.3 * scale);
+                group.add(foot);
+                for (let c = -0.1; c <= 0.1; c += 0.1) {
+                    const claw = new THREE.Mesh(new THREE.ConeGeometry(0.03 * scale, 0.08 * scale, 4), toothMat);
+                    claw.position.set(side * 0.4 * scale + c * scale, -0.1 * scale, 0.5 * scale);
+                    group.add(claw);
+                }
+            }
+
+            const spikeMat = new THREE.MeshStandardMaterial({ color: 0xccaa44, metalness: 0.8, roughness: 0.3 });
+            for (let i = -0.6; i <= 0.6; i += 0.3) {
+                const spike = new THREE.Mesh(new THREE.ConeGeometry(0.08 * scale, 0.3 * scale, 6), spikeMat);
+                spike.position.set(0, 1.0 * scale + Math.abs(i) * 0.1 * scale, i * scale);
+                group.add(spike);
+            }
+
+            const glow = new THREE.Mesh(new THREE.SphereGeometry(0.15 * scale, 8, 8), accentMat);
+            glow.position.set(0, 0.7 * scale, 0.9 * scale);
+            group.add(glow);
+
+            group.scale.set(1, 1, 1);
+            return group;
+        }
+
         function buildBoss(type) {
             const group = new THREE.Group();
             const isBruticus = type === 'bruticus';
-
             const primary = isBruticus ? 0x445566 : 0x336633;
             const secondary = isBruticus ? 0x667788 : 0x448844;
             const accent = isBruticus ? 0xff6644 : 0xff4444;
 
-            const pMat = new THREE.MeshStandardMaterial({ color: primary, roughness: 0.3, metalness: 0.9 });
-            const sMat = new THREE.MeshStandardMaterial({ color: secondary, roughness: 0.4, metalness: 0.8 });
+            const pMat = new THREE.MeshStandardMaterial({ color: primary, roughness: 0.2, metalness: 0.9 });
+            const sMat = new THREE.MeshStandardMaterial({ color: secondary, roughness: 0.3, metalness: 0.8 });
             const aMat = new THREE.MeshStandardMaterial({ color: accent, roughness: 0.2, metalness: 0.9, emissive: accent,
-                emissiveIntensity: 0.2 });
+                emissiveIntensity: 0.3 });
 
-            // Body (massive)
             const body = new THREE.Mesh(new THREE.BoxGeometry(3.0, 3.5, 2.0), pMat);
             body.position.y = 1.8;
             body.castShadow = true;
             group.add(body);
 
-            // Chest detail
             const chest = new THREE.Mesh(new THREE.BoxGeometry(2.0, 1.0, 0.3), aMat);
             chest.position.set(0, 2.0, 1.1);
             group.add(chest);
-            // Glowing core
             const core = new THREE.Mesh(new THREE.SphereGeometry(0.5, 12, 12),
-                new THREE.MeshStandardMaterial({ color: 0xff4400, emissive: 0xff4400, emissiveIntensity: 0.8 }));
+                new THREE.MeshStandardMaterial({ color: 0xff4400, emissive: 0xff4400, emissiveIntensity: 1.0 }));
             core.position.set(0, 2.0, 1.3);
             group.add(core);
 
-            // Head
             const head = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.0, 1.0), pMat);
             head.position.set(0, 3.5, 0);
             head.castShadow = true;
             group.add(head);
-            // Visor/eyes
-            const eyeMat = new THREE.MeshStandardMaterial({ color: 0xff2200, emissive: 0xff2200, emissiveIntensity: 0.6 });
+            const eyeMat = new THREE.MeshStandardMaterial({ color: 0xff2200, emissive: 0xff2200, emissiveIntensity: 1.0 });
             const visor = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.25, 0.1), eyeMat);
             visor.position.set(0, 3.5, 0.55);
             group.add(visor);
-            // Crest (helmet)
             const crest = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.2, 0.3), aMat);
             crest.position.set(0, 4.0, 0.15);
             group.add(crest);
 
-            // Shoulder pads (massive)
-            const shoulderMat = new THREE.MeshStandardMaterial({ color: secondary, roughness: 0.5, metalness: 0.7 });
+            const shoulderMat = new THREE.MeshStandardMaterial({ color: secondary, roughness: 0.4, metalness: 0.7 });
             const lShoulder = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.4, 1.0), shoulderMat);
             lShoulder.position.set(-2.0, 2.8, 0);
             group.add(lShoulder);
@@ -599,7 +665,6 @@
             rShoulder.position.set(2.0, 2.8, 0);
             group.add(rShoulder);
 
-            // Arms (big)
             function makeBossArm(side) {
                 const armGroup = new THREE.Group();
                 const upper = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.8, 0.8), sMat);
@@ -616,7 +681,6 @@
                 const hand = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.4, 0.8), pMat);
                 hand.position.y = -1.5;
                 armGroup.add(hand);
-                // Weapon (cannon)
                 const weapon = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.4, 1.0, 8), aMat);
                 weapon.rotation.x = Math.PI / 2;
                 weapon.position.set(side * 0.2, -1.2, 0.8);
@@ -628,7 +692,6 @@
             group.add(makeBossArm(-1));
             group.add(makeBossArm(1));
 
-            // Legs (thick)
             function makeBossLeg(side) {
                 const legGroup = new THREE.Group();
                 const thigh = new THREE.Mesh(new THREE.BoxGeometry(0.9, 1.2, 0.9), sMat);
@@ -652,7 +715,6 @@
             group.add(makeBossLeg(-1));
             group.add(makeBossLeg(1));
 
-            // Wings (for Bruticus)
             if (isBruticus) {
                 const wMat = new THREE.MeshStandardMaterial({ color: 0x445566, roughness: 0.3, metalness: 0.7 });
                 const lw = new THREE.Mesh(new THREE.BoxGeometry(0.2, 1.5, 2.5), wMat);
@@ -662,15 +724,11 @@
                 rw.position.set(1.8, 2.5, 0);
                 group.add(rw);
             }
-
-            // Extra details for Devastator (green/purple)
             if (!isBruticus) {
-                // Purple accents
-                const pAccent = new THREE.MeshStandardMaterial({ color: 0x8844aa, emissive: 0x8844aa, emissiveIntensity: 0.1 });
+                const pAccent = new THREE.MeshStandardMaterial({ color: 0x8844aa, emissive: 0x8844aa, emissiveIntensity: 0.3 });
                 const accent1 = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.2, 0.8), pAccent);
                 accent1.position.set(0, 3.0, 1.1);
                 group.add(accent1);
-                // Drill on arm
                 const drillMat = new THREE.MeshStandardMaterial({ color: 0x888899, metalness: 0.9, roughness: 0.2 });
                 const drill = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.3, 1.0, 8), drillMat);
                 drill.rotation.x = Math.PI / 2;
@@ -753,9 +811,10 @@
         let isTransforming = false;
         let transformProgress = 0;
         let isVehicle = false;
+        let isTrex = false;
         let vehicleModel = null;
         let trexModel = null;
-        let isTrex = false;
+        let transformMode = 'none';
 
         // ━━━ Input ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         const keys = {};
@@ -763,7 +822,7 @@
             keys[e.key.toLowerCase()] = true;
             if (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'ArrowDown') e.preventDefault();
             if (e.key === ' ' && G.running && !G.over && !isTransforming) shoot();
-            if (e.key === 't' || e.key === 'T') { if (G.running && !G.over) startTransform(); }
+            if (e.key === 't' || e.key === 'T') { if (G.running && !G.over && !isTransforming) startTransform(); }
             if (e.key === 'e' || e.key === 'E') { if (G.running && !G.over) callTeammate(); }
             if (e.key === 'r' || e.key === 'R') { if (G.over) restartGame(); }
             const num = parseInt(e.key);
@@ -843,9 +902,18 @@
         // ━━━ Transform Logic ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         function startTransform() {
             if (isTransforming || !player) return;
+            if (currentMode === 'grimlock') {
+                transformMode = isTrex ? 'robot' : 'trex';
+            } else {
+                transformMode = isVehicle ? 'robot' : 'vehicle';
+            }
             isTransforming = true;
             transformProgress = 0;
             playSound('transform');
+
+            transformMsg.style.opacity = '1';
+            setTimeout(() => { transformMsg.style.opacity = '0'; }, 800);
+
             const pos = player.position.clone();
             for (let i = 0; i < 60; i++) {
                 const dir = new THREE.Vector3((Math.random() - 0.5), (Math.random() - 0.5), (Math.random() - 0.5))
@@ -869,10 +937,78 @@
                 life: 10,
                 maxLife: 10,
                 color: new THREE.Color(0xffffff),
-                size: 4,
+                size: 5,
                 alive: true,
                 isFlash: true,
             });
+
+            if (playerModel) playerModel.scale.set(1, 1, 1);
+            if (vehicleModel) vehicleModel.scale.set(0.01, 0.01, 0.01);
+            if (trexModel) trexModel.scale.set(0.01, 0.01, 0.01);
+
+            if (transformMode === 'vehicle') {
+                if (playerModel) playerModel.visible = true;
+                if (vehicleModel) vehicleModel.visible = true;
+                if (trexModel) trexModel.visible = false;
+            } else if (transformMode === 'trex') {
+                if (playerModel) playerModel.visible = true;
+                if (vehicleModel) vehicleModel.visible = false;
+                if (trexModel) trexModel.visible = true;
+            } else {
+                if (playerModel) playerModel.visible = true;
+                if (vehicleModel) vehicleModel.visible = false;
+                if (trexModel) trexModel.visible = false;
+            }
+        }
+
+        function finishTransform() {
+            if (currentMode === 'grimlock') {
+                if (transformMode === 'trex') {
+                    isTrex = true;
+                    isVehicle = false;
+                    if (playerModel) playerModel.visible = false;
+                    if (vehicleModel) vehicleModel.visible = false;
+                    if (trexModel) { trexModel.visible = true;
+                        trexModel.scale.set(1.2, 1.2, 1.2); }
+                    modeBadge.textContent = `🦖 GRIMLOCK (T-Rex)`;
+                    modeBadge.style.borderColor = '#ff663366';
+                    modeBadge.style.color = '#ff6633';
+                } else {
+                    isTrex = false;
+                    isVehicle = false;
+                    if (playerModel) playerModel.visible = true;
+                    if (vehicleModel) vehicleModel.visible = false;
+                    if (trexModel) trexModel.visible = false;
+                    modeBadge.textContent = `🦖 GRIMLOCK (Robot)`;
+                    modeBadge.style.borderColor = '#ff663366';
+                    modeBadge.style.color = '#ff6633';
+                }
+            } else {
+                if (transformMode === 'vehicle') {
+                    isVehicle = true;
+                    isTrex = false;
+                    if (playerModel) playerModel.visible = false;
+                    if (vehicleModel) { vehicleModel.visible = true;
+                        vehicleModel.scale.set(1, 1, 1); }
+                    if (trexModel) trexModel.visible = false;
+                    const cfg = TRANSFORMERS[currentMode];
+                    modeBadge.textContent = `${cfg.icon} ${cfg.name} (Vehicle)`;
+                    modeBadge.style.borderColor = `#${cfg.accent.toString(16).padStart(6,'0')}66`;
+                    modeBadge.style.color = `#${cfg.accent.toString(16).padStart(6,'0')}`;
+                } else {
+                    isVehicle = false;
+                    isTrex = false;
+                    if (playerModel) playerModel.visible = true;
+                    if (vehicleModel) vehicleModel.visible = false;
+                    if (trexModel) trexModel.visible = false;
+                    const cfg = TRANSFORMERS[currentMode];
+                    modeBadge.textContent = `${cfg.icon} ${cfg.name} (Robot)`;
+                    modeBadge.style.borderColor = `#${cfg.accent.toString(16).padStart(6,'0')}66`;
+                    modeBadge.style.color = `#${cfg.accent.toString(16).padStart(6,'0')}`;
+                }
+            }
+            isTransforming = false;
+            transformProgress = 0;
         }
 
         function changeCharacter(mode) {
@@ -880,6 +1016,7 @@
             currentMode = mode;
             isVehicle = false;
             isTrex = false;
+            transformMode = 'none';
             if (vehicleModel) { scene.remove(vehicleModel);
                 vehicleModel = null; }
             if (trexModel) { scene.remove(trexModel);
@@ -910,18 +1047,18 @@
             playerModel = buildMovieRobot(config);
             playerModel.position.copy(player.position);
             playerModel.rotation.copy(player.rotation);
+            playerModel.visible = true;
             scene.add(playerModel);
 
-            // Build vehicle
             const vConfig = { primary: cfg.primary, secondary: cfg.secondary, vehicleType: cfg.vehicleType || 'car',
                 scale: cfg.scale || 1 };
             vehicleModel = buildVehicle(vConfig);
             vehicleModel.position.copy(player.position);
             vehicleModel.rotation.copy(player.rotation);
             vehicleModel.visible = false;
+            vehicleModel.scale.set(0.01, 0.01, 0.01);
             scene.add(vehicleModel);
 
-            // Build T-Rex for Grimlock
             if (currentMode === 'grimlock') {
                 const tConfig = { primary: cfg.primary, secondary: cfg.secondary, accent: cfg.accent, scale: cfg.scale ||
                         1 };
@@ -929,6 +1066,7 @@
                 trexModel.position.copy(player.position);
                 trexModel.rotation.copy(player.rotation);
                 trexModel.visible = false;
+                trexModel.scale.set(0.01, 0.01, 0.01);
                 scene.add(trexModel);
             }
 
@@ -936,41 +1074,6 @@
             modeBadge.style.borderColor = `#${cfg.accent.toString(16).padStart(6,'0')}66`;
             modeBadge.style.color = `#${cfg.accent.toString(16).padStart(6,'0')}`;
             updateUI();
-        }
-
-        function finishTransform() {
-            const cfg = TRANSFORMERS[currentMode];
-            if (currentMode === 'grimlock') {
-                // Toggle between robot and T-Rex
-                isTrex = !isTrex;
-                if (isTrex) {
-                    playerModel.visible = false;
-                    vehicleModel.visible = false;
-                    trexModel.visible = true;
-                    modeBadge.textContent = `🦖 ${cfg.name} (T-Rex)`;
-                    // Scale up for T-Rex
-                    trexModel.scale.set(1.2, 1.2, 1.2);
-                } else {
-                    playerModel.visible = true;
-                    vehicleModel.visible = false;
-                    trexModel.visible = false;
-                    modeBadge.textContent = `🦖 ${cfg.name} (Robot)`;
-                }
-            } else {
-                isVehicle = !isVehicle;
-                if (isVehicle) {
-                    playerModel.visible = false;
-                    vehicleModel.visible = true;
-                    if (trexModel) trexModel.visible = false;
-                    modeBadge.textContent = `${cfg.icon} ${cfg.name} (Vehicle)`;
-                } else {
-                    playerModel.visible = true;
-                    vehicleModel.visible = false;
-                    if (trexModel) trexModel.visible = false;
-                    modeBadge.textContent = `${cfg.icon} ${cfg.name} (Robot)`;
-                }
-            }
-            isTransforming = false;
         }
 
         // ━━━ Boss System ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1014,7 +1117,6 @@
             bossNameEl.textContent = type === 'bruticus' ? '⚡ BRUTICUS ⚡' : '⚡ DEVASTATOR ⚡';
             bossNameEl.style.color = type === 'bruticus' ? '#ff6644' : '#44ff44';
 
-            // Boss spawn effect
             for (let i = 0; i < 80; i++) {
                 const dir = new THREE.Vector3((Math.random() - 0.5), (Math.random() - 0.5), (Math.random() - 0.5))
                     .normalize()
@@ -1037,8 +1139,6 @@
         function updateBoss() {
             if (!G.boss || !G.boss.alive || !G.bossActive) return;
             const b = G.boss;
-
-            // Movement: slowly advance toward player
             if (player) {
                 const dx = player.position.x - b.pos.x;
                 const dz = player.position.z - b.pos.z;
@@ -1048,15 +1148,12 @@
                     b.pos.x += (dx / dist) * spd;
                     b.pos.z += (dz / dist) * spd;
                 }
-                // Face player
                 b.model.rotation.y = Math.atan2(dx, dz);
             }
             b.model.position.copy(b.pos);
 
-            // Boss shooting
             b.shootTimer--;
             if (b.shootTimer <= 0 && player) {
-                // Shoot multiple projectiles
                 const count = Math.min(3 + Math.floor(G.bossPhase / 2), 8);
                 for (let i = 0; i < count; i++) {
                     const angleOffset = (i / count - 0.5) * 1.2;
@@ -1065,7 +1162,6 @@
                     const len = dir.length();
                     if (len < 1) continue;
                     dir.normalize();
-                    // Add spread
                     const perp = new THREE.Vector3(-dir.z, 0, dir.x).normalize();
                     const spread = perp.clone().multiplyScalar(angleOffset * 0.5);
                     dir.add(spread);
@@ -1089,14 +1185,11 @@
                 playSound('shoot');
             }
 
-            // Phase changes
             const healthPct = b.health / b.maxHealth;
             if (healthPct < 0.5 && G.bossPhase < 1) {
                 G.bossPhase = 1;
-                // Phase 2: faster, more aggressive
                 b.speed *= 1.5;
                 b.damage *= 1.3;
-                // Visual effect
                 for (let i = 0; i < 50; i++) {
                     const dir = new THREE.Vector3((Math.random() - 0.5), (Math.random() - 0.5), (Math.random() - 0.5))
                         .normalize()
@@ -1117,7 +1210,6 @@
             }
             if (healthPct < 0.25 && G.bossPhase < 2) {
                 G.bossPhase = 2;
-                // Phase 3: summon minions
                 for (let i = 0; i < 3; i++) {
                     setTimeout(() => {
                         if (G.running && G.bossActive) spawnEnemy();
@@ -1142,7 +1234,6 @@
                 playSound('transform');
             }
 
-            // Health bar
             const pct = (b.health / b.maxHealth) * 100;
             bossHealthFill.style.width = pct + '%';
             if (pct < 25) {
@@ -1355,14 +1446,11 @@
             G.waveEnemyCount = 0;
             G.spawnInterval = Math.max(15, 70 - G.wave * 2);
             waveDisplay.textContent = G.wave;
-
-            // Boss every 5 waves
             if (G.wave % 5 === 0 && G.wave > 0) {
                 setTimeout(() => {
                     if (G.running && !G.over) spawnBoss();
                 }, 1000);
             }
-
             for (let i = 0; i < 40; i++) {
                 const pos = new THREE.Vector3((Math.random() - 0.5) * 40, Math.random() * 15, (Math.random() - 0.5) * 40);
                 G.particles.push({ pos, vel: new THREE.Vector3((Math.random() - 0.5) * 1.5, -Math.random() * 3 - 1, (Math
@@ -1375,13 +1463,11 @@
         function gameOver() {
             G.over = true;
             G.running = false;
-            if (G.boss) {
-                scene.remove(G.boss.model);
+            if (G.boss) { scene.remove(G.boss.model);
                 G.boss = null;
                 G.bossActive = false;
                 bossHealthBar.style.display = 'none';
-                bossNameEl.style.display = 'none';
-            }
+                bossNameEl.style.display = 'none'; }
             document.getElementById('finalScore').textContent = G.score;
             overlay.classList.remove('hidden');
             overlay.querySelector('h1').textContent = '💀 DECEPTICON VICTORY';
@@ -1431,6 +1517,7 @@
             isTransforming = false;
             isVehicle = false;
             isTrex = false;
+            transformMode = 'none';
             bossHealthBar.style.display = 'none';
             bossNameEl.style.display = 'none';
             if (player) { player.position.set(0, 0, 0);
@@ -1475,18 +1562,26 @@
             if (!G.running || G.over) return;
             G.frame++;
 
-            // ── Transformation ──
             if (isTransforming) {
-                transformProgress += 0.04;
+                transformProgress += 0.035;
                 if (transformProgress >= 1) {
                     transformProgress = 1;
                     finishTransform();
                 }
-                const s = currentMode === 'grimlock' ? 1 - transformProgress : 1 - transformProgress;
-                if (playerModel) playerModel.scale.set(s, s, s);
-                if (vehicleModel) vehicleModel.scale.set(transformProgress, transformProgress, transformProgress);
-                if (trexModel) trexModel.scale.set(transformProgress * 1.2, transformProgress * 1.2, transformProgress *
-                    1.2);
+                const sRobot = 1 - transformProgress;
+                const sTarget = transformProgress;
+                if (playerModel) {
+                    playerModel.scale.set(sRobot, sRobot, sRobot);
+                    playerModel.position.y = Math.sin(transformProgress * Math.PI) * 0.3;
+                }
+                if (vehicleModel && transformMode === 'vehicle') {
+                    vehicleModel.scale.set(sTarget, sTarget, sTarget);
+                    vehicleModel.position.y = -Math.sin(transformProgress * Math.PI) * 0.3;
+                }
+                if (trexModel && transformMode === 'trex') {
+                    trexModel.scale.set(sTarget * 1.2, sTarget * 1.2, sTarget * 1.2);
+                    trexModel.position.y = -Math.sin(transformProgress * Math.PI) * 0.3;
+                }
                 if (transformProgress < 0.5) {
                     camera.position.x += (Math.random() - 0.5) * 0.3;
                     camera.position.z += (Math.random() - 0.5) * 0.3;
@@ -1513,7 +1608,6 @@
                 return;
             }
 
-            // ── Player movement ──
             if (player && playerModel) {
                 const cfg = TRANSFORMERS[currentMode];
                 let moveX = 0,
@@ -1567,7 +1661,6 @@
                     'linear-gradient(90deg, #00e5ff, #00b8ff)';
             }
 
-            // ── Spawn ──
             if (!G.bossActive) {
                 if (G.waveEnemyCount < G.waveMaxEnemies) {
                     G.spawnTimer--;
@@ -1584,10 +1677,8 @@
                 }
             }
 
-            // ── Boss ──
             if (G.bossActive && G.boss) {
                 updateBoss();
-                // Boss damage from player projectiles
                 for (let i = G.projectiles.length - 1; i >= 0; i--) {
                     const p = G.projectiles[i];
                     if (!p.alive) continue;
@@ -1598,7 +1689,6 @@
                         emitExplosion(p.pos.clone(), 0xff8844, 20, 5);
                         playSound('hit');
                         if (G.boss.health <= 0) {
-                            // Boss defeated!
                             G.boss.alive = false;
                             G.bossActive = false;
                             G.score += 500;
@@ -1609,7 +1699,6 @@
                             G.boss = null;
                             bossHealthBar.style.display = 'none';
                             bossNameEl.style.display = 'none';
-                            // Drop powerups
                             for (let j = 0; j < 5; j++) {
                                 const pPos = G.boss.pos.clone().add(new THREE.Vector3((Math.random() - 0.5) * 3, Math
                                     .random() * 2, (Math.random() - 0.5) * 3));
@@ -1626,19 +1715,16 @@
                         break;
                     }
                 }
-                // Boss attacks player
                 if (G.boss && G.boss.alive && player) {
                     if (player.position.distanceTo(G.boss.pos) < 3.0) {
                         takeDamage(G.boss.damage * 0.3);
                         emitExplosion(player.position.clone(), 0xff4444, 20, 5);
-                        // Push player back
                         const dir = new THREE.Vector3().copy(player.position).sub(G.boss.pos).normalize();
                         player.position.add(dir.multiplyScalar(2));
                     }
                 }
             }
 
-            // ── Enemies ──
             for (let i = G.enemies.length - 1; i >= 0; i--) {
                 const e = G.enemies[i];
                 if (!e.alive) { scene.remove(e.model);
@@ -1695,7 +1781,6 @@
                 }
             }
 
-            // ── Teammates ──
             for (let i = G.teammates.length - 1; i >= 0; i--) {
                 const t = G.teammates[i];
                 if (!t.alive) { scene.remove(t.model);
@@ -1709,7 +1794,6 @@
                     if (d < nearDist) { nearDist = d;
                         nearest = e; }
                 }
-                // Also target boss
                 if (G.boss && G.boss.alive) {
                     const d = t.pos.distanceTo(G.boss.pos);
                     if (d < nearDist) { nearDist = d;
@@ -1769,7 +1853,6 @@
                         }
                     }
                 }
-                // Teammate vs boss
                 if (G.boss && G.boss.alive && t.pos.distanceTo(G.boss.pos) < 3.0) {
                     t.health -= 0.8;
                     if (t.health <= 0) {
@@ -1782,7 +1865,6 @@
                 }
             }
 
-            // ── Projectiles ──
             for (let i = G.projectiles.length - 1; i >= 0; i--) {
                 const p = G.projectiles[i];
                 p.pos.add(p.vel.clone().multiplyScalar(0.06));
@@ -1800,7 +1882,6 @@
                         break;
                     }
                 }
-                // Also hit boss (handled above)
                 if (hit) { G.projectiles.splice(i, 1); continue; }
                 if (G.frame % 2 === 0) {
                     G.particles.push({ pos: p.pos.clone(), vel: new THREE.Vector3((Math.random() - 0.5) * 0.2, (Math
@@ -1810,7 +1891,6 @@
                 }
             }
 
-            // ── Enemy Projectiles ──
             for (let i = G.enemyProjectiles.length - 1; i >= 0; i--) {
                 const p = G.enemyProjectiles[i];
                 p.pos.add(p.vel.clone().multiplyScalar(0.06));
@@ -1837,7 +1917,6 @@
                 }
             }
 
-            // ── Powerups ──
             for (let i = G.powerups.length - 1; i >= 0; i--) {
                 const p = G.powerups[i];
                 p.bob += 0.04;
@@ -1863,7 +1942,6 @@
                 }
             }
 
-            // ── Particles ──
             for (let i = G.particles.length - 1; i >= 0; i--) {
                 const p = G.particles[i];
                 p.pos.add(p.vel.clone().multiplyScalar(0.04));
@@ -1877,7 +1955,6 @@
 
             updateUI();
 
-            // ── Camera ──
             if (player) {
                 const target = player.position.clone();
                 const camDist = 14;
@@ -2007,13 +2084,11 @@
         overlay.classList.remove('hidden');
         startBtn.style.display = 'block';
         overlay.querySelector('h1').textContent = '⚡ EARTHSPARK 3D';
-        overlay.querySelector('.sub').textContent = '▼ GRIMLOCK · BOSS BATTLES ▼';
+        overlay.querySelector('.sub').textContent = '▼ MOVIE EDITION ▼';
         loop();
 
-        console.log('✅ Ultimate Transformers game loaded!');
-        console.log('🎮 1-8 Switch · T Transform · Space Shoot · E Teammate');
-        console.log('🦖 Grimlock becomes a T-Rex!');
-        console.log('💀 Boss battles every 5 waves: Bruticus & Devastator!');
+        console.log('✅ Movie colours & lighting applied!');
+        console.log('🎮 Press T to transform with cinematic flair.');
     </script>
 </body>
 </html>
