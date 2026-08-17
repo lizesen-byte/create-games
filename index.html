@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-    <title>Transformers – All Characters</title>
+    <title>Transformers – All 16 Characters</title>
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
         body { background:#0a0a12; overflow:hidden; font-family:'Segoe UI',Arial,sans-serif; touch-action:none; user-select:none; }
@@ -18,14 +18,16 @@
         #healthBar { width:180px; height:10px; background:rgba(0,0,0,0.7); border-radius:8px; border:1px solid rgba(255,255,255,0.08); overflow:hidden; margin-top:2px; box-shadow:inset 0 2px 4px rgba(0,0,0,0.6); }
         #healthFill { width:100%; height:100%; background:linear-gradient(90deg,#00e5ff,#00b8ff); border-radius:8px; transition:width 0.15s ease; box-shadow:0 0 20px rgba(0,229,255,0.3); }
         #modeBadge { display:inline-block; padding:4px 14px; border-radius:20px; font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; background:rgba(0,20,40,0.8); border:1px solid rgba(0,180,255,0.2); color:#00e5ff; backdrop-filter:blur(4px); box-shadow:0 0 20px rgba(0,180,255,0.1); transition:all 0.3s; }
-        #controls { position:absolute; bottom:18px; left:50%; transform:translateX(-50%); display:flex; gap:12px; font-size:9px; color:rgba(255,255,255,0.3); letter-spacing:0.5px; font-weight:500; background:rgba(0,0,0,0.5); padding:4px 14px; border-radius:30px; backdrop-filter:blur(4px); border:1px solid rgba(255,255,255,0.03); pointer-events:none; flex-wrap:wrap; justify-content:center; }
+        #controls { position:absolute; bottom:18px; left:50%; transform:translateX(-50%); display:flex; gap:10px; font-size:9px; color:rgba(255,255,255,0.3); letter-spacing:0.5px; font-weight:500; background:rgba(0,0,0,0.5); padding:4px 14px; border-radius:30px; backdrop-filter:blur(4px); border:1px solid rgba(255,255,255,0.03); pointer-events:none; flex-wrap:wrap; justify-content:center; max-width:95%; }
         #controls span { display:flex; align-items:center; gap:4px; }
         #controls kbd { background:rgba(255,255,255,0.05); padding:1px 6px; border-radius:4px; font-size:8px; font-weight:700; color:rgba(255,255,255,0.4); border:1px solid rgba(255,255,255,0.05); }
         #overlay { position:absolute; top:0; left:0; right:0; bottom:0; background:rgba(5,5,15,0.85); backdrop-filter:blur(8px); display:flex; justify-content:center; align-items:center; flex-direction:column; pointer-events:auto; z-index:20; text-align:center; padding:20px; }
         #overlay.hidden { display:none; }
         #overlay h1 { font-size:48px; font-weight:900; background:linear-gradient(135deg,#00e5ff,#0077ff); -webkit-background-clip:text; -webkit-text-fill-color:transparent; text-shadow:0 0 60px rgba(0,229,255,0.2); letter-spacing:4px; }
         #overlay .sub { font-size:16px; color:#6a8bb0; letter-spacing:3px; margin-bottom:8px; }
-        #overlay .heroes { color:#8ab; font-size:13px; letter-spacing:1px; margin-bottom:16px; max-width:600px; line-height:1.6; }
+        #overlay .heroes { color:#8ab; font-size:13px; letter-spacing:1px; margin-bottom:16px; max-width:600px; line-height:1.8; }
+        #overlay .heroes .autobot { color:#ffcc44; }
+        #overlay .heroes .decepticon { color:#ff4444; }
         #startBtn { pointer-events:auto; padding:14px 48px; font-size:16px; font-weight:700; color:#0a0a12; background:linear-gradient(135deg,#00e5ff,#0077ff); border:none; border-radius:40px; cursor:pointer; transition:transform 0.15s, box-shadow 0.15s; box-shadow:0 0 40px rgba(0,229,255,0.2); letter-spacing:2px; text-transform:uppercase; margin-top:8px; }
         #startBtn:hover { transform:scale(1.05); box-shadow:0 0 60px rgba(0,229,255,0.4); }
         #teammateStatus { position:absolute; bottom:70px; left:50%; transform:translateX(-50%); color:rgba(255,255,255,0.5); font-size:12px; letter-spacing:1px; background:rgba(0,0,0,0.4); padding:4px 16px; border-radius:20px; backdrop-filter:blur(4px); border:1px solid rgba(255,255,255,0.05); pointer-events:none; white-space:nowrap; }
@@ -38,7 +40,7 @@
         .spinner { display:inline-block; width:20px; height:20px; border:3px solid rgba(255,255,255,0.1); border-radius:50%; border-top-color:#88ddff; animation:spin 0.8s linear infinite; }
         @keyframes spin { to { transform:rotate(360deg); } }
         #transformMsg { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:#88ddff; font-size:28px; font-weight:900; text-shadow:0 0 40px rgba(0,180,255,0.5); pointer-events:none; z-index:25; opacity:0; transition:opacity 0.3s; }
-        @media (max-width:700px) { #controls { font-size:7px; gap:6px; padding:4px 10px; bottom:8px; } #controls kbd { font-size:6px; padding:0 4px; } #healthBar { width:100px; height:8px; } .hudValue { font-size:16px; } #modeBadge { font-size:9px; padding:2px 8px; } #overlay h1 { font-size:28px; } #startBtn { padding:10px 24px; font-size:14px; } #teammateStatus { font-size:9px; bottom:50px; padding:2px 12px; } #bossHealthBar { width:80%; height:12px; top:60px; } #bossName { font-size:14px; top:44px; } }
+        @media (max-width:700px) { #controls { font-size:7px; gap:4px; padding:4px 8px; bottom:8px; } #controls kbd { font-size:6px; padding:0 4px; } #healthBar { width:100px; height:8px; } .hudValue { font-size:16px; } #modeBadge { font-size:9px; padding:2px 8px; } #overlay h1 { font-size:28px; } #startBtn { padding:10px 24px; font-size:14px; } #teammateStatus { font-size:9px; bottom:50px; padding:2px 12px; } #bossHealthBar { width:80%; height:12px; top:60px; } #bossName { font-size:14px; top:44px; } }
         @media (max-width:450px) { #controls { display:none; } #healthBar { width:60px; } .hudValue { font-size:12px; } #modeBadge { font-size:7px; padding:1px 6px; } .hudLabel { font-size:7px; } }
     </style>
 </head>
@@ -66,34 +68,35 @@
         <div id="controls">
             <span><kbd>W A S D</kbd> Move</span>
             <span><kbd>Space</kbd> Shoot</span>
-            <span><kbd>1-0</kbd> Select Character</span>
+            <span><kbd>1-9 0</kbd> Select</span>
             <span><kbd>T</kbd> Transform</span>
-            <span><kbd>E</kbd> Call Teammate</span>
+            <span><kbd>E</kbd> Call</span>
             <span><kbd>R</kbd> Restart</span>
         </div>
         <div id="teammateStatus">🤖 Teammates: <span class="count" id="teamCount">0</span></div>
         <div id="overlay">
             <h1>⚡ EARTHSPARK 3D</h1>
-            <div class="sub">▼ ALL TRANSFORMERS ▼</div>
+            <div class="sub">▼ ALL 16 TRANSFORMERS ▼</div>
             <div class="heroes">
-                <span style="color:#ffcc00;">Autobots:</span> Optimus, Bumblebee, Grimlock, Mirage, Arcee, Jazz, Ratchet, Wheeljack, Hot Rod, Ultra Magnus<br>
-                <span style="color:#ff4444;">Decepticons:</span> Megatron, Starscream, Soundwave, Shockwave, Barricade, Scorponok, Bruticus, Devastator
+                <span class="autobot">Autobots:</span> 1=Optimus, 2=Bumblebee, 3=Grimlock, 4=Mirage, 5=Arcee, 6=Jazz, 7=Ratchet, 8=Wheeljack, 9=Hot Rod, 0=Ultra Magnus<br>
+                <span class="decepticon">Decepticons:</span> 1=Megatron, 2=Starscream, 3=Soundwave, 4=Shockwave, 5=Barricade, 6=Scorponok
             </div>
             <button id="startBtn">▶ DEPLOY</button>
-            <div style="margin-top:12px;color:#6a8bb0;font-size:12px;letter-spacing:1px;">1-0 Select · T Transform · Space Shoot</div>
+            <div style="margin-top:12px;color:#6a8bb0;font-size:12px;letter-spacing:1px;">Press 1-9, 0 to select · T to transform</div>
         </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js">
     </script>
     <script>
+        // ━━━ Check THREE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         if (typeof THREE === 'undefined') {
             document.getElementById('loading').textContent = '❌ Failed to load Three.js';
             throw new Error('THREE not loaded');
         }
         document.getElementById('loading').classList.add('hidden');
 
-        // ━━━ DOM ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // ━━━ DOM refs ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         const healthFill = document.getElementById('healthFill');
         const scoreDisplay = document.getElementById('scoreDisplay');
         const waveDisplay = document.getElementById('waveDisplay');
@@ -159,10 +162,18 @@
         grid.position.y = -0.4;
         scene.add(grid);
 
-        // Simple buildings
-        function addBuilding(x, z, w, h, d, color) {
-            const mat = new THREE.MeshStandardMaterial({ color: color || 0x1a1a30, roughness: 0.7, metalness: 0.2 });
-            const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+        // Buildings
+        for (let i = 0; i < 40; i++) {
+            const a = Math.random() * Math.PI * 2;
+            const d = 12 + Math.random() * 25;
+            const x = Math.cos(a) * d,
+                z = Math.sin(a) * d;
+            const w = 1.2 + Math.random() * 3,
+                h = 2 + Math.random() * 10,
+                dep = 1.2 + Math.random() * 3;
+            const mat = new THREE.MeshStandardMaterial({ color: 0x1a1a30 + Math.floor(Math.random() * 0x111111),
+                roughness: 0.7, metalness: 0.2 });
+            const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, dep), mat);
             mesh.position.set(x, h / 2 - 0.5, z);
             mesh.castShadow = true;
             mesh.receiveShadow = true;
@@ -172,27 +183,17 @@
                 for (let wx = -w / 2 + 0.6; wx < w / 2 - 0.6; wx += 1.5) {
                     if (Math.random() > 0.5) continue;
                     const win = new THREE.Mesh(new THREE.PlaneGeometry(0.2, 0.4), winMat);
-                    win.position.set(x + wx, wy, z + (z > 0 ? d / 2 + 0.01 : -d / 2 - 0.01));
+                    win.position.set(x + wx, wy, z + (z > 0 ? dep / 2 + 0.01 : -dep / 2 - 0.01));
                     if (z > 0) win.rotation.y = 0;
                     else win.rotation.y = Math.PI;
                     scene.add(win);
                 }
             }
         }
-        for (let i = 0; i < 40; i++) {
-            const a = Math.random() * Math.PI * 2;
-            const d = 12 + Math.random() * 25;
-            const x = Math.cos(a) * d,
-                z = Math.sin(a) * d;
-            const w = 1.2 + Math.random() * 3,
-                h = 2 + Math.random() * 10,
-                dep = 1.2 + Math.random() * 3;
-            addBuilding(x, z, w, h, dep, 0x1a1a30 + Math.floor(Math.random() * 0x111111));
-        }
 
-        // ━━━ Character Data ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        // Each character: name, primary color, secondary, accent, scale, speed, health, damage, fireRate, icon, vehicle type, and special features.
+        // ━━━ 16 CHARACTERS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         const CHARACTERS = [
+            // Autobots (keys 1-9, 0)
             { id: 'optimus', name: 'OPTIMUS PRIME', team: 'Autobot', primary: 0xcc2222, secondary: 0x2244aa, accent: 0xccccdd,
                 scale: 1.15, speed: 4.2, health: 180, damage: 30, fireRate: 20, icon: '🔥', vehicleType: 'truck',
                 crest: true, smokestacks: true },
@@ -205,7 +206,7 @@
                 scale: 1.0, speed: 5.8, health: 110, damage: 24, fireRate: 14, icon: '🌀', vehicleType: 'car',
                 crest: true },
             { id: 'arcee', name: 'ARCEE', team: 'Autobot', primary: 0xff66aa, secondary: 0x884466, accent: 0xff88cc,
-                scale: 0.9, speed: 6.0, health: 90, damage: 16, fireRate: 10, icon: '🌸', vehicleType: 'car' },
+                scale: 0.85, speed: 6.0, health: 90, damage: 16, fireRate: 10, icon: '🌸', vehicleType: 'car' },
             { id: 'jazz', name: 'JAZZ', team: 'Autobot', primary: 0x2222aa, secondary: 0x888888, accent: 0x44aaff,
                 scale: 1.0, speed: 5.2, health: 105, damage: 20, fireRate: 15, icon: '🎵', vehicleType: 'car' },
             { id: 'ratchet', name: 'RATCHET', team: 'Autobot', primary: 0xffffff, secondary: 0xcc2222, accent: 0x44ff44,
@@ -217,7 +218,7 @@
             { id: 'ultramagnus', name: 'ULTRA MAGNUS', team: 'Autobot', primary: 0x2244aa, secondary: 0xcc2222, accent: 0x88aaff,
                 scale: 1.25, speed: 3.5, health: 220, damage: 35, fireRate: 28, icon: '⚔️', vehicleType: 'truck',
                 crest: true },
-            // Decepticons
+            // Decepticons (keys 1-6 when in Decepticon mode, but we'll map them differently)
             { id: 'megatron', name: 'MEGATRON', team: 'Decepticon', primary: 0x445566, secondary: 0x223344, accent: 0xff4444,
                 scale: 1.2, speed: 3.5, health: 160, damage: 32, fireRate: 25, icon: '💀', vehicleType: 'tank',
                 cannon: true, crest: true },
@@ -236,7 +237,6 @@
                 scale: 1.1, speed: 3.2, health: 170, damage: 30, fireRate: 30, icon: '🦂', vehicleType: 'tank' },
         ];
 
-        // Map for quick lookup
         const CHAR_MAP = {};
         CHARACTERS.forEach(c => CHAR_MAP[c.id] = c);
 
@@ -376,7 +376,6 @@
                 s2.position.set(0.8 * scale, 1.2 * scale, 0.6 * scale);
                 group.add(s2);
             }
-
             return group;
         }
 
@@ -470,7 +469,6 @@
                     group.add(track);
                 }
             } else {
-                // default car
                 const body = new THREE.Mesh(new THREE.BoxGeometry(2.0 * scale, 0.6 * scale, 1.2 * scale), bodyMat);
                 body.position.y = 0.3 * scale;
                 body.castShadow = true;
@@ -848,7 +846,6 @@
             if (isTransforming || !player) return;
             const charData = CHAR_MAP[currentCharId];
             if (!charData) return;
-            // Determine target mode
             if (charData.trex) {
                 transformTarget = isTrex ? 'robot' : 'trex';
             } else {
@@ -861,7 +858,6 @@
             transformMsg.style.opacity = '1';
             setTimeout(() => { transformMsg.style.opacity = '0'; }, 800);
 
-            // Burst particles
             const pos = player.position.clone();
             for (let i = 0; i < 60; i++) {
                 const dir = new THREE.Vector3((Math.random() - 0.5), (Math.random() - 0.5), (Math.random() - 0.5))
@@ -879,7 +875,6 @@
                     isGlow: true,
                 });
             }
-            // Flash
             G.particles.push({
                 pos: pos.clone(),
                 vel: new THREE.Vector3(0, 0, 0),
@@ -891,12 +886,10 @@
                 isFlash: true,
             });
 
-            // Reset scales
             if (playerModel) playerModel.scale.set(1, 1, 1);
             if (vehicleModel) vehicleModel.scale.set(0.01, 0.01, 0.01);
             if (trexModel) trexModel.scale.set(0.01, 0.01, 0.01);
 
-            // Show correct model
             if (transformTarget === 'vehicle') {
                 if (playerModel) playerModel.visible = true;
                 if (vehicleModel) vehicleModel.visible = true;
@@ -905,7 +898,7 @@
                 if (playerModel) playerModel.visible = true;
                 if (vehicleModel) vehicleModel.visible = false;
                 if (trexModel) trexModel.visible = true;
-            } else { // robot
+            } else {
                 if (playerModel) playerModel.visible = true;
                 if (vehicleModel) vehicleModel.visible = false;
                 if (trexModel) trexModel.visible = false;
@@ -962,7 +955,6 @@
             transformProgress = 0;
         }
 
-        // ━━━ Character Switch ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         function changeCharacter(id) {
             if (id === currentCharId) return;
             const charData = CHAR_MAP[id];
@@ -1005,7 +997,6 @@
             playerModel.visible = true;
             scene.add(playerModel);
 
-            // Build vehicle
             const vConfig = {
                 primary: charData.primary,
                 secondary: charData.secondary,
@@ -1019,7 +1010,6 @@
             vehicleModel.scale.set(0.01, 0.01, 0.01);
             scene.add(vehicleModel);
 
-            // T-Rex for Grimlock
             if (charData.trex) {
                 const tConfig = {
                     primary: charData.primary,
@@ -1244,7 +1234,6 @@
         function callTeammate() {
             if (G.teammates.length >= G.maxTeammates || G.teammateCooldown > 0 || !player || G.over) return;
             G.teammateCooldown = 100;
-            // Pick a random character for teammate
             const idx = Math.floor(Math.random() * CHARACTERS.length);
             const charData = CHARACTERS[idx];
             const pos = player.position.clone().add(new THREE.Vector3((Math.random() - 0.5) * 5, 0, (Math.random() - 0.5) *
@@ -1539,7 +1528,6 @@
             if (!G.running || G.over) return;
             G.frame++;
 
-            // ── Transformation animation ──
             if (isTransforming) {
                 transformProgress += 0.035;
                 if (transformProgress >= 1) {
@@ -1586,7 +1574,6 @@
                 return;
             }
 
-            // ── Player movement ──
             if (player && playerModel) {
                 const charData = CHAR_MAP[currentCharId];
                 if (!charData) return;
@@ -1641,7 +1628,6 @@
                     'linear-gradient(90deg, #00e5ff, #00b8ff)';
             }
 
-            // ── Spawn ──
             if (!G.bossActive) {
                 if (G.waveEnemyCount < G.waveMaxEnemies) {
                     G.spawnTimer--;
@@ -1658,7 +1644,6 @@
                 }
             }
 
-            // ── Boss ──
             if (G.bossActive && G.boss) {
                 updateBoss();
                 for (let i = G.projectiles.length - 1; i >= 0; i--) {
@@ -1707,7 +1692,6 @@
                 }
             }
 
-            // ── Enemies ──
             for (let i = G.enemies.length - 1; i >= 0; i--) {
                 const e = G.enemies[i];
                 if (!e.alive) { scene.remove(e.model);
@@ -1764,7 +1748,6 @@
                 }
             }
 
-            // ── Teammates ──
             for (let i = G.teammates.length - 1; i >= 0; i--) {
                 const t = G.teammates[i];
                 if (!t.alive) { scene.remove(t.model);
@@ -1849,7 +1832,6 @@
                 }
             }
 
-            // ── Projectiles ──
             for (let i = G.projectiles.length - 1; i >= 0; i--) {
                 const p = G.projectiles[i];
                 p.pos.add(p.vel.clone().multiplyScalar(0.06));
@@ -1876,7 +1858,6 @@
                 }
             }
 
-            // ── Enemy Projectiles ──
             for (let i = G.enemyProjectiles.length - 1; i >= 0; i--) {
                 const p = G.enemyProjectiles[i];
                 p.pos.add(p.vel.clone().multiplyScalar(0.06));
@@ -1903,7 +1884,6 @@
                 }
             }
 
-            // ── Powerups ──
             for (let i = G.powerups.length - 1; i >= 0; i--) {
                 const p = G.powerups[i];
                 p.bob += 0.04;
@@ -1929,7 +1909,6 @@
                 }
             }
 
-            // ── Particles ──
             for (let i = G.particles.length - 1; i >= 0; i--) {
                 const p = G.particles[i];
                 p.pos.add(p.vel.clone().multiplyScalar(0.04));
@@ -1943,7 +1922,6 @@
 
             updateUI();
 
-            // ── Camera ──
             if (player) {
                 const target = player.position.clone();
                 const camDist = 14;
@@ -2073,11 +2051,11 @@
         overlay.classList.remove('hidden');
         startBtn.style.display = 'block';
         overlay.querySelector('h1').textContent = '⚡ EARTHSPARK 3D';
-        overlay.querySelector('.sub').textContent = '▼ ALL TRANSFORMERS ▼';
+        overlay.querySelector('.sub').textContent = '▼ ALL 16 TRANSFORMERS ▼';
         loop();
 
-        console.log('✅ All Transformers loaded – 16 characters!');
-        console.log('🎮 Press 1-9, 0 to switch. T to transform.');
+        console.log('✅ All 16 Transformers loaded!');
+        console.log('🎮 Keys 1-9, 0 to select, T to transform.');
     </script>
 </body>
 </html>
