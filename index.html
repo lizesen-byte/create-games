@@ -25,7 +25,7 @@
         #overlay.hidden { display:none; }
         #overlay h1 { font-size:48px; font-weight:900; background:linear-gradient(135deg,#00e5ff,#0077ff); -webkit-background-clip:text; -webkit-text-fill-color:transparent; text-shadow:0 0 60px rgba(0,229,255,0.2); letter-spacing:4px; }
         #overlay .sub { font-size:16px; color:#6a8bb0; letter-spacing:3px; margin-bottom:8px; }
-        #overlay .heroes { color:#8ab; font-size:13px; letter-spacing:1px; margin-bottom:16px; max-width:600px; line-height:1.8; }
+        #overlay .heroes { color:#8ab; font-size:13px; letter-spacing:1px; margin-bottom:16px; max-width:700px; line-height:1.8; }
         #overlay .heroes .autobot { color:#ffcc44; }
         #overlay .heroes .decepticon { color:#ff4444; }
         #startBtn { pointer-events:auto; padding:14px 48px; font-size:16px; font-weight:700; color:#0a0a12; background:linear-gradient(135deg,#00e5ff,#0077ff); border:none; border-radius:40px; cursor:pointer; transition:transform 0.15s, box-shadow 0.15s; box-shadow:0 0 40px rgba(0,229,255,0.2); letter-spacing:2px; text-transform:uppercase; margin-top:8px; }
@@ -68,7 +68,8 @@
         <div id="controls">
             <span><kbd>W A S D</kbd> Move</span>
             <span><kbd>Space</kbd> Shoot</span>
-            <span><kbd>1-9 0</kbd> Select</span>
+            <span><kbd>1-9 0</kbd> Autobots</span>
+            <span><kbd>⇧+1-6</kbd> Decepticons</span>
             <span><kbd>T</kbd> Transform</span>
             <span><kbd>E</kbd> Call</span>
             <span><kbd>R</kbd> Restart</span>
@@ -78,18 +79,17 @@
             <h1>⚡ EARTHSPARK 3D</h1>
             <div class="sub">▼ ALL 16 TRANSFORMERS ▼</div>
             <div class="heroes">
-                <span class="autobot">Autobots:</span> 1=Optimus, 2=Bumblebee, 3=Grimlock, 4=Mirage, 5=Arcee, 6=Jazz, 7=Ratchet, 8=Wheeljack, 9=Hot Rod, 0=Ultra Magnus<br>
-                <span class="decepticon">Decepticons:</span> 1=Megatron, 2=Starscream, 3=Soundwave, 4=Shockwave, 5=Barricade, 6=Scorponok
+                <span class="autobot">Autobots (1-9, 0):</span> 1=Optimus, 2=Bumblebee, 3=Grimlock, 4=Mirage, 5=Arcee, 6=Jazz, 7=Ratchet, 8=Wheeljack, 9=Hot Rod, 0=Ultra Magnus<br>
+                <span class="decepticon">Decepticons (Shift+1-6):</span> ⇧+1=Megatron, ⇧+2=Starscream, ⇧+3=Soundwave, ⇧+4=Shockwave, ⇧+5=Barricade, ⇧+6=Scorponok
             </div>
             <button id="startBtn">▶ DEPLOY</button>
-            <div style="margin-top:12px;color:#6a8bb0;font-size:12px;letter-spacing:1px;">Press 1-9, 0 to select · T to transform</div>
+            <div style="margin-top:12px;color:#6a8bb0;font-size:12px;letter-spacing:1px;">Press 1-9, 0 for Autobots · Shift+1-6 for Decepticons</div>
         </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js">
     </script>
     <script>
-        // ━━━ Check THREE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         if (typeof THREE === 'undefined') {
             document.getElementById('loading').textContent = '❌ Failed to load Three.js';
             throw new Error('THREE not loaded');
@@ -193,7 +193,7 @@
 
         // ━━━ 16 CHARACTERS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         const CHARACTERS = [
-            // Autobots (keys 1-9, 0)
+            // Autobots (indices 0-9) → keys 1-9, 0
             { id: 'optimus', name: 'OPTIMUS PRIME', team: 'Autobot', primary: 0xcc2222, secondary: 0x2244aa, accent: 0xccccdd,
                 scale: 1.15, speed: 4.2, health: 180, damage: 30, fireRate: 20, icon: '🔥', vehicleType: 'truck',
                 crest: true, smokestacks: true },
@@ -218,7 +218,7 @@
             { id: 'ultramagnus', name: 'ULTRA MAGNUS', team: 'Autobot', primary: 0x2244aa, secondary: 0xcc2222, accent: 0x88aaff,
                 scale: 1.25, speed: 3.5, health: 220, damage: 35, fireRate: 28, icon: '⚔️', vehicleType: 'truck',
                 crest: true },
-            // Decepticons (keys 1-6 when in Decepticon mode, but we'll map them differently)
+            // Decepticons (indices 10-15) → Shift+1 through Shift+6
             { id: 'megatron', name: 'MEGATRON', team: 'Decepticon', primary: 0x445566, secondary: 0x223344, accent: 0xff4444,
                 scale: 1.2, speed: 3.5, health: 160, damage: 32, fireRate: 25, icon: '💀', vehicleType: 'tank',
                 cannon: true, crest: true },
@@ -253,7 +253,6 @@
             const glowMat = new THREE.MeshStandardMaterial({ color: 0x00e5ff, emissive: 0x00e5ff, emissiveIntensity: 0.6,
                 transparent: true, opacity: 0.7 });
 
-            // Torso
             const torso = new THREE.Mesh(new THREE.BoxGeometry(1.6 * scale, 1.8 * scale, 0.9 * scale), pMat);
             torso.position.y = 0.6 * scale;
             torso.castShadow = true;
@@ -265,7 +264,6 @@
             glowSphere.position.set(0, 0.8 * scale, 0.7 * scale);
             group.add(glowSphere);
 
-            // Shoulder pads
             const shoulderMat = new THREE.MeshStandardMaterial({ color: secondary, roughness: 0.5, metalness: 0.7 });
             const lShoulder = new THREE.Mesh(new THREE.BoxGeometry(0.8 * scale, 0.25 * scale, 0.6 * scale), shoulderMat);
             lShoulder.position.set(-1.2 * scale, 1.2 * scale, 0);
@@ -274,7 +272,6 @@
             rShoulder.position.set(1.2 * scale, 1.2 * scale, 0);
             group.add(rShoulder);
 
-            // Head
             const head = new THREE.Mesh(new THREE.BoxGeometry(0.9 * scale, 0.8 * scale, 0.8 * scale), pMat);
             head.position.set(0, 1.8 * scale, 0);
             head.castShadow = true;
@@ -299,7 +296,6 @@
                 group.add(h2);
             }
 
-            // Arms
             function makeArm(side) {
                 const armGroup = new THREE.Group();
                 const upper = new THREE.Mesh(new THREE.BoxGeometry(0.45 * scale, 1.0 * scale, 0.45 * scale), sMat);
@@ -323,7 +319,6 @@
             group.add(makeArm(-1));
             group.add(makeArm(1));
 
-            // Legs
             function makeLeg(side) {
                 const legGroup = new THREE.Group();
                 const thigh = new THREE.Mesh(new THREE.BoxGeometry(0.5 * scale, 0.8 * scale, 0.5 * scale), sMat);
@@ -347,7 +342,6 @@
             group.add(makeLeg(-1));
             group.add(makeLeg(1));
 
-            // Wings
             if (wings) {
                 const wMat = new THREE.MeshStandardMaterial({ color: wingsColor || secondary, roughness: 0.3, metalness: 0.7 });
                 const lw = new THREE.Mesh(new THREE.BoxGeometry(0.12 * scale, 0.6 * scale, 1.8 * scale), wMat);
@@ -764,13 +758,27 @@
             if (e.key === 't' || e.key === 'T') { if (G.running && !G.over && !isTransforming) startTransform(); }
             if (e.key === 'e' || e.key === 'E') { if (G.running && !G.over) callTeammate(); }
             if (e.key === 'r' || e.key === 'R') { if (G.over) restartGame(); }
-            const num = parseInt(e.key);
-            if (num >= 1 && num <= 9 && G.running && !G.over && !isTransforming) {
-                const idx = num - 1;
-                if (idx < CHARACTERS.length) changeCharacter(CHARACTERS[idx].id);
-            }
-            if (e.key === '0' && G.running && !G.over && !isTransforming) {
-                if (CHARACTERS.length >= 10) changeCharacter(CHARACTERS[9].id);
+
+            // ── Character selection ──
+            if (G.running && !G.over && !isTransforming) {
+                const num = parseInt(e.key);
+                // Keys 1-9: characters 0-8 (Autobots)
+                if (num >= 1 && num <= 9 && num <= CHARACTERS.length) {
+                    const idx = num - 1;
+                    if (idx < CHARACTERS.length) changeCharacter(CHARACTERS[idx].id);
+                }
+                // Key 0: character 9 (Ultra Magnus, 10th Autobot)
+                if (e.key === '0') {
+                    if (CHARACTERS.length >= 10) changeCharacter(CHARACTERS[9].id);
+                }
+                // Shift+1 through Shift+6: characters 10-15 (Decepticons)
+                if (e.shiftKey) {
+                    const shiftNum = parseInt(e.key);
+                    if (shiftNum >= 1 && shiftNum <= 6) {
+                        const idx = 9 + shiftNum; // 10, 11, 12, 13, 14, 15
+                        if (idx < CHARACTERS.length) changeCharacter(CHARACTERS[idx].id);
+                    }
+                }
             }
         });
         document.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
@@ -2055,7 +2063,7 @@
         loop();
 
         console.log('✅ All 16 Transformers loaded!');
-        console.log('🎮 Keys 1-9, 0 to select, T to transform.');
+        console.log('🎮 Keys 1-9, 0 for Autobots · Shift+1-6 for Decepticons · T to transform.');
     </script>
 </body>
 </html>
