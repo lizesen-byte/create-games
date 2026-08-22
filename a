@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TRANSFORMERS: LEGACY WARS - Prototype</title>
+    <title>TRANSFORMERS: LEGACY WARS</title>
     <style>
-        /* ===== GLOBAL RESET & FONTS ===== */
         * {
             margin: 0;
             padding: 0;
@@ -23,18 +22,14 @@
             color: #fff;
         }
 
-        /* ===== GAME CANVAS ===== */
         #gameCanvas {
             display: block;
             width: 100vw;
             height: 100vh;
             background: radial-gradient(ellipse at center, #14141f 0%, #050508 100%);
             cursor: crosshair;
-            border: 2px solid #2a2a3a;
-            box-shadow: inset 0 0 100px rgba(0, 150, 255, 0.05);
         }
 
-        /* ===== HUD OVERLAY ===== */
         #hud {
             position: fixed;
             top: 0;
@@ -45,7 +40,6 @@
             z-index: 10;
         }
 
-        /* --- TOP BAR --- */
         #topBar {
             display: flex;
             justify-content: space-between;
@@ -90,7 +84,6 @@
             text-shadow: 0 0 30px rgba(255, 200, 50, 0.3);
         }
 
-        /* --- MODE INDICATOR --- */
         #modeIndicator {
             position: absolute;
             bottom: 120px;
@@ -103,6 +96,7 @@
             backdrop-filter: blur(8px);
             text-align: center;
             transition: all 0.3s ease;
+            pointer-events: auto;
         }
 
         #modeLabel {
@@ -134,7 +128,6 @@
             letter-spacing: 1px;
         }
 
-        /* --- COMBINER METER --- */
         #combinerContainer {
             position: absolute;
             bottom: 40px;
@@ -176,7 +169,6 @@
             letter-spacing: 2px;
         }
 
-        /* --- STATUS MESSAGES --- */
         #statusMessage {
             position: absolute;
             top: 50%;
@@ -196,7 +188,6 @@
             transform: translate(-50%, -60%);
         }
 
-        /* --- SCANLINE EFFECT --- */
         #scanlines {
             position: fixed;
             top: 0;
@@ -212,7 +203,6 @@
                     rgba(0, 0, 0, 0.03) 4px);
         }
 
-        /* --- GLITCH CORNER --- */
         #vignette {
             position: fixed;
             top: 0;
@@ -224,7 +214,6 @@
             background: radial-gradient(ellipse at center, transparent 60%, rgba(0, 0, 0, 0.6) 100%);
         }
 
-        /* --- CONTROLS HELP --- */
         #controlsHelp {
             position: absolute;
             bottom: 40px;
@@ -244,27 +233,69 @@
             font-weight: 700;
         }
 
-        /* ===== RESPONSIVE ===== */
+        #scoreDisplay {
+            position: absolute;
+            top: 80px;
+            right: 28px;
+            text-align: right;
+            font-size: 12px;
+            color: #667;
+            letter-spacing: 2px;
+        }
+
+        #scoreDisplay span {
+            display: block;
+            font-size: 28px;
+            color: #fff;
+            font-weight: 900;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+        }
+
         @media (max-width: 768px) {
-            #topBar { padding: 12px 16px; flex-direction: column; gap: 6px; }
-            #factionName { font-size: 10px; }
-            #sparkValue { font-size: 16px; }
-            #modeIndicator { bottom: 100px; padding: 8px 18px; }
-            #modeName { font-size: 18px; }
-            #combinerContainer { bottom: 20px; right: 20px; width: 120px; }
-            #controlsHelp { display: none; }
-            #statusMessage { font-size: 28px; }
+            #topBar {
+                padding: 12px 16px;
+                flex-direction: column;
+                gap: 6px;
+            }
+            #factionName {
+                font-size: 10px;
+            }
+            #sparkValue {
+                font-size: 16px;
+            }
+            #modeIndicator {
+                bottom: 100px;
+                padding: 8px 18px;
+            }
+            #modeName {
+                font-size: 18px;
+            }
+            #combinerContainer {
+                bottom: 20px;
+                right: 20px;
+                width: 120px;
+            }
+            #controlsHelp {
+                display: none;
+            }
+            #statusMessage {
+                font-size: 28px;
+            }
+            #scoreDisplay {
+                top: 100px;
+                right: 16px;
+            }
+            #scoreDisplay span {
+                font-size: 20px;
+            }
         }
     </style>
 </head>
 <body>
 
-    <!-- ===== CANVAS ===== -->
     <canvas id="gameCanvas"></canvas>
 
-    <!-- ===== HUD ===== -->
     <div id="hud">
-        <!-- Top Bar -->
         <div id="topBar">
             <div id="factionDisplay">
                 <div id="factionIcon">⚡</div>
@@ -279,52 +310,49 @@
             </div>
         </div>
 
-        <!-- Mode Indicator -->
+        <div id="scoreDisplay">
+            SCORE
+            <span id="scoreValue">0</span>
+        </div>
+
         <div id="modeIndicator">
             <div id="modeLabel">▼ MORPH STATE ▼</div>
             <div id="modeName" class="robot">ROBOT</div>
             <div id="modePrompt">[ SPACE ] to Morph · [ CLICK ] to Attack</div>
         </div>
 
-        <!-- Combiner Meter -->
         <div id="combinerContainer">
             <div id="combinerLabel">◈ COMBINER CHARGE</div>
             <div id="combinerBar"><div id="combinerFill"></div></div>
             <div id="combinerStatus">0% · INACTIVE</div>
         </div>
 
-        <!-- Status Message -->
         <div id="statusMessage">⚡ MORPH</div>
 
-        <!-- Controls Help -->
         <div id="controlsHelp">
             <span>SPACE</span> Morph &nbsp;|&nbsp; <span>CLICK</span> Attack &nbsp;|&nbsp; <span>R</span> Reset
         </div>
     </div>
 
-    <!-- ===== SCANLINES & VIGNETTE ===== -->
     <div id="scanlines"></div>
     <div id="vignette"></div>
 
-    <!-- ===== GAME SCRIPT ===== -->
     <script>
         // ============================================================
-        //  TRANSFORMERS: LEGACY WARS — Browser Prototype
-        //  A playable demo with fluid morph, enemies, destruction, HUD
+        //  TRANSFORMERS: LEGACY WARS — COMPLETE PROTOTYPE
         // ============================================================
 
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
-        // --- UI Elements ---
         const modeNameEl = document.getElementById('modeName');
         const modePromptEl = document.getElementById('modePrompt');
         const sparkValueEl = document.getElementById('sparkValue');
         const combinerFill = document.getElementById('combinerFill');
         const combinerStatus = document.getElementById('combinerStatus');
         const statusMsg = document.getElementById('statusMessage');
+        const scoreValueEl = document.getElementById('scoreValue');
 
-        // --- Sizing ---
         let W, H;
 
         function resize() {
@@ -338,7 +366,7 @@
         //  GAME STATE
         // ============================================================
         const state = {
-            mode: 'robot', // 'robot' | 'vehicle'
+            mode: 'robot',
             spark: 100,
             maxSpark: 100,
             combinerCharge: 0,
@@ -365,12 +393,12 @@
             morphCooldown: 0,
             attackCooldown: 0,
             gameTime: 0,
-            enemySpawnTimer: 0,
+            enemySpawnTimer: 60,
             destroyedBuildings: 0,
         };
 
         // ============================================================
-        //  BUILDINGS (destructible environment)
+        //  BUILDINGS
         // ============================================================
         function spawnBuildings() {
             state.buildings = [];
@@ -394,7 +422,6 @@
                         maxHp: hp,
                         color: `hsl(${200 + Math.random() * 40}, 30%, ${20 + Math.random() * 25}%)`,
                         destroyed: false,
-                        debris: [],
                     });
                 }
             }
@@ -431,7 +458,6 @@
                 angle: 0,
                 hitTimer: 0,
                 attackCooldown: 0,
-                state: 'chase', // 'chase' | 'attack'
                 color: type === 'scout' ? '#ff4466' : type === 'soldier' ? '#ff8844' : '#cc2244',
             });
         }
@@ -466,7 +492,7 @@
         }
 
         // ============================================================
-        //  PROJECTILES (player attacks)
+        //  PROJECTILES
         // ============================================================
         function fireProjectile(targetX, targetY) {
             if (state.attackCooldown > 0) return;
@@ -501,7 +527,6 @@
         function update() {
             state.gameTime++;
 
-            // -- Player movement (follow mouse) --
             const p = state.player;
             const dx = p.targetX - p.x;
             const dy = p.targetY - p.y;
@@ -513,26 +538,21 @@
                 p.angle = Math.atan2(dy, dx);
             }
 
-            // Clamp player
             p.x = Math.max(p.radius, Math.min(W - p.radius, p.x));
             p.y = Math.max(p.radius, Math.min(H - p.radius, p.y));
 
-            // -- Glow pulse --
             p.glow = 0.5 + 0.5 * Math.sin(state.gameTime * 0.04);
 
-            // -- Cooldowns --
             if (state.attackCooldown > 0) state.attackCooldown--;
             if (state.morphCooldown > 0) state.morphCooldown--;
             if (state.comboTimer > 0) state.comboTimer--;
             else state.comboCount = 0;
 
-            // -- Spark regen --
             if (state.spark < state.maxSpark) {
                 state.spark += 0.04;
                 if (state.spark > state.maxSpark) state.spark = state.maxSpark;
             }
 
-            // -- Combiner charge (passive) --
             if (state.combinerCharge < state.maxCombiner) {
                 state.combinerCharge += 0.06;
                 if (state.combinerCharge >= state.maxCombiner) {
@@ -542,23 +562,20 @@
                 }
             }
 
-            // -- Enemy spawn --
             state.enemySpawnTimer--;
             if (state.enemySpawnTimer <= 0 && state.enemies.length < 12) {
                 spawnEnemy();
                 state.enemySpawnTimer = 60 + Math.random() * 80;
             }
 
-            // -- Update enemies --
+            // Update enemies
             for (let i = state.enemies.length - 1; i >= 0; i--) {
                 const e = state.enemies[i];
-                const dx = p.x - e.x;
-                const dy = p.y - e.y;
-                const dist = Math.sqrt(dx * dx + dy * dy);
+                const dx2 = p.x - e.x;
+                const dy2 = p.y - e.y;
+                const dist2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
 
-                // Chase / attack logic
-                if (dist < e.radius + p.radius + 10) {
-                    // Melee attack on player
+                if (dist2 < e.radius + p.radius + 10) {
                     if (e.attackCooldown <= 0) {
                         state.spark = Math.max(0, state.spark - 5);
                         emitParticles(e.x, e.y, 15, '#ff4444', 4, 20);
@@ -570,20 +587,18 @@
                         }
                     }
                 } else {
-                    // Move toward player
                     const speed = e.speed * (state.mode === 'vehicle' ? 0.7 : 1);
-                    e.x += (dx / dist) * speed;
-                    e.y += (dy / dist) * speed;
+                    e.x += (dx2 / dist2) * speed;
+                    e.y += (dy2 / dist2) * speed;
                 }
 
                 if (e.attackCooldown > 0) e.attackCooldown--;
                 if (e.hitTimer > 0) e.hitTimer--;
 
-                // Clamp enemies
                 e.x = Math.max(e.radius, Math.min(W - e.radius, e.x));
                 e.y = Math.max(e.radius, Math.min(H - e.radius, e.y));
 
-                // Enemy vs buildings (collision damage)
+                // Enemy vs buildings
                 for (const b of state.buildings) {
                     if (b.destroyed) continue;
                     if (e.x > b.x - b.w / 2 && e.x < b.x + b.w / 2 &&
@@ -595,12 +610,11 @@
                             emitExplosion(b.x, b.y, 0.8);
                             state.combinerCharge = Math.min(state.maxCombiner, state.combinerCharge + 8);
                         }
-                        e.x -= (dx / dist) * 3;
-                        e.y -= (dy / dist) * 3;
+                        e.x -= (dx2 / dist2) * 3;
+                        e.y -= (dy2 / dist2) * 3;
                     }
                 }
 
-                // Enemy death
                 if (e.hp <= 0) {
                     emitExplosion(e.x, e.y, 0.6);
                     state.score += e.type === 'tank' ? 30 : e.type === 'soldier' ? 20 : 10;
@@ -610,22 +624,20 @@
                     continue;
                 }
 
-                // Enemy hits player (collision push)
-                if (dist < e.radius + p.radius) {
-                    const angle = Math.atan2(dy, dx);
+                if (dist2 < e.radius + p.radius) {
+                    const angle = Math.atan2(dy2, dx2);
                     p.x -= Math.cos(angle) * 1.5;
                     p.y -= Math.sin(angle) * 1.5;
                 }
             }
 
-            // -- Update projectiles --
+            // Update projectiles
             for (let i = state.projectiles.length - 1; i >= 0; i--) {
                 const proj = state.projectiles[i];
                 proj.x += proj.vx;
                 proj.y += proj.vy;
                 proj.life--;
 
-                // Trail
                 proj.trail.push({ x: proj.x, y: proj.y, life: 10 });
                 if (proj.trail.length > 12) proj.trail.shift();
                 for (let t = proj.trail.length - 1; t >= 0; t--) {
@@ -633,7 +645,6 @@
                     if (proj.trail[t].life <= 0) proj.trail.splice(t, 1);
                 }
 
-                // Hit enemies
                 let hit = false;
                 for (const e of state.enemies) {
                     const d = Math.sqrt((proj.x - e.x) ** 2 + (proj.y - e.y) ** 2);
@@ -651,7 +662,6 @@
                     }
                 }
 
-                // Hit buildings
                 if (!hit) {
                     for (const b of state.buildings) {
                         if (b.destroyed) continue;
@@ -676,7 +686,7 @@
                 }
             }
 
-            // -- Update particles --
+            // Update particles
             for (let i = state.particles.length - 1; i >= 0; i--) {
                 const pt = state.particles[i];
                 pt.x += pt.vx;
@@ -689,20 +699,19 @@
                 }
             }
 
-            // -- Shake decay --
             if (state.shake > 0) state.shake *= 0.9;
             if (state.shake < 0.1) state.shake = 0;
 
-            // -- Update HUD --
+            // Update HUD
             sparkValueEl.textContent = Math.round(state.spark) + '%';
             const chargePct = (state.combinerCharge / state.maxCombiner) * 100;
             combinerFill.style.width = chargePct + '%';
             combinerStatus.textContent = Math.round(chargePct) + '% · ' +
                 (state.isCombinerReady ? '⚡ READY' : 'CHARGING');
+            scoreValueEl.textContent = state.score;
 
-            // -- Combiner activation (auto if ready and enemies nearby) --
+            // Combiner activation
             if (state.isCombinerReady && state.enemies.length > 2) {
-                // Activate! Clear enemies in a massive blast
                 state.isCombinerReady = false;
                 state.combinerCharge = 0;
                 showStatus('⚡ COMBINER BLAST!');
@@ -713,7 +722,6 @@
                 state.enemies = [];
                 state.shake = 20;
                 emitExplosion(W / 2, H / 2, 3);
-                // Also destroy nearby buildings
                 for (const b of state.buildings) {
                     if (!b.destroyed && Math.random() < 0.3) {
                         b.destroyed = true;
@@ -723,7 +731,6 @@
                 }
             }
 
-            // -- Auto-morph if spark low (desperation) --
             if (state.spark < 15 && state.mode === 'robot' && state.morphCooldown <= 0) {
                 toggleMorph();
             }
@@ -773,6 +780,7 @@
             state.score = 0;
             state.comboCount = 0;
             state.destroyedBuildings = 0;
+            state.enemySpawnTimer = 60;
             spawnBuildings();
             state.player.x = W / 2;
             state.player.y = H / 2;
@@ -788,17 +796,15 @@
         function draw() {
             ctx.save();
 
-            // -- Screen shake --
             if (state.shake > 0.5) {
                 const sx = (Math.random() - 0.5) * state.shake * 1.2;
                 const sy = (Math.random() - 0.5) * state.shake * 1.2;
                 ctx.translate(sx, sy);
             }
 
-            // -- Clear --
             ctx.clearRect(-10, -10, W + 20, H + 20);
 
-            // -- Grid (cybertronian ground) --
+            // Grid
             ctx.strokeStyle = 'rgba(30, 40, 70, 0.3)';
             ctx.lineWidth = 1;
             for (let x = 0; x < W; x += 60) {
@@ -814,7 +820,7 @@
                 ctx.stroke();
             }
 
-            // -- Buildings --
+            // Buildings
             for (const b of state.buildings) {
                 if (b.destroyed) continue;
                 const alpha = 0.6 + (b.hp / b.maxHp) * 0.4;
@@ -823,7 +829,6 @@
                 ctx.shadowColor = 'rgba(0,150,255,0.1)';
                 ctx.shadowBlur = 15;
                 ctx.fillRect(b.x - b.w / 2, b.y - b.h / 2, b.w, b.h);
-                // Windows
                 ctx.shadowBlur = 0;
                 ctx.fillStyle = 'rgba(255,220,100,0.15)';
                 for (let wy = -b.h / 2 + 8; wy < b.h / 2 - 8; wy += 14) {
@@ -833,7 +838,6 @@
                         }
                     }
                 }
-                // HP indicator
                 if (b.hp < b.maxHp) {
                     ctx.fillStyle = 'rgba(255,50,50,0.4)';
                     ctx.fillRect(b.x - b.w / 2, b.y + b.h / 2 + 2, b.w * (b.hp / b.maxHp), 3);
@@ -842,16 +846,14 @@
             ctx.globalAlpha = 1;
             ctx.shadowBlur = 0;
 
-            // -- Projectiles --
+            // Projectiles
             for (const proj of state.projectiles) {
-                // Trail
                 for (const t of proj.trail) {
                     ctx.beginPath();
                     ctx.arc(t.x, t.y, proj.radius * (t.life / 10) * 0.6, 0, Math.PI * 2);
                     ctx.fillStyle = `rgba(100, 200, 255, ${t.life / 10 * 0.4})`;
                     ctx.fill();
                 }
-                // Core
                 ctx.shadowColor = '#4cf';
                 ctx.shadowBlur = 30;
                 ctx.beginPath();
@@ -861,29 +863,50 @@
                 ctx.shadowBlur = 0;
             }
 
-            // -- Enemies --
+            // Enemies
             for (const e of state.enemies) {
-                // Glow
                 const glow = e.hitTimer > 0 ? '#ff4444' : e.color;
                 ctx.shadowColor = glow;
                 ctx.shadowBlur = e.hitTimer > 0 ? 40 : 20;
-
-                // Body
                 ctx.beginPath();
                 ctx.arc(e.x, e.y, e.radius, 0, Math.PI * 2);
                 ctx.fillStyle = e.hitTimer > 0 ? '#ff6666' : e.color;
                 ctx.fill();
-
-                // Inner detail
                 ctx.shadowBlur = 0;
                 ctx.beginPath();
                 ctx.arc(e.x, e.y, e.radius * 0.5, 0, Math.PI * 2);
                 ctx.fillStyle = 'rgba(0,0,0,0.3)';
                 ctx.fill();
-
-                // Eye
                 ctx.fillStyle = '#fff';
                 ctx.shadowBlur = 10;
                 ctx.shadowColor = '#ff4444';
                 ctx.beginPath();
-                ctx.arc(e.x + e.radius * 0.3, e.y - e.radius * 0.2, e.radius * 0.2, 0, Math
+                ctx.arc(e.x + e.radius * 0.3, e.y - e.radius * 0.2, e.radius * 0.2, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                // HP bar
+                ctx.fillStyle = 'rgba(0,0,0,0.6)';
+                ctx.fillRect(e.x - e.radius, e.y - e.radius - 8, e.radius * 2, 4);
+                ctx.fillStyle = e.hp / e.maxHp > 0.5 ? '#44ff44' : '#ff4444';
+                ctx.fillRect(e.x - e.radius, e.y - e.radius - 8, e.radius * 2 * (e.hp / e.maxHp), 4);
+            }
+
+            // Player
+            const p = state.player;
+            const isRobot = state.mode === 'robot';
+
+            // Glow
+            const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.radius * 3);
+            grad.addColorStop(0, isRobot ? 'rgba(60,200,255,0.15)' : 'rgba(255,136,68,0.15)');
+            grad.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.radius * 3, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Body
+            ctx.shadowColor = isRobot ? '#4cf' : '#f84';
+            ctx.shadowBlur = isRobot ? 40 : 50;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+            const
