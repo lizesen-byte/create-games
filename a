@@ -12,11 +12,9 @@
             user-select: none;
         }
 
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
-
         body {
             background: #0a0a0f;
-            font-family: 'Orbitron', monospace;
+            font-family: 'Courier New', monospace;
             overflow: hidden;
             height: 100vh;
             color: #fff;
@@ -95,7 +93,6 @@
             border-radius: 4px;
             backdrop-filter: blur(8px);
             text-align: center;
-            transition: all 0.3s ease;
             pointer-events: auto;
         }
 
@@ -339,7 +336,7 @@
 
     <script>
         // ============================================================
-        //  TRANSFORMERS: LEGACY WARS — COMPLETE PROTOTYPE
+        //  TRANSFORMERS: LEGACY WARS — COMPLETE WORKING PROTOTYPE
         // ============================================================
 
         const canvas = document.getElementById('gameCanvas');
@@ -385,7 +382,6 @@
                 targetY: H / 2,
                 speed: 4,
                 angle: 0,
-                glow: 0,
             },
             shake: 0,
             comboCount: 0,
@@ -455,7 +451,6 @@
                 maxHp: hp,
                 type,
                 speed,
-                angle: 0,
                 hitTimer: 0,
                 attackCooldown: 0,
                 color: type === 'scout' ? '#ff4466' : type === 'soldier' ? '#ff8844' : '#cc2244',
@@ -540,8 +535,6 @@
 
             p.x = Math.max(p.radius, Math.min(W - p.radius, p.x));
             p.y = Math.max(p.radius, Math.min(H - p.radius, p.y));
-
-            p.glow = 0.5 + 0.5 * Math.sin(state.gameTime * 0.04);
 
             if (state.attackCooldown > 0) state.attackCooldown--;
             if (state.morphCooldown > 0) state.morphCooldown--;
@@ -909,4 +902,11 @@
             ctx.shadowBlur = isRobot ? 40 : 50;
             ctx.beginPath();
             ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-            const
+            ctx.fillStyle = isRobot ? '#3a8abf' : '#bf6a3a';
+            ctx.fill();
+
+            // Inner core
+            ctx.shadowBlur = 0;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.radius * 0.6, 0, Math.PI * 2);
+            ctx.fillStyle = isRobot
