@@ -1,2045 +1,889 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Transformers Cyber Battle</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TRANSFORMERS: LEGACY WARS - Prototype</title>
+    <style>
+        /* ===== GLOBAL RESET & FONTS ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
 
-<style>
-* {
-    box-sizing: border-box;
-}
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
 
-html, body {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    font-family: Arial, sans-serif;
-    background: #050817;
-    color: white;
-}
+        body {
+            background: #0a0a0f;
+            font-family: 'Orbitron', monospace;
+            overflow: hidden;
+            height: 100vh;
+            color: #fff;
+        }
 
-canvas {
-    display: block;
-    position: fixed;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-}
+        /* ===== GAME CANVAS ===== */
+        #gameCanvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(ellipse at center, #14141f 0%, #050508 100%);
+            cursor: crosshair;
+            border: 2px solid #2a2a3a;
+            box-shadow: inset 0 0 100px rgba(0, 150, 255, 0.05);
+        }
 
-/* ================= MENU ================= */
+        /* ===== HUD OVERLAY ===== */
+        #hud {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
 
-#menu {
-    position: fixed;
-    inset: 0;
-    z-index: 10;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background:
-        radial-gradient(circle at center, #182454 0%, #080d21 45%, #02040b 100%);
-}
+        /* --- TOP BAR --- */
+        #topBar {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 18px 28px;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.85) 0%, transparent 100%);
+            border-bottom: 1px solid rgba(0, 180, 255, 0.15);
+        }
 
-.menu-box {
-    width: 900px;
-    max-width: 92%;
-    max-height: 90vh;
-    overflow-y: auto;
-    padding: 30px;
-    border: 2px solid #3f527c;
-    border-radius: 20px;
-    background: rgba(7, 12, 30, 0.96);
-    box-shadow:
-        0 0 30px rgba(50, 180, 255, 0.15),
-        inset 0 0 30px rgba(50, 100, 255, 0.08);
-}
+        #factionDisplay {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
 
-.title {
-    text-align: center;
-    font-size: 48px;
-    font-weight: 900;
-    color: #ffd83d;
-    text-shadow: 0 0 20px rgba(255, 216, 61, 0.35);
-}
+        #factionIcon {
+            font-size: 28px;
+            text-shadow: 0 0 20px rgba(0, 150, 255, 0.6);
+        }
 
-.subtitle {
-    text-align: center;
-    color: #9aa9ca;
-    margin-bottom: 25px;
-}
+        #factionName {
+            font-size: 14px;
+            letter-spacing: 3px;
+            color: #8af;
+            text-shadow: 0 0 10px rgba(0, 150, 255, 0.3);
+        }
 
-.characters {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 12px;
-}
+        #sparkDisplay {
+            text-align: right;
+        }
 
-.character {
-    border: 2px solid #263557;
-    border-radius: 12px;
-    background: #101831;
-    color: white;
-    padding: 15px;
-    cursor: pointer;
-    text-align: left;
-    transition: 0.2s;
-}
+        #sparkLabel {
+            font-size: 9px;
+            color: #667;
+            letter-spacing: 2px;
+        }
 
-.character:hover {
-    transform: translateY(-3px);
-    border-color: #4ddfff;
-}
+        #sparkValue {
+            font-size: 22px;
+            font-weight: 900;
+            color: #ffcc44;
+            text-shadow: 0 0 30px rgba(255, 200, 50, 0.3);
+        }
 
-.character.selected {
-    border-color: #ffd83d;
-    box-shadow: 0 0 20px rgba(255, 216, 61, 0.2);
-    background: #18213d;
-}
+        /* --- MODE INDICATOR --- */
+        #modeIndicator {
+            position: absolute;
+            bottom: 120px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.75);
+            border: 1px solid rgba(0, 180, 255, 0.2);
+            padding: 12px 32px;
+            border-radius: 4px;
+            backdrop-filter: blur(8px);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
 
-.character-color {
-    height: 8px;
-    border-radius: 8px;
-    margin-bottom: 12px;
-}
+        #modeLabel {
+            font-size: 11px;
+            color: #889;
+            letter-spacing: 4px;
+        }
 
-.character-name {
-    font-size: 17px;
-    font-weight: bold;
-}
+        #modeName {
+            font-size: 26px;
+            font-weight: 900;
+            letter-spacing: 6px;
+            transition: color 0.3s;
+        }
 
-.character-role {
-    color: #8f9fbe;
-    font-size: 12px;
-    margin-top: 5px;
-}
+        #modeName.robot {
+            color: #4cf;
+            text-shadow: 0 0 30px rgba(60, 200, 255, 0.4);
+        }
+        #modeName.vehicle {
+            color: #f84;
+            text-shadow: 0 0 30px rgba(255, 120, 50, 0.4);
+        }
 
-.start {
-    width: 100%;
-    border: 0;
-    border-radius: 12px;
-    padding: 16px;
-    margin-top: 20px;
-    background: #ffd83d;
-    color: #111;
-    font-size: 20px;
-    font-weight: bold;
-    cursor: pointer;
-}
+        #modePrompt {
+            font-size: 10px;
+            color: #556;
+            margin-top: 4px;
+            letter-spacing: 1px;
+        }
 
-.start:hover {
-    background: #ffe878;
-}
+        /* --- COMBINER METER --- */
+        #combinerContainer {
+            position: absolute;
+            bottom: 40px;
+            right: 40px;
+            width: 160px;
+        }
 
-/* ================= HUD ================= */
+        #combinerLabel {
+            font-size: 9px;
+            color: #667;
+            letter-spacing: 3px;
+            text-align: right;
+            margin-bottom: 4px;
+        }
 
-#hud {
-    position: fixed;
-    inset: 0;
-    z-index: 5;
-    pointer-events: none;
-    display: none;
-}
+        #combinerBar {
+            width: 100%;
+            height: 6px;
+            background: #1a1a2a;
+            border-radius: 3px;
+            overflow: hidden;
+            border: 1px solid #2a2a3a;
+        }
 
-.panel {
-    background: rgba(5, 10, 27, 0.9);
-    border: 1px solid #30405f;
-    border-radius: 12px;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.35);
-}
+        #combinerFill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #ff4444, #ff8800, #ffcc00);
+            border-radius: 3px;
+            transition: width 0.2s;
+            box-shadow: 0 0 20px rgba(255, 100, 0, 0.3);
+        }
 
-#stats {
-    position: absolute;
-    left: 15px;
-    top: 15px;
-    width: 280px;
-    padding: 15px;
-}
+        #combinerStatus {
+            font-size: 8px;
+            color: #889;
+            text-align: right;
+            margin-top: 3px;
+            letter-spacing: 2px;
+        }
 
-.game-title {
-    font-weight: bold;
-    color: #ffd83d;
-    margin-bottom: 10px;
-}
+        /* --- STATUS MESSAGES --- */
+        #statusMessage {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 48px;
+            font-weight: 900;
+            letter-spacing: 8px;
+            opacity: 0;
+            transition: all 0.5s ease;
+            text-shadow: 0 0 60px rgba(255, 200, 0, 0.2);
+            pointer-events: none;
+        }
 
-.label {
-    font-size: 11px;
-    color: #9caccc;
-    margin-top: 5px;
-}
+        #statusMessage.show {
+            opacity: 1;
+            transform: translate(-50%, -60%);
+        }
 
-.bar {
-    height: 12px;
-    background: #1a2035;
-    border-radius: 20px;
-    overflow: hidden;
-    margin-top: 5px;
-    margin-bottom: 8px;
-}
+        /* --- SCANLINE EFFECT --- */
+        #scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 20;
+            background: repeating-linear-gradient(0deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(0, 0, 0, 0.03) 2px,
+                    rgba(0, 0, 0, 0.03) 4px);
+        }
 
-.hp-bar {
-    height: 100%;
-    background: linear-gradient(90deg, #db3048, #ff6a76);
-}
+        /* --- GLITCH CORNER --- */
+        #vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+            background: radial-gradient(ellipse at center, transparent 60%, rgba(0, 0, 0, 0.6) 100%);
+        }
 
-.energy-bar {
-    height: 100%;
-    background: linear-gradient(90deg, #1dafff, #61efff);
-}
+        /* --- CONTROLS HELP --- */
+        #controlsHelp {
+            position: absolute;
+            bottom: 40px;
+            left: 40px;
+            font-size: 10px;
+            color: #445;
+            letter-spacing: 1px;
+            line-height: 1.8;
+        }
 
-#mode-box {
-    position: absolute;
-    right: 15px;
-    top: 15px;
-    padding: 15px;
-    text-align: right;
-}
+        #controlsHelp span {
+            color: #8af;
+            background: rgba(0, 150, 255, 0.08);
+            padding: 2px 10px;
+            border: 1px solid rgba(0, 150, 255, 0.1);
+            border-radius: 2px;
+            font-weight: 700;
+        }
 
-#mode {
-    font-size: 28px;
-    font-weight: bold;
-    color: #59eaff;
-}
-
-#message {
-    position: absolute;
-    top: 15%;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 32px;
-    font-weight: bold;
-    color: #ffd83d;
-    text-shadow: 0 0 15px black;
-    opacity: 0;
-}
-
-#help {
-    position: absolute;
-    bottom: 15px;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 10px 16px;
-    color: #aab8d4;
-    font-size: 12px;
-    white-space: nowrap;
-}
-
-#crosshair {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: 30px;
-    height: 30px;
-    transform: translate(-50%, -50%);
-}
-
-#crosshair::before {
-    content: "";
-    position: absolute;
-    left: 14px;
-    top: 0;
-    width: 2px;
-    height: 30px;
-    background: white;
-}
-
-#crosshair::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 14px;
-    width: 30px;
-    height: 2px;
-    background: white;
-}
-
-/* ================= GAME OVER ================= */
-
-#gameover {
-    position: fixed;
-    inset: 0;
-    z-index: 20;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0,0,0,0.82);
-}
-
-.gameover-box {
-    padding: 35px;
-    text-align: center;
-}
-
-.gameover-box h1 {
-    color: #ff5264;
-}
-
-.restart {
-    border: 0;
-    background: #ffd83d;
-    padding: 13px 25px;
-    border-radius: 10px;
-    font-weight: bold;
-    cursor: pointer;
-}
-</style>
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            #topBar { padding: 12px 16px; flex-direction: column; gap: 6px; }
+            #factionName { font-size: 10px; }
+            #sparkValue { font-size: 16px; }
+            #modeIndicator { bottom: 100px; padding: 8px 18px; }
+            #modeName { font-size: 18px; }
+            #combinerContainer { bottom: 20px; right: 20px; width: 120px; }
+            #controlsHelp { display: none; }
+            #statusMessage { font-size: 28px; }
+        }
+    </style>
 </head>
-
 <body>
 
-<canvas id="game"></canvas>
+    <!-- ===== CANVAS ===== -->
+    <canvas id="gameCanvas"></canvas>
 
-<!-- ================= MENU ================= -->
-
-<div id="menu">
-    <div class="menu-box">
-
-        <div class="title">CYBER BATTLE</div>
-
-        <div class="subtitle">
-            Choose your Autobot
+    <!-- ===== HUD ===== -->
+    <div id="hud">
+        <!-- Top Bar -->
+        <div id="topBar">
+            <div id="factionDisplay">
+                <div id="factionIcon">⚡</div>
+                <div>
+                    <div id="factionName">AUTOBOT · LEGACY</div>
+                    <div style="font-size:9px;color:#445;letter-spacing:1px;">CYBERTRONIAN</div>
+                </div>
+            </div>
+            <div id="sparkDisplay">
+                <div id="sparkLabel">⚡ SPARK ENERGY</div>
+                <div id="sparkValue">100%</div>
+            </div>
         </div>
 
-        <div class="characters" id="characters"></div>
-
-        <button class="start" onclick="startGame()">
-            START BATTLE
-        </button>
-
-    </div>
-</div>
-
-<!-- ================= HUD ================= -->
-
-<div id="hud">
-
-    <div id="stats" class="panel">
-
-        <div class="game-title">
-            TRANSFORMERS: CYBER BATTLE
+        <!-- Mode Indicator -->
+        <div id="modeIndicator">
+            <div id="modeLabel">▼ MORPH STATE ▼</div>
+            <div id="modeName" class="robot">ROBOT</div>
+            <div id="modePrompt">[ SPACE ] to Morph · [ CLICK ] to Attack</div>
         </div>
 
-        <div class="label">HEALTH</div>
-
-        <div class="bar">
-            <div id="hpBar" class="hp-bar"></div>
+        <!-- Combiner Meter -->
+        <div id="combinerContainer">
+            <div id="combinerLabel">◈ COMBINER CHARGE</div>
+            <div id="combinerBar"><div id="combinerFill"></div></div>
+            <div id="combinerStatus">0% · INACTIVE</div>
         </div>
 
-        <div class="label">ENERGY</div>
+        <!-- Status Message -->
+        <div id="statusMessage">⚡ MORPH</div>
 
-        <div class="bar">
-            <div id="energyBar" class="energy-bar"></div>
+        <!-- Controls Help -->
+        <div id="controlsHelp">
+            <span>SPACE</span> Morph &nbsp;|&nbsp; <span>CLICK</span> Attack &nbsp;|&nbsp; <span>R</span> Reset
         </div>
-
-        <div id="numbers">
-            Score: 0<br>
-            XP: 0<br>
-            Wave: 1
-        </div>
-
     </div>
 
-    <div id="mode-box" class="panel">
+    <!-- ===== SCANLINES & VIGNETTE ===== -->
+    <div id="scanlines"></div>
+    <div id="vignette"></div>
 
-        <div class="label">
-            FORM
-        </div>
+    <!-- ===== GAME SCRIPT ===== -->
+    <script>
+        // ============================================================
+        //  TRANSFORMERS: LEGACY WARS — Browser Prototype
+        //  A playable demo with fluid morph, enemies, destruction, HUD
+        // ============================================================
 
-        <div id="mode">
-            ROBOT
-        </div>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
 
-        <div id="characterName">
-            Optimus
-        </div>
+        // --- UI Elements ---
+        const modeNameEl = document.getElementById('modeName');
+        const modePromptEl = document.getElementById('modePrompt');
+        const sparkValueEl = document.getElementById('sparkValue');
+        const combinerFill = document.getElementById('combinerFill');
+        const combinerStatus = document.getElementById('combinerStatus');
+        const statusMsg = document.getElementById('statusMessage');
 
-    </div>
+        // --- Sizing ---
+        let W, H;
 
-    <div id="crosshair"></div>
+        function resize() {
+            W = canvas.width = window.innerWidth;
+            H = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
 
-    <div id="message">
-        TRANSFORM!
-    </div>
+        // ============================================================
+        //  GAME STATE
+        // ============================================================
+        const state = {
+            mode: 'robot', // 'robot' | 'vehicle'
+            spark: 100,
+            maxSpark: 100,
+            combinerCharge: 0,
+            maxCombiner: 100,
+            isCombinerReady: false,
+            score: 0,
+            enemies: [],
+            buildings: [],
+            particles: [],
+            projectiles: [],
+            player: {
+                x: W / 2,
+                y: H / 2,
+                radius: 28,
+                targetX: W / 2,
+                targetY: H / 2,
+                speed: 4,
+                angle: 0,
+                glow: 0,
+            },
+            shake: 0,
+            comboCount: 0,
+            comboTimer: 0,
+            morphCooldown: 0,
+            attackCooldown: 0,
+            gameTime: 0,
+            enemySpawnTimer: 0,
+            destroyedBuildings: 0,
+        };
 
-    <div id="help" class="panel">
-        WASD / ARROWS = Move &nbsp; | &nbsp;
-        MOUSE = Aim &nbsp; | &nbsp;
-        CLICK / SPACE = Shoot &nbsp; | &nbsp;
-        T = Transform &nbsp; | &nbsp;
-        R = Respawn
-    </div>
+        // ============================================================
+        //  BUILDINGS (destructible environment)
+        // ============================================================
+        function spawnBuildings() {
+            state.buildings = [];
+            const cols = 8;
+            const rows = 5;
+            const spacingX = W / (cols + 1);
+            const spacingY = H / (rows + 2);
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    const x = spacingX * (c + 1) + (Math.random() - 0.5) * 60;
+                    const y = spacingY * (r + 1) + (Math.random() - 0.5) * 40;
+                    const w = 30 + Math.random() * 50;
+                    const h = 40 + Math.random() * 80;
+                    const hp = 2 + Math.floor(Math.random() * 3);
+                    state.buildings.push({
+                        x,
+                        y,
+                        w,
+                        h,
+                        hp,
+                        maxHp: hp,
+                        color: `hsl(${200 + Math.random() * 40}, 30%, ${20 + Math.random() * 25}%)`,
+                        destroyed: false,
+                        debris: [],
+                    });
+                }
+            }
+        }
+        spawnBuildings();
 
-</div>
+        // ============================================================
+        //  ENEMIES
+        // ============================================================
+        function spawnEnemy() {
+            const side = Math.floor(Math.random() * 4);
+            let x, y;
+            const pad = 60;
+            if (side === 0) { x = -pad;
+                y = Math.random() * H; } else if (side === 1) { x = W + pad;
+                y = Math.random() * H; } else if (side === 2) { x = Math.random() * W;
+                y = -pad; } else { x = Math.random() * W;
+                y = H + pad; }
 
-<!-- ================= GAME OVER ================= -->
+            const types = ['scout', 'soldier', 'tank'];
+            const type = types[Math.floor(Math.random() * types.length)];
+            const hp = type === 'scout' ? 20 : type === 'soldier' ? 40 : 70;
+            const speed = type === 'scout' ? 1.8 : type === 'soldier' ? 1.2 : 0.7;
+            const radius = type === 'scout' ? 18 : type === 'soldier' ? 24 : 32;
 
-<div id="gameover">
+            state.enemies.push({
+                x,
+                y,
+                radius,
+                hp,
+                maxHp: hp,
+                type,
+                speed,
+                angle: 0,
+                hitTimer: 0,
+                attackCooldown: 0,
+                state: 'chase', // 'chase' | 'attack'
+                color: type === 'scout' ? '#ff4466' : type === 'soldier' ? '#ff8844' : '#cc2244',
+            });
+        }
 
-    <div class="gameover-box panel">
+        // ============================================================
+        //  PARTICLES
+        // ============================================================
+        function emitParticles(x, y, count, color, speed = 5, life = 40) {
+            for (let i = 0; i < count; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const spd = Math.random() * speed + 1;
+                state.particles.push({
+                    x,
+                    y,
+                    vx: Math.cos(angle) * spd,
+                    vy: Math.sin(angle) * spd,
+                    life: life * (0.5 + Math.random() * 0.5),
+                    maxLife: life,
+                    radius: 2 + Math.random() * 4,
+                    color: color,
+                });
+            }
+        }
 
-        <h1>MISSION FAILED</h1>
+        function emitExplosion(x, y, size = 1) {
+            const colors = ['#ff8844', '#ffcc44', '#ff4400', '#ffaa66', '#ffffff'];
+            for (let i = 0; i < 40 * size; i++) {
+                const c = colors[Math.floor(Math.random() * colors.length)];
+                emitParticles(x, y, 1, c, 8 * size, 30 * size);
+            }
+            state.shake = 8 * size;
+        }
 
-        <p id="finalScore"></p>
+        // ============================================================
+        //  PROJECTILES (player attacks)
+        // ============================================================
+        function fireProjectile(targetX, targetY) {
+            if (state.attackCooldown > 0) return;
+            const p = state.player;
+            const dx = targetX - p.x;
+            const dy = targetY - p.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 10) return;
 
-        <button class="restart" onclick="respawn()">
-            RESPAWN
-        </button>
+            const speed = 12;
+            const vx = (dx / dist) * speed;
+            const vy = (dy / dist) * speed;
 
-    </div>
-
-</div>
-
-<script>
-
-/* =========================================================
-   CANVAS
-========================================================= */
-
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
-
-let width = window.innerWidth;
-let height = window.innerHeight;
-
-function resize() {
-
-    width = window.innerWidth;
-    height = window.innerHeight;
-
-    canvas.width = width;
-    canvas.height = height;
-}
-
-window.addEventListener("resize", resize);
-
-resize();
-
-/* =========================================================
-   CHARACTERS
-========================================================= */
-
-const characters = [
-
-    {
-        name: "Optimus",
-        role: "Leader",
-        color: "#d72d3e",
-        accent: "#2673b5",
-        hp: 160,
-        damage: 28,
-        speed: 3
-    },
-
-    {
-        name: "Bumblebee",
-        role: "Scout",
-        color: "#f4c52f",
-        accent: "#202633",
-        hp: 110,
-        damage: 20,
-        speed: 4
-    },
-
-    {
-        name: "Grimlock",
-        role: "Dino",
-        color: "#747f8e",
-        accent: "#d3a92e",
-        hp: 200,
-        damage: 34,
-        speed: 2.3
-    },
-
-    {
-        name: "Mirage",
-        role: "Speedster",
-        color: "#45c6df",
-        accent: "#eef4f5",
-        hp: 115,
-        damage: 22,
-        speed: 4.2
-    },
-
-    {
-        name: "Arcee",
-        role: "Warrior",
-        color: "#d86a9a",
-        accent: "#e0ebef",
-        hp: 125,
-        damage: 24,
-        speed: 3.5
-    },
-
-    {
-        name: "Jazz",
-        role: "Specialist",
-        color: "#e7eef0",
-        accent: "#556ad1",
-        hp: 125,
-        damage: 26,
-        speed: 3.4
-    },
-
-    {
-        name: "Ratchet",
-        role: "Medic",
-        color: "#e4e5db",
-        accent: "#ce3b43",
-        hp: 155,
-        damage: 21,
-        speed: 2.8
-    },
-
-    {
-        name: "Wheeljack",
-        role: "Engineer",
-        color: "#e8eeea",
-        accent: "#43805d",
-        hp: 140,
-        damage: 27,
-        speed: 3.1
-    },
-
-    {
-        name: "Hot Rod",
-        role: "Hothead",
-        color: "#8148c5",
-        accent: "#ecc633",
-        hp: 130,
-        damage: 30,
-        speed: 3.7
-    },
-
-    {
-        name: "Ultra Magnus",
-        role: "Commander",
-        color: "#dbe3ec",
-        accent: "#315ba7",
-        hp: 185,
-        damage: 32,
-        speed: 2.7
-    }
-
-];
-
-let selectedCharacter = 0;
-
-/* CREATE CHARACTER BUTTONS */
-
-const characterContainer =
-    document.getElementById("characters");
-
-characters.forEach((character, index) => {
-
-    const button = document.createElement("button");
-
-    button.className = "character";
-
-    button.innerHTML = `
-
-        <div
-            class="character-color"
-            style="
-                background:
-                linear-gradient(
-                    90deg,
-                    ${character.color},
-                    ${character.accent}
-                )
-            "
-        ></div>
-
-        <div class="character-name">
-            ${index === 9 ? "0" : index + 1} —
-            ${character.name}
-        </div>
-
-        <div class="character-role">
-            ${character.role}
-            <br>
-            HP ${character.hp}
-            • DMG ${character.damage}
-            • SPD ${character.speed}
-        </div>
-
-    `;
-
-    button.onclick = () => {
-
-        selectedCharacter = index;
-
-        document
-            .querySelectorAll(".character")
-            .forEach((element, i) => {
-
-                element.classList.toggle(
-                    "selected",
-                    i === index
-                );
-
+            state.projectiles.push({
+                x: p.x,
+                y: p.y,
+                vx,
+                vy,
+                radius: 6,
+                life: 80,
+                damage: state.mode === 'robot' ? 15 : 25,
+                trail: [],
             });
 
-    };
-
-    characterContainer.appendChild(button);
-
-});
-
-/* SELECT FIRST */
-
-document
-    .querySelectorAll(".character")[0]
-    .classList.add("selected");
-
-/* =========================================================
-   GAME STATE
-========================================================= */
-
-let player;
-
-let enemies = [];
-
-let bullets = [];
-
-let particles = [];
-
-let score = 0;
-
-let xp = 0;
-
-let wave = 1;
-
-let gameRunning = false;
-
-let gameOver = false;
-
-let spawnTimer = 0;
-
-let fireCooldown = 0;
-
-/* =========================================================
-   INPUT
-========================================================= */
-
-const keys = {};
-
-let mouseX = width / 2;
-
-let mouseY = height / 2;
-
-let mouseDown = false;
-
-window.addEventListener("keydown", event => {
-
-    keys[event.key.toLowerCase()] = true;
-
-    if (event.key.toLowerCase() === "t") {
-
-        transform();
-
-    }
-
-    if (event.key.toLowerCase() === "r") {
-
-        respawn();
-
-    }
-
-});
-
-window.addEventListener("keyup", event => {
-
-    keys[event.key.toLowerCase()] = false;
-
-});
-
-window.addEventListener("mousemove", event => {
-
-    mouseX = event.clientX;
-
-    mouseY = event.clientY;
-
-});
-
-window.addEventListener("mousedown", () => {
-
-    mouseDown = true;
-
-});
-
-window.addEventListener("mouseup", () => {
-
-    mouseDown = false;
-
-});
-
-/* =========================================================
-   START GAME
-========================================================= */
-
-function startGame() {
-
-    document.getElementById("menu").style.display = "none";
-
-    document.getElementById("hud").style.display = "block";
-
-    gameRunning = true;
-
-    respawn();
-
-}
-
-/* =========================================================
-   RESPAWN
-========================================================= */
-
-function respawn() {
-
-    const character = characters[selectedCharacter];
-
-    player = {
-
-        x: 0,
-
-        y: 0,
-
-        angle: 0,
-
-        health: character.hp,
-
-        maxHealth: character.hp,
-
-        energy: 100,
-
-        mode: "robot",
-
-        speed: character.speed,
-
-        damage: character.damage,
-
-        character: character
-
-    };
-
-    enemies = [];
-
-    bullets = [];
-
-    particles = [];
-
-    score = 0;
-
-    xp = 0;
-
-    wave = 1;
-
-    spawnTimer = 0;
-
-    gameOver = false;
-
-    document.getElementById("gameover").style.display = "none";
-
-    for (let i = 0; i < 6; i++) {
-
-        spawnEnemy();
-
-    }
-
-}
-
-/* =========================================================
-   TRANSFORMATION
-========================================================= */
-
-function transform() {
-
-    if (!player || gameOver) return;
-
-    if (player.energy < 15) return;
-
-    player.energy -= 15;
-
-    if (player.mode === "robot") {
-
-        player.mode = "vehicle";
-
-        player.speed = player.character.speed * 1.5;
-
-        showMessage("VEHICLE MODE");
-
-    }
-
-    else if (player.mode === "vehicle") {
-
-        player.mode = "jet";
-
-        player.speed = player.character.speed * 2;
-
-        showMessage("JET MODE");
-
-    }
-
-    else {
-
-        player.mode = "robot";
-
-        player.speed = player.character.speed;
-
-        showMessage("ROBOT MODE");
-
-    }
-
-}
-
-/* =========================================================
-   MESSAGE
-========================================================= */
-
-let messageTimeout;
-
-function showMessage(text) {
-
-    const message =
-        document.getElementById("message");
-
-    message.innerText = text;
-
-    message.style.opacity = "1";
-
-    clearTimeout(messageTimeout);
-
-    messageTimeout = setTimeout(() => {
-
-        message.style.opacity = "0";
-
-    }, 700);
-
-}
-
-/* =========================================================
-   ENEMIES
-========================================================= */
-
-function spawnEnemy() {
-
-    const distance = 12 + Math.random() * 12;
-
-    const angle = Math.random() * Math.PI * 2;
-
-    const type = Math.random();
-
-    let enemy;
-
-    if (type < 0.7) {
-
-        enemy = {
-
-            x: Math.cos(angle) * distance,
-
-            y: Math.sin(angle) * distance,
-
-            health: 50 + wave * 5,
-
-            speed: 1.5,
-
-            damage: 8
-
-        };
-
-    }
-
-    else if (type < 0.9) {
-
-        enemy = {
-
-            x: Math.cos(angle) * distance,
-
-            y: Math.sin(angle) * distance,
-
-            health: 70 + wave * 7,
-
-            speed: 2,
-
-            damage: 11
-
-        };
-
-    }
-
-    else {
-
-        enemy = {
-
-            x: Math.cos(angle) * distance,
-
-            y: Math.sin(angle) * distance,
-
-            health: 110 + wave * 8,
-
-            speed: 1,
-
-            damage: 18
-
-        };
-
-    }
-
-    enemy.maxHealth = enemy.health;
-
-    enemies.push(enemy);
-
-}
-
-/* =========================================================
-   SHOOTING
-========================================================= */
-
-function shoot() {
-
-    if (!player || gameOver) return;
-
-    if (player.energy < 4) return;
-
-    if (fireCooldown > 0) return;
-
-    player.energy -= 4;
-
-    fireCooldown =
-        player.mode === "jet"
-        ? 5
-        : 9;
-
-    const angle = player.angle;
-
-    bullets.push({
-
-        x: player.x,
-
-        y: player.y,
-
-        vx: Math.cos(angle) * 16,
-
-        vy: Math.sin(angle) * 16,
-
-        damage:
-            player.damage *
-            (player.mode === "jet" ? 1.25 : 1),
-
-        life: 100,
-
-        playerBullet: true
-
-    });
-
-}
-
-/* =========================================================
-   UPDATE
-========================================================= */
-
-function update() {
-
-    if (!gameRunning || gameOver) return;
-
-    const dt = 1 / 60;
-
-    /* MOVEMENT */
-
-    let dx = 0;
-    let dy = 0;
-
-    if (
-        keys["w"] ||
-        keys["arrowup"]
-    ) dy -= 1;
-
-    if (
-        keys["s"] ||
-        keys["arrowdown"]
-    ) dy += 1;
-
-    if (
-        keys["a"] ||
-        keys["arrowleft"]
-    ) dx -= 1;
-
-    if (
-        keys["d"] ||
-        keys["arrowright"]
-    ) dx += 1;
-
-    if (dx !== 0 || dy !== 0) {
-
-        const length =
-            Math.sqrt(dx * dx + dy * dy);
-
-        player.x +=
-            dx / length *
-            player.speed *
-            dt *
-            4;
-
-        player.y +=
-            dy / length *
-            player.speed *
-            dt *
-            4;
-
-    }
-
-    /* AIM */
-
-    player.angle =
-        Math.atan2(
-            mouseY - height / 2,
-            mouseX - width / 2
-        );
-
-    /* SHOOT */
-
-    fireCooldown =
-        Math.max(0, fireCooldown - 1);
-
-    if (
-        mouseDown ||
-        keys[" "]
-    ) {
-
-        shoot();
-
-    }
-
-    /* ENERGY */
-
-    player.energy =
-        Math.min(
-            100,
-            player.energy + 0.05
-        );
-
-    /* SPAWN */
-
-    spawnTimer--;
-
-    if (spawnTimer <= 0) {
-
-        spawnTimer =
-            Math.max(20, 90 - wave * 5);
-
-        if (enemies.length < 5 + wave) {
-
-            spawnEnemy();
-
+            state.attackCooldown = state.mode === 'robot' ? 12 : 20;
+            emitParticles(p.x, p.y, 8, '#4cf', 3, 15);
         }
 
-    }
+        // ============================================================
+        //  UPDATE
+        // ============================================================
+        function update() {
+            state.gameTime++;
 
-    /* WAVE */
-
-    if (
-        score >=
-        wave * 500
-    ) {
-
-        wave++;
-
-        showMessage(
-            "WAVE " + wave
-        );
-
-    }
-
-    /* ENEMIES */
-
-    enemies.forEach(enemy => {
-
-        const dx =
-            player.x - enemy.x;
-
-        const dy =
-            player.y - enemy.y;
-
-        const distance =
-            Math.sqrt(
-                dx * dx +
-                dy * dy
-            );
-
-        if (distance > 1.5) {
-
-            enemy.x +=
-                dx / distance *
-                enemy.speed *
-                dt *
-                4;
-
-            enemy.y +=
-                dy / distance *
-                enemy.speed *
-                dt *
-                4;
-
-        }
-
-        if (distance < 1.6) {
-
-            player.health -=
-                enemy.damage * dt;
-
-        }
-
-    });
-
-    /* BULLETS */
-
-    bullets.forEach(bullet => {
-
-        bullet.x +=
-            bullet.vx * dt;
-
-        bullet.y +=
-            bullet.vy * dt;
-
-        bullet.life--;
-
-    });
-
-    /* COLLISIONS */
-
-    bullets.forEach(bullet => {
-
-        enemies.forEach(enemy => {
-
-            const dx =
-                bullet.x -
-                enemy.x;
-
-            const dy =
-                bullet.y -
-                enemy.y;
-
-            const distance =
-                Math.sqrt(
-                    dx * dx +
-                    dy * dy
-                );
-
-            if (
-                distance < 1.2 &&
-                bullet.playerBullet
-            ) {
-
-                enemy.health -=
-                    bullet.damage;
-
-                bullet.life = 0;
-
-                createExplosion(
-                    enemy.x,
-                    enemy.y
-                );
-
-                if (enemy.health <= 0) {
-
-                    score += 100;
-
-                    xp += 10;
-
-                    createExplosion(
-                        enemy.x,
-                        enemy.y,
-                        20
-                    );
-
-                }
-
+            // -- Player movement (follow mouse) --
+            const p = state.player;
+            const dx = p.targetX - p.x;
+            const dy = p.targetY - p.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist > 2) {
+                const moveSpeed = Math.min(state.mode === 'vehicle' ? p.speed * 2.2 : p.speed, dist);
+                p.x += (dx / dist) * moveSpeed;
+                p.y += (dy / dist) * moveSpeed;
+                p.angle = Math.atan2(dy, dx);
             }
 
-        });
-
-    });
-
-    /* REMOVE DEAD */
-
-    enemies =
-        enemies.filter(
-            enemy => enemy.health > 0
-        );
-
-    bullets =
-        bullets.filter(
-            bullet => bullet.life > 0
-        );
-
-    /* PARTICLES */
-
-    particles.forEach(particle => {
-
-        particle.x += particle.vx;
-
-        particle.y += particle.vy;
-
-        particle.life--;
-
-    });
-
-    particles =
-        particles.filter(
-            particle => particle.life > 0
-        );
-
-    /* GAME OVER */
-
-    if (player.health <= 0) {
-
-        player.health = 0;
-
-        gameOver = true;
-
-        document.getElementById(
-            "gameover"
-        ).style.display = "flex";
-
-        document.getElementById(
-            "finalScore"
-        ).innerText =
-            "Score: " +
-            score +
-            " | Wave: " +
-            wave +
-            " | XP: " +
-            xp;
-
-    }
-
-}
-
-/* =========================================================
-   EXPLOSIONS
-========================================================= */
-
-function createExplosion(
-    x,
-    y,
-    amount = 7
-) {
-
-    for (
-        let i = 0;
-        i < amount;
-        i++
-    ) {
-
-        const angle =
-            Math.random() *
-            Math.PI * 2;
-
-        const speed =
-            Math.random() * 0.15;
-
-        particles.push({
-
-            x: x,
-
-            y: y,
-
-            vx: Math.cos(angle) * speed,
-
-            vy: Math.sin(angle) * speed,
-
-            life:
-                20 +
-                Math.random() * 25
-
-        });
-
-    }
-
-}
-
-/* =========================================================
-   DRAW
-========================================================= */
-
-function draw() {
-
-    /* BACKGROUND */
-
-    ctx.fillStyle = "#060a18";
-
-    ctx.fillRect(
-        0,
-        0,
-        width,
-        height
-    );
-
-    /* GRID */
-
-    drawGrid();
-
-    if (!player) return;
-
-    /* ENEMIES */
-
-    enemies.forEach(
-        drawEnemy
-    );
-
-    /* BULLETS */
-
-    bullets.forEach(
-        drawBullet
-    );
-
-    /* PARTICLES */
-
-    particles.forEach(
-        drawParticle
-    );
-
-    /* PLAYER */
-
-    drawPlayer();
-
-}
-
-/* =========================================================
-   GRID
-========================================================= */
-
-function drawGrid() {
-
-    const grid = 60;
-
-    ctx.strokeStyle =
-        "rgba(40,80,130,0.18)";
-
-    ctx.lineWidth = 1;
-
-    const offsetX =
-        width / 2 -
-        player.x * grid;
-
-    const offsetY =
-        height / 2 -
-        player.y * grid;
-
-    for (
-        let x = offsetX % grid;
-        x < width;
-        x += grid
-    ) {
-
-        ctx.beginPath();
-
-        ctx.moveTo(x, 0);
-
-        ctx.lineTo(x, height);
-
-        ctx.stroke();
-
-    }
-
-    for (
-        let x = offsetX % grid;
-        x > 0;
-        x -= grid
-    ) {
-
-        ctx.beginPath();
-
-        ctx.moveTo(x, 0);
-
-        ctx.lineTo(x, height);
-
-        ctx.stroke();
-
-    }
-
-    for (
-        let y = offsetY % grid;
-        y < height;
-        y += grid
-    ) {
-
-        ctx.beginPath();
-
-        ctx.moveTo(0, y);
-
-        ctx.lineTo(width, y);
-
-        ctx.stroke();
-
-    }
-
-    for (
-        let y = offsetY % grid;
-        y > 0;
-        y -= grid
-    ) {
-
-        ctx.beginPath();
-
-        ctx.moveTo(0, y);
-
-        ctx.lineTo(width, y);
-
-        ctx.stroke();
-
-    }
-
-}
-
-/* =========================================================
-   WORLD POSITION
-========================================================= */
-
-function screenPosition(x, y) {
-
-    const scale = 55;
-
-    return {
-
-        x:
-            width / 2 +
-            (x - player.x) *
-            scale,
-
-        y:
-            height / 2 +
-            (y - player.y) *
-            scale
-
-    };
-
-}
-
-/* =========================================================
-   DRAW PLAYER
-========================================================= */
-
-function drawPlayer() {
-
-    const pos =
-        screenPosition(
-            player.x,
-            player.y
-        );
-
-    ctx.save();
-
-    ctx.translate(
-        pos.x,
-        pos.y
-    );
-
-    ctx.rotate(
-        player.angle
-    );
-
-    if (
-        player.mode ===
-        "robot"
-    ) {
-
-        drawRobot(
-            player.character
-        );
-
-    }
-
-    else if (
-        player.mode ===
-        "vehicle"
-    ) {
-
-        drawVehicle(
-            player.character
-        );
-
-    }
-
-    else {
-
-        drawJet(
-            player.character
-        );
-
-    }
-
-    ctx.restore();
-
-}
-
-/* =========================================================
-   ROBOT
-========================================================= */
-
-function drawRobot(character) {
-
-    /* glow */
-
-    ctx.shadowBlur = 20;
-
-    ctx.shadowColor =
-        character.accent;
-
-    /* legs */
-
-    ctx.fillStyle =
-        character.accent;
-
-    ctx.fillRect(
-        -18,
-        15,
-        12,
-        28
-    );
-
-    ctx.fillRect(
-        6,
-        15,
-        12,
-        28
-    );
-
-    /* feet */
-
-    ctx.fillRect(
-        -23,
-        37,
-        17,
-        7
-    );
-
-    ctx.fillRect(
-        6,
-        37,
-        17,
-        7
-    );
-
-    /* body */
-
-    ctx.fillStyle =
-        character.color;
-
-    roundRect(
-        -26,
-        -20,
-        52,
-        42,
-        7
-    );
-
-    /* chest */
-
-    ctx.fillStyle =
-        character.accent;
-
-    roundRect(
-        -18,
-        -10,
-        36,
-        18,
-        4
-    );
-
-    /* arms */
-
-    ctx.fillStyle =
-        character.color;
-
-    ctx.fillRect(
-        -39,
-        -14,
-        12,
-        34
-    );
-
-    ctx.fillRect(
-        27,
-        -14,
-        12,
-        34
-    );
-
-    /* head */
-
-    ctx.fillStyle =
-        character.color;
-
-    roundRect(
-        -18,
-        -42,
-        36,
-        23,
-        6
-    );
-
-    /* visor */
-
-    ctx.fillStyle =
-        "#61eaff";
-
-    ctx.fillRect(
-        -11,
-        -34,
-        22,
-        5
-    );
-
-    /* center emblem */
-
-    ctx.fillStyle =
-        "#ffffff";
-
-    ctx.beginPath();
-
-    ctx.moveTo(0, -5);
-    ctx.lineTo(6, 2);
-    ctx.lineTo(0, 7);
-    ctx.lineTo(-6, 2);
-    ctx.closePath();
-
-    ctx.fill();
-
-    ctx.shadowBlur = 0;
-
-}
-
-/* =========================================================
-   VEHICLE
-========================================================= */
-
-function drawVehicle(character) {
-
-    ctx.shadowBlur = 20;
-
-    ctx.shadowColor =
-        character.accent;
-
-    /* body */
-
-    ctx.fillStyle =
-        character.color;
-
-    roundRect(
-        -48,
-        -20,
-        96,
-        40,
-        10
-    );
-
-    /* windows */
-
-    ctx.fillStyle =
-        "#18253a";
-
-    ctx.fillRect(
-        -15,
-        -15,
-        35,
-        12
-    );
-
-    /* front */
-
-    ctx.fillStyle =
-        character.accent;
-
-    ctx.fillRect(
-        30,
-        -10,
-        18,
-        20
-    );
-
-    /* wheels */
-
-    ctx.fillStyle =
-        "#090d17";
-
-    circle(
-        -27,
-        -22,
-        10
-    );
-
-    circle(
-        27,
-        -22,
-        10
-    );
-
-    circle(
-        -27,
-        22,
-        10
-    );
-
-    circle(
-        27,
-        22,
-        10
-    );
-
-    ctx.shadowBlur = 0;
-
-}
-
-/* =========================================================
-   JET
-========================================================= */
-
-function drawJet(character) {
-
-    ctx.shadowBlur = 25;
-
-    ctx.shadowColor =
-        "#52eaff";
-
-    /* wings */
-
-    ctx.fillStyle =
-        character.accent;
-
-    ctx.beginPath();
-
-    ctx.moveTo(45, 0);
-    ctx.lineTo(-25, -35);
-    ctx.lineTo(-10, 0);
-    ctx.lineTo(-25, 35);
-
-    ctx.closePath();
-
-    ctx.fill();
-
-    /* body */
-
-    ctx.fillStyle =
-        character.color;
-
-    ctx.beginPath();
-
-    ctx.moveTo(55, 0);
-    ctx.lineTo(-20, -12);
-    ctx.lineTo(-30, 0);
-    ctx.lineTo(-20, 12);
-
-    ctx.closePath();
-
-    ctx.fill();
-
-    /* engine */
-
-    ctx.fillStyle =
-        "#65eaff";
-
-    circle(
-        -15,
-        0,
-        6
-    );
-
-    ctx.shadowBlur = 0;
-
-}
-
-/* =========================================================
-   ENEMY
-========================================================= */
-
-function drawEnemy(enemy) {
-
-    const pos =
-        screenPosition(
-            enemy.x,
-            enemy.y
-        );
-
-    ctx.save();
-
-    ctx.translate(
-        pos.x,
-        pos.y
-    );
-
-    ctx.fillStyle =
-        "#8d374d";
-
-    /* body */
-
-    ctx.fillRect(
-        -18,
-        -15,
-        36,
-        32
-    );
-
-    /* head */
-
-    ctx.fillStyle =
-        "#ae4458";
-
-    ctx.fillRect(
-        -13,
-        -30,
-        26,
-        16
-    );
-
-    /* eyes */
-
-    ctx.fillStyle =
-        "#ff475e";
-
-    ctx.fillRect(
-        -8,
-        -25,
-        6,
-        3
-    );
-
-    ctx.fillRect(
-        2,
-        -25,
-        6,
-        3
-    );
-
-    /* arms */
-
-    ctx.fillStyle =
-        "#5c2940";
-
-    ctx.fillRect(
-        -29,
-        -12,
-        10,
-        25
-    );
-
-    ctx.fillRect(
-        19,
-        -12,
-        10,
-        25
-    );
-
-    /* health bar */
-
-    ctx.fillStyle =
-        "#1c2031";
-
-    ctx.fillRect(
-        -25,
-        -38,
-        50,
-        5
-    );
-
-    ctx.fillStyle =
-        "#ff465d";
-
-    ctx.fillRect(
-        -25,
-        -38,
-        50 *
-        Math.max(
-            0,
-            enemy.health /
-            enemy.maxHealth
-        ),
-        5
-    );
-
-    ctx.restore();
-
-}
-
-/* =========================================================
-   BULLET
-========================================================= */
-
-function drawBullet(bullet) {
-
-    const pos =
-        screenPosition(
-            bullet.x,
-            bullet.y
-        );
-
-    ctx.fillStyle =
-        "#63eaff";
-
-    ctx.shadowBlur = 15;
-
-    ctx.shadowColor =
-        "#63eaff";
-
-    ctx.beginPath();
-
-    ctx.arc(
-        pos.x,
-        pos.y,
-        5,
-        0,
-        Math.PI * 2
-    );
-
-    ctx.fill();
-
-    ctx.shadowBlur = 0;
-
-}
-
-/* =========================================================
-   PARTICLE
-========================================================= */
-
-function drawParticle(particle) {
-
-    const pos =
-        screenPosition(
-            particle.x,
-            particle.y
-        );
-
-    ctx.fillStyle =
-        "#ffbd4a";
-
-    ctx.beginPath();
-
-    ctx.arc(
-        pos.x,
-        pos.y,
-        3,
-        0,
-        Math.PI * 2
-    );
-
-    ctx.fill();
-
-}
-
-/* =========================================================
-   HELPERS
-========================================================= */
-
-function roundRect(
-    x,
-    y,
-    width,
-    height,
-    radius
-) {
-
-    ctx.beginPath();
-
-    ctx.roundRect(
-        x,
-        y,
-        width,
-        height,
-        radius
-    );
-
-    ctx.fill();
-
-}
-
-function circle(
-    x,
-    y,
-    radius
-) {
-
-    ctx.beginPath();
-
-    ctx.arc(
-        x,
-        y,
-        radius,
-        0,
-        Math.PI * 2
-    );
-
-    ctx.fill();
-
-}
-
-/* =========================================================
-   HUD
-========================================================= */
-
-function updateHUD() {
-
-    if (!player) return;
-
-    document.getElementById(
-        "hpBar"
-    ).style.width =
-        (
-            player.health /
-            player.maxHealth *
-            100
-        ) + "%";
-
-    document.getElementById(
-        "energyBar"
-    ).style.width =
-        player.energy + "%";
-
-    document.getElementById(
-        "numbers"
-    ).innerHTML =
-
-        "Score: " +
-        score +
-
-        "<br>XP: " +
-        xp +
-
-        "<br>Wave: " +
-        wave;
-
-    document.getElementById(
-        "mode"
-    ).innerText =
-        player.mode.toUpperCase();
-
-    document.getElementById(
-        "characterName"
-    ).innerText =
-        player.character.name;
-
-}
-
-/* =========================================================
-   GAME LOOP
-========================================================= */
-
-function gameLoop() {
-
-    update();
-
-    draw();
-
-    updateHUD();
-
-    requestAnimationFrame(
-        gameLoop
-    );
-
-}
-
-gameLoop();
-
-</script>
-
-</body>
-</html>
+            // Clamp player
+            p.x = Math.max(p.radius, Math.min(W - p.radius, p.x));
+            p.y = Math.max(p.radius, Math.min(H - p.radius, p.y));
+
+            // -- Glow pulse --
+            p.glow = 0.5 + 0.5 * Math.sin(state.gameTime * 0.04);
+
+            // -- Cooldowns --
+            if (state.attackCooldown > 0) state.attackCooldown--;
+            if (state.morphCooldown > 0) state.morphCooldown--;
+            if (state.comboTimer > 0) state.comboTimer--;
+            else state.comboCount = 0;
+
+            // -- Spark regen --
+            if (state.spark < state.maxSpark) {
+                state.spark += 0.04;
+                if (state.spark > state.maxSpark) state.spark = state.maxSpark;
+            }
+
+            // -- Combiner charge (passive) --
+            if (state.combinerCharge < state.maxCombiner) {
+                state.combinerCharge += 0.06;
+                if (state.combinerCharge >= state.maxCombiner) {
+                    state.combinerCharge = state.maxCombiner;
+                    state.isCombinerReady = true;
+                    showStatus('⚡ COMBINER READY');
+                }
+            }
+
+            // -- Enemy spawn --
+            state.enemySpawnTimer--;
+            if (state.enemySpawnTimer <= 0 && state.enemies.length < 12) {
+                spawnEnemy();
+                state.enemySpawnTimer = 60 + Math.random() * 80;
+            }
+
+            // -- Update enemies --
+            for (let i = state.enemies.length - 1; i >= 0; i--) {
+                const e = state.enemies[i];
+                const dx = p.x - e.x;
+                const dy = p.y - e.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+
+                // Chase / attack logic
+                if (dist < e.radius + p.radius + 10) {
+                    // Melee attack on player
+                    if (e.attackCooldown <= 0) {
+                        state.spark = Math.max(0, state.spark - 5);
+                        emitParticles(e.x, e.y, 15, '#ff4444', 4, 20);
+                        state.shake = 4;
+                        e.attackCooldown = 40;
+                        if (state.spark <= 0) {
+                            resetGame();
+                            return;
+                        }
+                    }
+                } else {
+                    // Move toward player
+                    const speed = e.speed * (state.mode === 'vehicle' ? 0.7 : 1);
+                    e.x += (dx / dist) * speed;
+                    e.y += (dy / dist) * speed;
+                }
+
+                if (e.attackCooldown > 0) e.attackCooldown--;
+                if (e.hitTimer > 0) e.hitTimer--;
+
+                // Clamp enemies
+                e.x = Math.max(e.radius, Math.min(W - e.radius, e.x));
+                e.y = Math.max(e.radius, Math.min(H - e.radius, e.y));
+
+                // Enemy vs buildings (collision damage)
+                for (const b of state.buildings) {
+                    if (b.destroyed) continue;
+                    if (e.x > b.x - b.w / 2 && e.x < b.x + b.w / 2 &&
+                        e.y > b.y - b.h / 2 && e.y < b.y + b.h / 2) {
+                        b.hp--;
+                        if (b.hp <= 0) {
+                            b.destroyed = true;
+                            state.destroyedBuildings++;
+                            emitExplosion(b.x, b.y, 0.8);
+                            state.combinerCharge = Math.min(state.maxCombiner, state.combinerCharge + 8);
+                        }
+                        e.x -= (dx / dist) * 3;
+                        e.y -= (dy / dist) * 3;
+                    }
+                }
+
+                // Enemy death
+                if (e.hp <= 0) {
+                    emitExplosion(e.x, e.y, 0.6);
+                    state.score += e.type === 'tank' ? 30 : e.type === 'soldier' ? 20 : 10;
+                    state.combinerCharge = Math.min(state.maxCombiner, state.combinerCharge + 5);
+                    state.spark = Math.min(state.maxSpark, state.spark + 2);
+                    state.enemies.splice(i, 1);
+                    continue;
+                }
+
+                // Enemy hits player (collision push)
+                if (dist < e.radius + p.radius) {
+                    const angle = Math.atan2(dy, dx);
+                    p.x -= Math.cos(angle) * 1.5;
+                    p.y -= Math.sin(angle) * 1.5;
+                }
+            }
+
+            // -- Update projectiles --
+            for (let i = state.projectiles.length - 1; i >= 0; i--) {
+                const proj = state.projectiles[i];
+                proj.x += proj.vx;
+                proj.y += proj.vy;
+                proj.life--;
+
+                // Trail
+                proj.trail.push({ x: proj.x, y: proj.y, life: 10 });
+                if (proj.trail.length > 12) proj.trail.shift();
+                for (let t = proj.trail.length - 1; t >= 0; t--) {
+                    proj.trail[t].life--;
+                    if (proj.trail[t].life <= 0) proj.trail.splice(t, 1);
+                }
+
+                // Hit enemies
+                let hit = false;
+                for (const e of state.enemies) {
+                    const d = Math.sqrt((proj.x - e.x) ** 2 + (proj.y - e.y) ** 2);
+                    if (d < e.radius + proj.radius) {
+                        e.hp -= proj.damage;
+                        e.hitTimer = 10;
+                        emitParticles(proj.x, proj.y, 12, '#ffcc44', 4, 20);
+                        state.comboCount++;
+                        state.comboTimer = 60;
+                        if (state.comboCount > 5) {
+                            showStatus(`🔥 ${state.comboCount}x COMBO`);
+                        }
+                        hit = true;
+                        break;
+                    }
+                }
+
+                // Hit buildings
+                if (!hit) {
+                    for (const b of state.buildings) {
+                        if (b.destroyed) continue;
+                        if (proj.x > b.x - b.w / 2 && proj.x < b.x + b.w / 2 &&
+                            proj.y > b.y - b.h / 2 && proj.y < b.y + b.h / 2) {
+                            b.hp--;
+                            if (b.hp <= 0) {
+                                b.destroyed = true;
+                                state.destroyedBuildings++;
+                                emitExplosion(b.x, b.y, 0.6);
+                                state.combinerCharge = Math.min(state.maxCombiner, state.combinerCharge + 5);
+                            }
+                            hit = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (hit || proj.life <= 0 || proj.x < -50 || proj.x > W + 50 || proj.y < -50 || proj.y > H + 50) {
+                    if (hit) emitParticles(proj.x, proj.y, 8, '#88ddff', 3, 12);
+                    state.projectiles.splice(i, 1);
+                }
+            }
+
+            // -- Update particles --
+            for (let i = state.particles.length - 1; i >= 0; i--) {
+                const pt = state.particles[i];
+                pt.x += pt.vx;
+                pt.y += pt.vy;
+                pt.vx *= 0.97;
+                pt.vy *= 0.97;
+                pt.life--;
+                if (pt.life <= 0) {
+                    state.particles.splice(i, 1);
+                }
+            }
+
+            // -- Shake decay --
+            if (state.shake > 0) state.shake *= 0.9;
+            if (state.shake < 0.1) state.shake = 0;
+
+            // -- Update HUD --
+            sparkValueEl.textContent = Math.round(state.spark) + '%';
+            const chargePct = (state.combinerCharge / state.maxCombiner) * 100;
+            combinerFill.style.width = chargePct + '%';
+            combinerStatus.textContent = Math.round(chargePct) + '% · ' +
+                (state.isCombinerReady ? '⚡ READY' : 'CHARGING');
+
+            // -- Combiner activation (auto if ready and enemies nearby) --
+            if (state.isCombinerReady && state.enemies.length > 2) {
+                // Activate! Clear enemies in a massive blast
+                state.isCombinerReady = false;
+                state.combinerCharge = 0;
+                showStatus('⚡ COMBINER BLAST!');
+                for (const e of state.enemies) {
+                    emitExplosion(e.x, e.y, 1.2);
+                    state.score += 50;
+                }
+                state.enemies = [];
+                state.shake = 20;
+                emitExplosion(W / 2, H / 2, 3);
+                // Also destroy nearby buildings
+                for (const b of state.buildings) {
+                    if (!b.destroyed && Math.random() < 0.3) {
+                        b.destroyed = true;
+                        state.destroyedBuildings++;
+                        emitExplosion(b.x, b.y, 0.5);
+                    }
+                }
+            }
+
+            // -- Auto-morph if spark low (desperation) --
+            if (state.spark < 15 && state.mode === 'robot' && state.morphCooldown <= 0) {
+                toggleMorph();
+            }
+        }
+
+        // ============================================================
+        //  TOGGLE MORPH
+        // ============================================================
+        function toggleMorph() {
+            if (state.morphCooldown > 0) return;
+            state.mode = state.mode === 'robot' ? 'vehicle' : 'robot';
+            state.morphCooldown = 20;
+            modeNameEl.textContent = state.mode.toUpperCase();
+            modeNameEl.className = state.mode;
+            modePromptEl.textContent = state.mode === 'robot' ?
+                '[ SPACE ] to Morph · [ CLICK ] to Attack' :
+                '[ SPACE ] to Morph · [ CLICK ] to Ram';
+            showStatus(state.mode === 'robot' ? '🤖 ROBOT MODE' : '🚗 VEHICLE MODE');
+            emitParticles(state.player.x, state.player.y, 30, state.mode === 'robot' ? '#4cf' : '#f84', 6, 25);
+            state.shake = 3;
+        }
+
+        // ============================================================
+        //  SHOW STATUS
+        // ============================================================
+        let statusTimeout = null;
+
+        function showStatus(text) {
+            statusMsg.textContent = text;
+            statusMsg.classList.add('show');
+            if (statusTimeout) clearTimeout(statusTimeout);
+            statusTimeout = setTimeout(() => {
+                statusMsg.classList.remove('show');
+            }, 1000);
+        }
+
+        // ============================================================
+        //  RESET
+        // ============================================================
+        function resetGame() {
+            state.spark = state.maxSpark;
+            state.enemies = [];
+            state.projectiles = [];
+            state.particles = [];
+            state.combinerCharge = 0;
+            state.isCombinerReady = false;
+            state.score = 0;
+            state.comboCount = 0;
+            state.destroyedBuildings = 0;
+            spawnBuildings();
+            state.player.x = W / 2;
+            state.player.y = H / 2;
+            state.player.targetX = W / 2;
+            state.player.targetY = H / 2;
+            showStatus('⚡ REBOOT');
+            emitExplosion(W / 2, H / 2, 2);
+        }
+
+        // ============================================================
+        //  DRAW
+        // ============================================================
+        function draw() {
+            ctx.save();
+
+            // -- Screen shake --
+            if (state.shake > 0.5) {
+                const sx = (Math.random() - 0.5) * state.shake * 1.2;
+                const sy = (Math.random() - 0.5) * state.shake * 1.2;
+                ctx.translate(sx, sy);
+            }
+
+            // -- Clear --
+            ctx.clearRect(-10, -10, W + 20, H + 20);
+
+            // -- Grid (cybertronian ground) --
+            ctx.strokeStyle = 'rgba(30, 40, 70, 0.3)';
+            ctx.lineWidth = 1;
+            for (let x = 0; x < W; x += 60) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, H);
+                ctx.stroke();
+            }
+            for (let y = 0; y < H; y += 60) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(W, y);
+                ctx.stroke();
+            }
+
+            // -- Buildings --
+            for (const b of state.buildings) {
+                if (b.destroyed) continue;
+                const alpha = 0.6 + (b.hp / b.maxHp) * 0.4;
+                ctx.fillStyle = b.color;
+                ctx.globalAlpha = alpha;
+                ctx.shadowColor = 'rgba(0,150,255,0.1)';
+                ctx.shadowBlur = 15;
+                ctx.fillRect(b.x - b.w / 2, b.y - b.h / 2, b.w, b.h);
+                // Windows
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = 'rgba(255,220,100,0.15)';
+                for (let wy = -b.h / 2 + 8; wy < b.h / 2 - 8; wy += 14) {
+                    for (let wx = -b.w / 2 + 8; wx < b.w / 2 - 8; wx += 16) {
+                        if (Math.random() > 0.3) {
+                            ctx.fillRect(b.x + wx, b.y + wy, 6, 8);
+                        }
+                    }
+                }
+                // HP indicator
+                if (b.hp < b.maxHp) {
+                    ctx.fillStyle = 'rgba(255,50,50,0.4)';
+                    ctx.fillRect(b.x - b.w / 2, b.y + b.h / 2 + 2, b.w * (b.hp / b.maxHp), 3);
+                }
+            }
+            ctx.globalAlpha = 1;
+            ctx.shadowBlur = 0;
+
+            // -- Projectiles --
+            for (const proj of state.projectiles) {
+                // Trail
+                for (const t of proj.trail) {
+                    ctx.beginPath();
+                    ctx.arc(t.x, t.y, proj.radius * (t.life / 10) * 0.6, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(100, 200, 255, ${t.life / 10 * 0.4})`;
+                    ctx.fill();
+                }
+                // Core
+                ctx.shadowColor = '#4cf';
+                ctx.shadowBlur = 30;
+                ctx.beginPath();
+                ctx.arc(proj.x, proj.y, proj.radius, 0, Math.PI * 2);
+                ctx.fillStyle = '#8cf';
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+
+            // -- Enemies --
+            for (const e of state.enemies) {
+                // Glow
+                const glow = e.hitTimer > 0 ? '#ff4444' : e.color;
+                ctx.shadowColor = glow;
+                ctx.shadowBlur = e.hitTimer > 0 ? 40 : 20;
+
+                // Body
+                ctx.beginPath();
+                ctx.arc(e.x, e.y, e.radius, 0, Math.PI * 2);
+                ctx.fillStyle = e.hitTimer > 0 ? '#ff6666' : e.color;
+                ctx.fill();
+
+                // Inner detail
+                ctx.shadowBlur = 0;
+                ctx.beginPath();
+                ctx.arc(e.x, e.y, e.radius * 0.5, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(0,0,0,0.3)';
+                ctx.fill();
+
+                // Eye
+                ctx.fillStyle = '#fff';
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = '#ff4444';
+                ctx.beginPath();
+                ctx.arc(e.x + e.radius * 0.3, e.y - e.radius * 0.2, e.radius * 0.2, 0, Math
